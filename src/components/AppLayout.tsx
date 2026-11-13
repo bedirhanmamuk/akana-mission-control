@@ -1,0 +1,158 @@
+import { useEffect, useState } from "react";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import {
+  Archive, Bell, Building2, ClipboardCheck, ClipboardList, FilePlus2, LayoutDashboard,
+  LogOut, Menu, ScrollText, Settings2, ShieldCheck, Upload, UserCog, Users, X, type LucideIcon,
+} from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { useNotifications } from "../context/NotificationContext";
+import { ROLE_LABEL } from "../lib/constants";
+import { fullName, initials } from "../lib/format";
+
+interface NavItem { to: string; label: string; icon: LucideIcon; end?: boolean }
+
+const MAIN_NAV: NavItem[] = [
+  { to: "/", label: "Genel Bakış", icon: LayoutDashboard, end: true },
+  { to: "/gorevler", label: "Görevlerim", icon: ClipboardList },
+  { to: "/departmanlar", label: "Departmanlar", icon: Building2 },
+  { to: "/rapor-yukle", label: "Rapor Yükle", icon: Upload },
+  { to: "/arsiv", label: "Rapor Arşivi", icon: Archive },
+  { to: "/bildirimler", label: "Bildirimler", icon: Bell },
+  { to: "/profil", label: "Profil ve Ayarlar", icon: UserCog },
+];
+
+const ADMIN_NAV: NavItem[] = [
+  { to: "/yonetim", label: "Yönetim Paneli", icon: Settings2, end: true },
+  { to: "/yonetim/uyeler", label: "Üye Yönetimi", icon: Users },
+  { to: "/yonetim/gorev-olustur", label: "Görev Oluştur", icon: FilePlus2 },
+  { to: "/yonetim/rapor-inceleme", label: "Rapor İnceleme", icon: ClipboardCheck },
+  { to: "/yonetim/kayitlar", label: "Sistem Kayıtları", icon: ScrollText },
+];
+
+function Logo() {
+  return (
+    <Link to="/" className="flex items-center gap-3">
+      {/* LOGO ALANI: AKANA logosu hazır olduğunda bu kutunun içine <img src="/logo.svg" /> yerleştirin. */}
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-accent/40 bg-accent/15" data-logo-slot>
+        <svg viewBox="0 0 32 32" className="size-6" aria-hidden>
+          <path d="M16 5l9 21h-4.2l-1.7-4.2h-6.2L11.2 26H7l9-21zm0 8.2l-1.9 5h3.8l-1.9-5z" fill="#A78BFA" />
+        </svg>
+      </div>
+      <div className="leading-tight">
+        <p className="text-sm font-bold tracking-[0.2em]">AKANA</p>
+        <p className="text-[10px] font-medium tracking-[0.25em] text-muted">MISSION CONTROL</p>
+      </div>
+    </Link>
+  );
+}
+
+function NavList({ items, unread, onNavigate }: { items: NavItem[]; unread: number; onNavigate: () => void }) {
+  return (
+    <ul className="space-y-0.5">
+      {items.map(({ to, label, icon: Icon, end }) => (
+        <li key={to}>
+          <NavLink
+            to={to}
+            end={end}
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              `group flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                isActive
+                  ? "bg-accent/15 font-medium text-ink shadow-[inset_2px_0_0_var(--color-accent)]"
+                  : "text-muted hover:bg-white/5 hover:text-ink"
+              }`
+            }
+          >
+            <Icon className="size-[18px] shrink-0" />
+            <span className="flex-1 truncate">{label}</span>
+            {to === "/bildirimler" && unread > 0 && (
+              <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white tabular-nums">
+                {unread > 99 ? "99+" : unread}
+              </span>
+            )}
+          </NavLink>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export default function AppLayout() {
+  const { profile, isAdmin, signOut } = useAuth();
+  const { unreadCount } = useNotifications();
+  const [open, setOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => { setOpen(false); }, [location.pathname]);
+
+  const sidebar = (
+    <div className="flex h-full flex-col">
+      <div className="flex h-16 shrink-0 items-center justify-between border-b border-line px-5">
+        <Logo />
+        <button className="rounded-md p-2 text-muted hover:bg-white/5 lg:hidden" onClick={() => setOpen(false)} aria-label="Menüyü kapat">
+          <X className="size-5" />
+        </button>
+      </div>
+      <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Ana menü">
+        <NavList items={MAIN_NAV} unread={unreadCount} onNavigate={() => setOpen(false)} />
+        {isAdmin && (
+          <>
+            <p className="mt-6 mb-2 flex items-center gap-2 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted/70">
+              <ShieldCheck className="size-3.5" /> Yönetim
+            </p>
+            <NavList items={ADMIN_NAV} unread={0} onNavigate={() => setOpen(false)} />
+          </>
+        )}
+      </nav>
+      <div className="shrink-0 border-t border-line p-3">
+        <div className="flex items-center gap-3 rounded-lg px-2 py-2">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent/20 text-xs font-semibold text-accent-2">
+            {initials(profile)}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium">{fullName(profile)}</p>
+            <p className="truncate text-[11px] text-muted">{profile ? ROLE_LABEL[profile.role] : ""}</p>
+          </div>
+          <button onClick={() => void signOut()} className="rounded-md p-2 text-muted hover:bg-danger/10 hover:text-danger" aria-label="Çıkış yap" title="Çıkış yap">
+            <LogOut className="size-[18px]" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-dvh">
+      {/* Masaüstü: sabit sol menü */}
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-line bg-surface lg:block">{sidebar}</aside>
+
+      {/* Mobil: açılır/kapanır menü */}
+      {open && <div className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden" onClick={() => setOpen(false)} />}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] border-r border-line bg-surface transition-transform duration-200 lg:hidden ${open ? "translate-x-0" : "-translate-x-full"}`}
+        aria-hidden={!open}
+        inert={!open}
+      >
+        {sidebar}
+      </aside>
+
+      <div className="lg:pl-64">
+        <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-bg/85 px-4 backdrop-blur lg:hidden">
+          <button className="-ml-2 rounded-md p-2 text-ink hover:bg-white/5" onClick={() => setOpen(true)} aria-label="Menüyü aç">
+            <Menu className="size-6" />
+          </button>
+          <span className="text-xs font-bold tracking-[0.2em]">AKANA <span className="font-medium text-muted">MISSION CONTROL</span></span>
+          <Link to="/bildirimler" className="relative -mr-2 rounded-md p-2 text-ink hover:bg-white/5" aria-label="Bildirimler">
+            <Bell className="size-5" />
+            {unreadCount > 0 && <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-accent ring-2 ring-bg" />}
+          </Link>
+        </header>
+        <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          <div key={location.pathname} className="animate-fade-in">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}

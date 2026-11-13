@@ -1,0 +1,58 @@
+# Uygulamayı derler ve GitHub Pages'e yayınlar.
+# Gerekli depo ayarları (Settings → Secrets and variables → Actions → Variables):
+#   VITE_SUPABASE_URL        https://<proje>.supabase.co
+#   VITE_SUPABASE_ANON_KEY   anon / publishable anahtar (herkese açık anahtardır)
+# Settings → Pages → Source: "GitHub Actions" seçili olmalı.
+name: Siteyi yayınla (GitHub Pages)
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["supabase/**", "local/**", "tests/**", "**.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - id: pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - run: npm ci
+      - name: Derle
+        run: npm run build
+        env:
+          VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}/
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY || secrets.VITE_SUPABASE_ANON_KEY }}
+      - name: Supabase ayarı eksikse uyar
+        if: ${{ !(vars.VITE_SUPABASE_URL || secrets.VITE_SUPABASE_URL) }}
+        run: echo "::warning::VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY tanımlı değil. Site yayınlanır ama yalnızca kurulum ekranını gösterir."
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

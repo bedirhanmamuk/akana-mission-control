@@ -1,0 +1,11 @@
+# Supabase CLI yapılandırması (supabase link / db push / functions deploy için)
+project_id = "akana-mission-control"
+
+[auth]
+# Herkese açık kayıt kapalı: hesapları yalnızca yönetici oluşturur.
+enable_signup = false
+
+[functions.admin-users]
+# JWT doğrulaması fonksiyonun içinde yapılır (Auth sunucusuna sorarak) ve
+# ayrıca veritabanından ADMIN rolü kontrol edilir.
+verify_jwt = false
