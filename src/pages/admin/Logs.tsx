@@ -46,7 +46,7 @@ export default function Logs() {
       ) : (
         <div className={`card overflow-hidden ${loading ? "opacity-60" : ""}`}>
           <table className="hidden w-full md:table">
-            <thead className="border-b border-line bg-surface/60">
+            <thead className="border-b border-line-soft">
               <tr><th className="th">Tarih</th><th className="th">İşlem</th><th className="th">Açıklama</th><th className="th">Yapan</th></tr>
             </thead>
             <tbody className="divide-y divide-line-soft">

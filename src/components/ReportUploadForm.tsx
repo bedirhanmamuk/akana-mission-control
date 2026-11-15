@@ -271,7 +271,7 @@ export default function ReportUploadForm({ task, existingReport, maxFileSizeMb, 
       )}
 
       {busy && (
-        <div className="rounded-lg border border-line bg-surface p-3" role="status" aria-live="polite">
+        <div className="rounded-lg bg-surface p-3" role="status" aria-live="polite">
           <div className="mb-2 flex items-center justify-between text-sm">
             <span className="flex items-center gap-2">
               <Spinner className="size-4" />

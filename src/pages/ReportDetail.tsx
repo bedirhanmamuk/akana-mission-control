@@ -85,9 +85,9 @@ export default function ReportDetail() {
         <div className="mb-2 flex flex-wrap items-center gap-2">
           {task && <Link to={`/gorevler/${task.id}`} className="code-tag text-sm hover:underline">{task.code}</Link>}
           <span className="rounded-md bg-accent/20 px-2 py-0.5 font-mono text-xs font-bold text-accent-2">V{report.current_version}</span>
-          <span data-testid="report-status"><ReportStatusBadge status={report.status} /></span>
+          <span key={report.status} className="inline-flex animate-pop" data-testid="report-status"><ReportStatusBadge status={report.status} /></span>
         </div>
-        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{report.title}</h1>
+        <h1 className="display text-2xl font-semibold sm:text-[28px]">{report.title}</h1>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">

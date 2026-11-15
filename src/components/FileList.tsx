@@ -58,7 +58,7 @@ export default function FileList({ files }: { files: ReportFile[] }) {
   if (files.length === 0) return <p className="text-sm text-muted">Bu sürümde dosya yok.</p>;
 
   return (
-    <ul className="divide-y divide-line-soft rounded-lg border border-line bg-surface">
+    <ul className="divide-y divide-white/5 rounded-xl bg-raised/70">
       {files.map((f) => {
         const Icon = fileIcon(f.extension);
         return (

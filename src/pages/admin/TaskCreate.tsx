@@ -127,7 +127,7 @@ export default function TaskCreate() {
               <span className="text-xs text-muted">{assignees.length} seçili</span>
             </div>
             {!form.department_id ? (
-              <p className="rounded-lg border border-dashed border-line px-3 py-6 text-center text-sm text-muted">Önce departman seçin.</p>
+              <p className="rounded-lg bg-surface px-3 py-6 text-center text-sm text-muted">Önce departman seçin.</p>
             ) : (
               <>
                 {deptPeople.length > 0 && (
@@ -137,10 +137,10 @@ export default function TaskCreate() {
                   </button>
                 )}
                 <div className="max-h-80 overflow-y-auto">
-                  <p className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-wider text-muted">{dept?.name} üyeleri</p>
+                  <p className="mb-1 px-2 text-xs font-medium text-faint">{dept?.name} üyeleri</p>
                   {deptPeople.length === 0 && <p className="px-2 py-2 text-sm text-muted">Bu departmanda aktif üye yok.</p>}
                   {deptPeople.map((p) => <PersonRow key={p.id} id={p.id} name={fullName(p)} />)}
-                  {otherPeople.length > 0 && <p className="mt-3 mb-1 px-2 text-[11px] font-semibold uppercase tracking-wider text-muted">Diğer üyeler</p>}
+                  {otherPeople.length > 0 && <p className="mt-3 mb-1 px-2 text-xs font-medium text-faint">Diğer üyeler</p>}
                   {otherPeople.map((p) => <PersonRow key={p.id} id={p.id} name={fullName(p)} />)}
                 </div>
               </>

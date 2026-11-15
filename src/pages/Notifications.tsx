@@ -72,7 +72,7 @@ export default function Notifications() {
         <EmptyState icon={<Bell className="size-6" />} title={onlyUnread ? "Okunmamış bildiriminiz yok" : "Henüz bildiriminiz yok"}
           description="Görev atamaları, teslim tarihleri ve rapor inceleme sonuçları burada görünür." />
       ) : (
-        <ul className="space-y-2" data-testid="notification-list">
+        <ul className="stagger space-y-2" data-testid="notification-list">
           {data.map((n) => {
             const meta = NOTIFICATION_META[n.type];
             return (

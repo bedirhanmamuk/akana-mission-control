@@ -6,19 +6,20 @@ import {
   PRIORITY_META, REPORT_STATUS_META, TASK_STATUS_META,
 } from "../lib/constants";
 import type { ReportStatus, TaskPriority, TaskStatus } from "../lib/types";
+import { useCountUp } from "../lib/motion";
 
 const TONE_CLASS: Record<Tone, string> = {
-  neutral: "border-line bg-white/5 text-muted",
-  accent: "border-accent/40 bg-accent/15 text-accent-2",
-  success: "border-success/35 bg-success/10 text-success",
-  warning: "border-warning/35 bg-warning/10 text-warning",
-  danger: "border-danger/35 bg-danger/10 text-danger",
-  info: "border-sky-400/30 bg-sky-400/10 text-sky-300",
+  neutral: "bg-white/6 text-muted",
+  accent: "bg-accent/18 text-accent-2",
+  success: "bg-success/12 text-success",
+  warning: "bg-warning/14 text-warning",
+  danger: "bg-danger/14 text-danger",
+  info: "bg-sky-400/12 text-sky-300",
 };
 
 export function Badge({ tone = "neutral", children }: { tone?: Tone; children: ReactNode }) {
   return (
-    <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-[11px] font-medium ${TONE_CLASS[tone]}`}>
+    <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-0.5 text-[11px] font-medium ${TONE_CLASS[tone]}`}>
       {children}
     </span>
   );
@@ -54,7 +55,7 @@ export function EmptyState({ title, description, action, icon }: {
   title: string; description?: string; action?: ReactNode; icon?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-line px-6 py-12 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-surface/70 px-6 py-14 text-center">
       <div className="flex size-12 items-center justify-center rounded-full bg-white/5 text-muted">
         {icon ?? <Inbox className="size-6" />}
       </div>
@@ -69,7 +70,7 @@ export function EmptyState({ title, description, action, icon }: {
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-danger/30 bg-danger/5 px-6 py-10 text-center" role="alert">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-danger/8 px-6 py-10 text-center" role="alert">
       <AlertTriangle className="size-7 text-danger" />
       <div>
         <p className="font-medium text-ink">Veriler yüklenemedi</p>
@@ -107,7 +108,7 @@ export function PageHeader({ title, description, actions }: {
   return (
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
-        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
+        <h1 className="display text-2xl font-semibold sm:text-[28px]">{title}</h1>
         {description && <p className="mt-1 text-sm text-muted">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
@@ -122,7 +123,7 @@ export function Card({ children, className = "" }: { children: ReactNode; classN
 export function SectionTitle({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
   return (
     <div className="mb-4 flex items-center justify-between gap-3">
-      <h2 className="text-sm font-semibold tracking-wide text-ink">{children}</h2>
+      <h2 className="text-[15px] font-semibold text-ink">{children}</h2>
       {aside}
     </div>
   );
@@ -160,34 +161,51 @@ export function Modal({ open, onClose, title, children, footer, wide }: {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={title}>
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className={`relative flex max-h-[92dvh] w-full animate-fade-in flex-col rounded-t-2xl border border-line bg-surface shadow-2xl sm:rounded-2xl ${wide ? "sm:max-w-2xl" : "sm:max-w-lg"}`}>
-        <div className="flex items-center justify-between border-b border-line px-5 py-4">
+      <div className="absolute inset-0 animate-backdrop bg-[#05050b]/80" onClick={onClose} />
+      <div className={`relative flex max-h-[92dvh] w-full animate-sheet flex-col rounded-t-3xl bg-card shadow-[0_30px_80px_-20px_rgb(0_0_0/0.9)] sm:animate-dialog sm:rounded-2xl ${wide ? "sm:max-w-2xl" : "sm:max-w-lg"}`}>
+        <div className="flex items-center justify-between border-b border-line-soft px-5 py-4">
           <h2 className="font-semibold">{title}</h2>
           <button onClick={onClose} className="rounded-md p-1 text-muted hover:bg-white/5 hover:text-ink" aria-label="Kapat">
             <X className="size-5" />
           </button>
         </div>
         <div className="overflow-y-auto px-5 py-4">{children}</div>
-        {footer && <div className="flex flex-wrap justify-end gap-2 border-t border-line px-5 py-4">{footer}</div>}
+        {footer && <div className="flex flex-wrap justify-end gap-2 border-t border-line-soft px-5 py-4">{footer}</div>}
       </div>
     </div>
   );
 }
 
-export function StatCard({ label, value, icon, tone = "accent", to }: {
-  label: string; value: number | string; icon: ReactNode; tone?: Tone; to?: string;
+/** Telemetri okuması: etiket + büyük rakam. Rakam panel açılışında bir kez sayarak gelir. */
+export function Readout({ label, value, to, tone }: {
+  label: string; value: number; to?: string; tone?: "success" | "warning" | "danger";
 }) {
+  const shown = useCountUp(value);
+  const alert = tone && tone !== "success" && value > 0;
+  const color = tone === "success" ? "text-success" : alert ? (tone === "danger" ? "text-danger" : "text-warning") : "text-ink";
   const body = (
-    <div className={`card flex h-full items-center gap-3 p-3 transition-colors sm:gap-4 sm:p-4 ${to ? "hover:border-accent/50" : ""}`}>
-      <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg border sm:size-11 ${TONE_CLASS[tone]}`}>{icon}</div>
-      <div className="min-w-0">
-        <p className="line-clamp-2 text-xs leading-tight text-muted">{label}</p>
-        <p className="text-2xl font-semibold tabular-nums tracking-tight">{value}</p>
-      </div>
+    <>
+      <span className="flex min-h-[2.5em] items-end gap-1.5 text-[13px] leading-tight text-muted">
+        {alert && <span className={`mb-[0.4em] size-1.5 shrink-0 rounded-full ${tone === "danger" ? "bg-danger" : "bg-warning"}`} />}
+        {label}
+      </span>
+      {" "}
+      <span className={`num mt-1 block text-[34px] font-semibold leading-none ${color}`}>{shown}</span>
+    </>
+  );
+  const cls = "block min-w-0 rounded-xl px-3 py-3 -mx-1";
+  return to
+    ? <Link to={to} className={`${cls} transition-colors duration-150 hover:bg-white/5`}>{body}</Link>
+    : <div className={cls}>{body}</div>;
+}
+
+export function ReadoutGroup({ title, children, cols = 3 }: { title: string; children: ReactNode; cols?: 2 | 3 }) {
+  return (
+    <div className="min-w-0 px-4 py-4 sm:px-5">
+      <h2 className="mb-1 px-2 text-xs font-medium text-faint">{title}</h2>
+      <div className={`grid grid-cols-2 gap-x-2 ${cols === 3 ? "sm:grid-cols-3" : ""}`}>{children}</div>
     </div>
   );
-  return to ? <Link to={to}>{body}</Link> : body;
 }
 
 export function InfoRow({ label, children }: { label: string; children: ReactNode }) {

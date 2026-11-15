@@ -58,11 +58,11 @@ export default function ReportUpload() {
               </Field>
             </div>
             {!task ? (
-              <p className="flex items-center gap-2 rounded-lg border border-dashed border-line px-3 py-6 text-sm text-muted">
+              <p className="flex items-center gap-2 rounded-lg bg-surface px-3 py-6 text-sm text-muted">
                 <Info className="size-4 shrink-0" /> Devam etmek için yukarıdan bir görev seçin.
               </p>
             ) : !canUploadNewVersion(report) ? (
-              <div className="rounded-lg border border-line bg-surface px-4 py-5 text-sm">
+              <div className="rounded-lg bg-surface px-4 py-5 text-sm">
                 <p className="mb-2 flex items-center gap-2">Bu görev için raporunuz: <ReportStatusBadge status={report!.status} /></p>
                 <p className="text-muted">
                   {report!.status === "APPROVED" ? "Rapor onaylandığı için yeni sürüm yüklenemez." : "Rapor şu anda inceleniyor; inceleme sonuçlanana kadar yeni sürüm yüklenemez."}

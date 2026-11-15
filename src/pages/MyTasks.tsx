@@ -1,11 +1,13 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
-import { CalendarDays, ClipboardList, LayoutGrid, List, Plus, Search, Users } from "lucide-react";
+import { ClipboardList, LayoutGrid, List, Plus, Search, Users } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useAsync } from "../lib/useAsync";
 import { fetchDirectory, fetchTasks, nameMap } from "../lib/api";
 import { TASK_STATUS_META, TASK_STATUSES } from "../lib/constants";
-import { daysUntil, formatDate, fullName } from "../lib/format";
+import { fullName } from "../lib/format";
+import TCountdown from "../components/TCountdown";
+import { FlightTrack } from "../components/FlightProfile";
 import type { DirectoryEntry, TaskStatus, TaskWithRelations } from "../lib/types";
 import {
   EmptyState, ErrorState, LoadingState, PageHeader, PriorityBadge, TaskStatusBadge,
@@ -21,16 +23,7 @@ function assigneeNames(t: TaskWithRelations, names: Map<string, DirectoryEntry>)
 }
 
 function DueText({ task }: { task: TaskWithRelations }) {
-  const closed = task.status === "COMPLETED" || task.status === "APPROVED";
-  const d = daysUntil(task.due_date);
-  const cls = closed ? "text-muted" : d < 0 ? "text-danger" : d <= 3 ? "text-warning" : "text-muted";
-  return (
-    <span className={`inline-flex items-center gap-1.5 text-xs ${cls}`}>
-      <CalendarDays className="size-3.5" />
-      {formatDate(task.due_date)}
-      {!closed && (d < 0 ? ` · ${-d} gün gecikti` : d === 0 ? " · bugün" : d <= 7 ? ` · ${d} gün` : "")}
-    </span>
-  );
+  return <TCountdown dueDate={task.due_date} status={task.status} />;
 }
 
 export default function MyTasks() {
@@ -71,7 +64,7 @@ export default function MyTasks() {
       />
 
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center">
-        <div className="inline-flex self-start rounded-lg border border-line bg-surface p-1" role="tablist">
+        <div className="inline-flex self-start rounded-lg bg-surface p-1" role="tablist">
           {([["mine", "Bana atananlar"], ["all", isAdmin ? "Tüm görevler" : "Departman görevleri"]] as const).map(([k, label]) => (
             <button key={k} role="tab" aria-selected={scope === k} onClick={() => setScope(k)}
               className={`min-h-9 rounded-md px-3 text-sm transition-colors ${scope === k ? "bg-accent text-white" : "text-muted hover:text-ink"}`}>
@@ -87,7 +80,7 @@ export default function MyTasks() {
           <option value="">Tüm durumlar</option>
           {TASK_STATUSES.map((s) => <option key={s} value={s}>{TASK_STATUS_META[s].label}</option>)}
         </select>
-        <div className="inline-flex self-start rounded-lg border border-line bg-surface p-1">
+        <div className="inline-flex self-start rounded-lg bg-surface p-1">
           <button onClick={() => changeView("cards")} aria-label="Kart görünümü" aria-pressed={view === "cards"}
             className={`rounded-md p-2 ${view === "cards" ? "bg-white/10 text-ink" : "text-muted hover:text-ink"}`}><LayoutGrid className="size-4" /></button>
           <button onClick={() => changeView("list")} aria-label="Liste görünümü" aria-pressed={view === "list"}
@@ -100,13 +93,14 @@ export default function MyTasks() {
           title={data.tasks.length === 0 ? "Henüz görev yok" : "Filtrelere uyan görev bulunamadı"}
           description={data.tasks.length === 0 ? "Size bir görev atandığında burada listelenecek." : "Arama metnini veya filtreleri değiştirmeyi deneyin."} />
       ) : view === "cards" ? (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" data-testid="task-cards">
-          {filtered.map((t) => (
-            <Link key={t.id} to={`/gorevler/${t.id}`} className="card flex flex-col gap-3 p-4 transition-colors hover:border-accent/50" data-testid="task-item">
+        <div className="stagger grid gap-3 sm:grid-cols-2 xl:grid-cols-3" data-testid="task-cards">
+          {filtered.map((t, i) => (
+            <Link key={t.id} to={`/gorevler/${t.id}`} className="card card-link flex flex-col gap-3 p-4" style={{ "--i": i } as CSSProperties} data-testid="task-item">
               <div className="flex items-start justify-between gap-2">
                 <span className="code-tag">{t.code}</span>
                 <TaskStatusBadge status={t.status} />
               </div>
+              <FlightTrack status={t.status} />
               <p className="line-clamp-2 font-medium leading-snug">{t.title}</p>
               <p className="line-clamp-2 min-h-8 text-xs text-muted">{t.description || "Açıklama girilmemiş."}</p>
               <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-line-soft pt-3">
@@ -122,7 +116,7 @@ export default function MyTasks() {
         <div className="card overflow-hidden" data-testid="task-list">
           {/* Mobil: satırlar kart gibi yığılır; masaüstü: tablo */}
           <table className="hidden w-full md:table">
-            <thead className="border-b border-line bg-surface/60">
+            <thead className="border-b border-line-soft">
               <tr><th className="th">Kod</th><th className="th">Görev</th><th className="th">Departman</th><th className="th">Sorumlu</th><th className="th">Öncelik</th><th className="th">Teslim</th><th className="th">Durum</th></tr>
             </thead>
             <tbody className="divide-y divide-line-soft">

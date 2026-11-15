@@ -225,7 +225,7 @@ export default function Members() {
       ) : (
         <div className="card overflow-hidden">
           <table className="hidden w-full md:table">
-            <thead className="border-b border-line bg-surface/60">
+            <thead className="border-b border-line-soft">
               <tr><th className="th">Ad Soyad</th><th className="th">E-posta</th><th className="th">Departman</th><th className="th">Rol</th><th className="th">Durum</th><th className="th">Kayıt</th><th className="th" /></tr>
             </thead>
             <tbody className="divide-y divide-line-soft">

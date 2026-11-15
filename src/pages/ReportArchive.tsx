@@ -117,7 +117,7 @@ export default function ReportArchive() {
       ) : (
         <div className={`card overflow-hidden ${result.loading ? "opacity-60" : ""}`}>
           <table className="hidden w-full md:table">
-            <thead className="border-b border-line bg-surface/60">
+            <thead className="border-b border-line-soft">
               <tr><th className="th">Rapor</th><th className="th">Görev</th><th className="th">Departman</th>{isAdmin && <th className="th">Yükleyen</th>}<th className="th">Dosya</th><th className="th">Güncelleme</th><th className="th">Durum</th></tr>
             </thead>
             <tbody className="divide-y divide-line-soft">

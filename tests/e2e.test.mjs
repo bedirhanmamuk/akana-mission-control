@@ -261,10 +261,14 @@ try {
   check("#9 yönetici raporu onaylar", await visible(admin.getByTestId("report-status").getByText("Onaylandı")));
   check("onay sonrası inceleme düğmeleri kalkar", (await admin.getByTestId("review-actions").count()) === 0);
   await admin.goto(task.url);
+  await visible(admin.getByTestId("flight-profile")); await admin.waitForTimeout(1100); await shot(admin, "17-gorev-detay");
+  await admin.goto(`${BASE}/gorevler`); await visible(admin.getByTestId("task-item")); await admin.waitForTimeout(700); await shot(admin, "18-gorevler");
+  await admin.goto(task.url);
   await admin.selectOption('select[name="task-status"]', "COMPLETED");
   check("yönetici görevi 'Tamamlandı' yapar", await visible(admin.getByText("Görev durumu güncellendi.")));
   await admin.goto(`${BASE}/`);
   await visible(admin.getByTestId("admin-stats"));
+  await admin.waitForTimeout(1000); // rakamlar açılışta sayarak gelir
   const statText = (await admin.getByTestId("admin-stats").innerText()).replace(/\s+/g, " ");
   const db = sql("select (select count(*) from profiles where is_active) || '/' || (select count(*) from tasks) || '/' || (select count(*) from tasks where status='COMPLETED') || '/' || (select count(*) from reports where status='APPROVED')");
   const [m, t, c, a] = db.split("/");

@@ -28,7 +28,7 @@ export default function ReportReview() {
   return (
     <>
       <PageHeader title="Rapor İnceleme" description="Yüklenen raporlar onaylanmadan önce burada incelenir. Kuyruk en eski yüklemeden başlar." />
-      <div className="mb-4 flex gap-1 overflow-x-auto rounded-lg border border-line bg-surface p-1" role="tablist">
+      <div className="mb-4 flex gap-1 overflow-x-auto rounded-lg bg-surface p-1" role="tablist">
         {TABS.map((t) => (
           <button key={t.key} role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}
             className={`flex min-h-9 shrink-0 items-center gap-2 rounded-md px-3 text-sm transition-colors ${tab === t.key ? "bg-accent text-white" : "text-muted hover:text-ink"}`}>
@@ -43,10 +43,10 @@ export default function ReportReview() {
           title={tab === "queue" ? "İnceleme bekleyen rapor yok" : `${current.label} rapor yok`}
           description={tab === "queue" ? "Üyeler rapor yüklediğinde burada listelenecek." : undefined} />
       ) : (
-        <ul className="space-y-2" data-testid="review-queue">
+        <ul className="stagger space-y-2" data-testid="review-queue">
           {rows.map((r) => (
             <li key={r.id}>
-              <Link to={`/yonetim/rapor-inceleme/${r.id}`} className="card flex items-center gap-4 p-4 transition-colors hover:border-accent/50" data-testid="review-item">
+              <Link to={`/yonetim/rapor-inceleme/${r.id}`} className="card flex items-center gap-4 p-4 card-link" data-testid="review-item">
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex flex-wrap items-center gap-2">
                     <span className="code-tag">{r.task_code}</span>

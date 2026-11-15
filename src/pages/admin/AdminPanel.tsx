@@ -112,7 +112,7 @@ export default function AdminPanel() {
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {SHORTCUTS.map(({ to, label, desc, icon: Icon }) => (
-          <Link key={to} to={to} className="card flex items-center gap-3 p-4 transition-colors hover:border-accent/50">
+          <Link key={to} to={to} className="card flex items-center gap-3 p-4 card-link">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-accent/15 text-accent-2"><Icon className="size-5" /></div>
             <div className="min-w-0"><p className="truncate text-sm font-medium">{label}</p><p className="truncate text-xs text-muted">{desc}</p></div>
           </Link>
@@ -122,7 +122,7 @@ export default function AdminPanel() {
       {loading ? <LoadingState /> : error || !data ? <ErrorState message={error ?? ""} onRetry={reload} /> : (
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
           <Card className="overflow-hidden">
-            <div className="flex items-center justify-between border-b border-line p-5">
+            <div className="flex items-center justify-between border-b border-line-soft p-5">
               <h2 className="text-sm font-semibold">Departmanlar</h2>
               <button className="btn-primary min-h-9" onClick={() => setModal({ department: null })}><Plus className="size-4" /> Yeni departman</button>
             </div>

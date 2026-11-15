@@ -1,30 +1,28 @@
 import { Link } from "react-router-dom";
-import {
-  AlertOctagon, Building2, CalendarClock, CheckCircle2, ClipboardList, FileCheck2, FileClock,
-  FileWarning, ListChecks, RotateCcw, Users,
-} from "lucide-react";
+import { CalendarClock } from "lucide-react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import { unwrap, useAsync } from "../lib/useAsync";
 import { fetchTasks } from "../lib/api";
 import { ACTION_LABEL, REPORT_STATUS_META, REPORT_STATUSES } from "../lib/constants";
-import { daysUntil, formatDate, formatMonth, fullName, timeAgo } from "../lib/format";
+import { formatMonth, fullName, timeAgo } from "../lib/format";
+import TCountdown from "../components/TCountdown";
 import type { DashboardStats, Report, ReportStatus } from "../lib/types";
 import {
   Card, EmptyState, ErrorState, LoadingState, PageHeader, PriorityBadge, ReportStatusBadge,
-  SectionTitle, StatCard, TaskStatusBadge,
+  Readout, ReadoutGroup, SectionTitle, TaskStatusBadge,
 } from "../components/ui";
 
-const AXIS = { fill: "#9299AE", fontSize: 11 };
-const GRID = "#252B45";
+const AXIS = { fill: "#9c9bb8", fontSize: 11 };
+const GRID = "#22224a";
 
 function ChartTooltip({ active, payload, label, unit }: {
   active?: boolean; payload?: { value?: number | string }[]; label?: string | number; unit: string;
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-line bg-surface px-3 py-2 text-xs shadow-xl">
+    <div className="rounded-lg bg-surface px-3 py-2 text-xs shadow-xl">
       <p className="text-muted">{label}</p>
       <p className="mt-0.5 font-semibold text-ink tabular-nums">{payload[0].value} {unit}</p>
     </div>
@@ -51,16 +49,23 @@ function AdminDashboard() {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-testid="admin-stats">
-        <StatCard label="Toplam ekip üyesi" value={data.total_members} icon={<Users className="size-5" />} to="/yonetim/uyeler" />
-        <StatCard label="Aktif departman" value={data.active_departments} icon={<Building2 className="size-5" />} to="/departmanlar" />
-        <StatCard label="Toplam görev" value={data.total_tasks} icon={<ClipboardList className="size-5" />} to="/gorevler" />
-        <StatCard label="Tamamlanan görev" value={data.completed_tasks} icon={<CheckCircle2 className="size-5" />} tone="success" to="/gorevler" />
-        <StatCard label="Bekleyen rapor" value={data.pending_reports} icon={<FileClock className="size-5" />} tone="info" to="/yonetim/rapor-inceleme" />
-        <StatCard label="Onaylanan rapor" value={data.approved_reports} icon={<FileCheck2 className="size-5" />} tone="success" to="/arsiv" />
-        <StatCard label="Revizyon bekleyen rapor" value={data.revision_reports} icon={<RotateCcw className="size-5" />} tone="warning" to="/arsiv" />
-        <StatCard label="Geciken görev" value={data.overdue_tasks} icon={<AlertOctagon className="size-5" />} tone="danger" to="/gorevler" />
-      </div>
+      {/* Telemetri şeridi: sekiz eş kutu yerine üç anlamlı grup */}
+      <section className="card grid divide-y divide-white/5 lg:grid-cols-[1.25fr_1.6fr_1.75fr] lg:divide-x lg:divide-y-0" data-testid="admin-stats" aria-label="Özet göstergeler">
+        <ReadoutGroup title="Ekip" cols={2}>
+          <Readout label="Toplam ekip üyesi" value={data.total_members} to="/yonetim/uyeler" />
+          <Readout label="Aktif departman" value={data.active_departments} to="/departmanlar" />
+        </ReadoutGroup>
+        <ReadoutGroup title="Görevler">
+          <Readout label="Toplam görev" value={data.total_tasks} to="/gorevler" />
+          <Readout label="Tamamlanan görev" value={data.completed_tasks} to="/gorevler" tone="success" />
+          <Readout label="Geciken görev" value={data.overdue_tasks} to="/gorevler" tone="danger" />
+        </ReadoutGroup>
+        <ReadoutGroup title="Raporlar">
+          <Readout label="Bekleyen rapor" value={data.pending_reports} to="/yonetim/rapor-inceleme" tone="warning" />
+          <Readout label="Onaylanan rapor" value={data.approved_reports} to="/arsiv" tone="success" />
+          <Readout label="Revizyon bekleyen rapor" value={data.revision_reports} to="/arsiv" tone="warning" />
+        </ReadoutGroup>
+      </section>
 
       <div className="mt-6 grid gap-4 xl:grid-cols-2">
         <Card className="p-5">
@@ -73,7 +78,7 @@ function AdminDashboard() {
                   <XAxis type="number" allowDecimals={false} tick={AXIS} axisLine={false} tickLine={false} />
                   <YAxis type="category" dataKey="name" width={96} tick={{ ...AXIS, fill: "#F4F4F8" }} axisLine={false} tickLine={false} />
                   <Tooltip cursor={{ fill: "rgb(255 255 255 / 0.04)" }} content={<ChartTooltip unit="görev" />} />
-                  <Bar dataKey="total" fill="#8065D8" radius={[0, 4, 4, 0]} maxBarSize={18} isAnimationActive={false} />
+                  <Bar dataKey="total" fill="#8065D8" radius={[0, 4, 4, 0]} maxBarSize={18} animationDuration={700} animationEasing="ease-out" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -96,7 +101,7 @@ function AdminDashboard() {
                   <XAxis dataKey="label" tick={AXIS} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={18} />
                   <YAxis allowDecimals={false} tick={AXIS} axisLine={false} tickLine={false} />
                   <Tooltip cursor={{ stroke: "#A78BFA", strokeOpacity: 0.4 }} content={<ChartTooltip unit="yükleme" />} />
-                  <Area type="monotone" dataKey="count" stroke="#A78BFA" strokeWidth={2} fill="url(#uploads)" isAnimationActive={false}
+                  <Area type="monotone" dataKey="count" stroke="#A78BFA" strokeWidth={2} fill="url(#uploads)" animationDuration={700} animationEasing="ease-out"
                     dot={{ r: 2.5, fill: "#A78BFA", strokeWidth: 0 }} activeDot={{ r: 5, stroke: "#171C30", strokeWidth: 2 }} />
                 </AreaChart>
               </ResponsiveContainer>
@@ -119,7 +124,7 @@ function AdminDashboard() {
                       </span>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-line" role="img" aria-label={`${d.name}: yüzde ${pct} tamamlandı`}>
-                      <div className="h-full rounded-full bg-accent" style={{ width: `${pct}%` }} />
+                      <div className="bar-grow h-full rounded-full bg-accent" style={{ width: `${pct}%` }} />
                     </div>
                   </li>
                 );
@@ -214,12 +219,12 @@ function MemberDashboard() {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Atanan görev" value={tasks.length} icon={<ClipboardList className="size-5" />} to="/gorevler" />
-        <StatCard label="Açık görev" value={open.length} icon={<ListChecks className="size-5" />} tone="info" to="/gorevler" />
-        <StatCard label="İncelemedeki rapor" value={count(["PENDING", "IN_REVIEW"])} icon={<FileClock className="size-5" />} tone="accent" to="/arsiv" />
-        <StatCard label="Revizyon bekleyen" value={count(["REVISION_REQUESTED", "REJECTED"])} icon={<FileWarning className="size-5" />} tone="warning" to="/arsiv" />
-      </div>
+      <section className="card grid grid-cols-2 gap-x-2 px-4 py-3 sm:grid-cols-4 sm:px-5" aria-label="Özet göstergeler">
+        <Readout label="Atanan görev" value={tasks.length} to="/gorevler" />
+        <Readout label="Açık görev" value={open.length} to="/gorevler" />
+        <Readout label="İncelemedeki rapor" value={count(["PENDING", "IN_REVIEW"])} to="/arsiv" />
+        <Readout label="Revizyon bekleyen" value={count(["REVISION_REQUESTED", "REJECTED"])} to="/arsiv" tone="warning" />
+      </section>
       <div className="mt-6 grid gap-4 xl:grid-cols-2">
         <Card className="p-5">
           <SectionTitle aside={<Link to="/gorevler" className="text-xs text-accent-2 hover:underline">Tümü</Link>}>Yaklaşan teslimler</SectionTitle>
@@ -228,15 +233,12 @@ function MemberDashboard() {
           ) : (
             <ul className="divide-y divide-line-soft">
               {upcoming.map((t) => {
-                const d = daysUntil(t.due_date);
                 return (
                   <li key={t.id}>
                     <Link to={`/gorevler/${t.id}`} className="flex items-center gap-3 py-2.5 hover:opacity-80">
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm"><span className="code-tag mr-2">{t.code}</span>{t.title}</p>
-                        <p className={`text-xs ${d < 0 ? "text-danger" : d <= 3 ? "text-warning" : "text-muted"}`}>
-                          {formatDate(t.due_date)} · {d < 0 ? `${-d} gün gecikti` : d === 0 ? "bugün teslim" : `${d} gün kaldı`}
-                        </p>
+<div className="mt-1"><TCountdown dueDate={t.due_date} status={t.status} /></div>
                       </div>
                       <PriorityBadge priority={t.priority} />
                       <span className="hidden sm:inline"><TaskStatusBadge status={t.status} /></span>

@@ -31,7 +31,7 @@ export default function Departments() {
       {loading ? <LoadingState /> : error || !data ? <ErrorState message={error ?? ""} onRetry={reload} /> : data.departments.length === 0 ? (
         <EmptyState icon={<Building2 className="size-6" />} title="Henüz departman yok" description="Departmanlar Yönetim Paneli'nden oluşturulur." />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="stagger grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {data.departments.map((d) => {
             const s = data.stats.get(d.id);
             const mine = profile?.department_id === d.id;

@@ -11,7 +11,7 @@ export default function VersionHistory({ versions, currentVersion, names }: {
   return (
     <ol className="space-y-4">
       {versions.map((v) => (
-        <li key={v.id} className="rounded-xl border border-line bg-card p-4" data-testid={`version-${v.version_number}`}>
+        <li key={v.id} className="rounded-xl bg-surface p-4" data-testid={`version-${v.version_number}`}>
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <span className="rounded-md bg-accent/20 px-2 py-0.5 font-mono text-xs font-bold text-accent-2">V{v.version_number}</span>
             {v.version_number === currentVersion && <span className="text-[11px] font-medium text-muted">Güncel sürüm</span>}

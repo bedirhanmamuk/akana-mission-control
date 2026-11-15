@@ -15,6 +15,8 @@ import { formatDate, formatDateTime, fullName } from "../lib/format";
 import type { DirectoryEntry, Report, TaskPriority, TaskStatus, TaskWithRelations } from "../lib/types";
 import ReportUploadForm from "../components/ReportUploadForm";
 import VersionHistory from "../components/VersionHistory";
+import FlightProfile from "../components/FlightProfile";
+import TCountdown from "../components/TCountdown";
 import {
   Card, ErrorState, Field, InfoRow, LoadingState, Modal, PriorityBadge, ReportStatusBadge,
   SectionTitle, Spinner, TaskStatusBadge, Unauthorized,
@@ -176,10 +178,11 @@ export default function TaskDetail() {
         <div className="min-w-0">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <span className="code-tag text-sm" data-testid="task-code">{task.code}</span>
-            <TaskStatusBadge status={task.status} />
+            <span key={task.status} className="inline-flex animate-pop"><TaskStatusBadge status={task.status} /></span>
             <PriorityBadge priority={task.priority} />
+            <TCountdown dueDate={task.due_date} status={task.status} showDate={false} />
           </div>
-          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{task.title}</h1>
+          <h1 className="display text-2xl font-semibold sm:text-[28px]">{task.title}</h1>
         </div>
         <div className="flex flex-wrap gap-2">
           {isAssignee && task.status === "NEW" && (
@@ -198,11 +201,15 @@ export default function TaskDetail() {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-4">
+          <Card className="px-5 pt-5 pb-9">
+            <SectionTitle>Görev aşaması</SectionTitle>
+            <FlightProfile status={task.status} />
+          </Card>
           <Card className="p-5">
             <SectionTitle>Görev açıklaması</SectionTitle>
             <p className="whitespace-pre-wrap text-sm leading-relaxed">{task.description || <span className="text-muted">Açıklama girilmemiş.</span>}</p>
             {task.notes && (
-              <div className="mt-4 rounded-lg border border-line bg-surface p-3">
+              <div className="mt-4 rounded-lg bg-surface p-3">
                 <p className="text-xs font-semibold text-muted">Ek açıklamalar</p>
                 <p className="mt-1 whitespace-pre-wrap text-sm">{task.notes}</p>
               </div>
