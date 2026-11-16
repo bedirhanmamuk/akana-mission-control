@@ -438,6 +438,50 @@ try {
   check("koyu tema: metin kontrastı yeterli", darkContrast.muted >= 4.5 && darkContrast.faint >= 3 && darkContrast.btn >= 4.5, JSON.stringify(darkContrast));
   await mAdmin.getByRole("button", { name: "Koyu temaya geç" }).click();
 
+  section("Giriş ekranı: video arka plan ve kalkış animasyonu");
+  const videoState = (page) => page.evaluate(() => { const v = document.querySelector('[data-testid="launch-video"]'); return v ? { src: v.currentSrc.split("/").pop(), playing: !v.paused && v.currentTime > 0.3, w: v.videoWidth, cover: getComputedStyle(v).objectFit, fills: v.getBoundingClientRect().width >= innerWidth && v.getBoundingClientRect().height >= innerHeight } : null; });
+  const lp = await newPage();
+  await lp.goto(`${BASE}/giris`); await lp.waitForTimeout(2500);
+  const dv = await videoState(lp);
+  check("PC: yatay video oynuyor ve ekranı kaplıyor", dv !== null && dv.src === "atis.mp4" && dv.playing && dv.w === 1280 && dv.cover === "cover" && dv.fills, JSON.stringify(dv));
+  check("PC: form ve logo görünür, taşma yok", await visible(lp.getByRole("button", { name: "Giriş yap" })) && await visible(lp.getByTestId("login-logo")) && await lp.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1 && document.documentElement.scrollHeight <= innerHeight + 1));
+  await shot(lp, "50-giris-video", false);
+  await lp.fill('input[name="email"]', adminEmail); await lp.fill('input[name="password"]', "yanlis"); await lp.click('button[type="submit"]');
+  check("PC: hatalı girişte form yerinde kalır, hata görünür", await visible(lp.getByText("E-posta veya şifre hatalı.")) && await visible(lp.getByRole("button", { name: "Giriş yap" })));
+  await lp.fill('input[name="password"]', PW); await lp.click('button[type="submit"]');
+  const launched = await visible(lp.getByText("Panel açılıyor…"), 4000);
+  await lp.waitForTimeout(350); await shot(lp, "51-giris-kalkis", false);
+  check("PC: başarılı girişte kalkış animasyonu oynar, sonra panel açılır", launched && await visible(lp.getByTestId("admin-stats")));
+  await lp.goto(`${BASE}/giris`);
+  const t0 = Date.now(); await visible(lp.getByTestId("admin-stats"));
+  check("oturumu açık kullanıcı giriş sayfasında bekletilmez", Date.now() - t0 < 3000 && !/giris/.test(lp.url()));
+
+  for (const [label, dev, file] of [["iPhone 13", devices["iPhone 13"], "52-giris-mobil"], ["küçük Android (360×640)", { viewport: { width: 360, height: 640 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }, "53-giris-mobil-kucuk"]]) {
+    const mp = await newPage({ ...dev, locale: "tr-TR" });
+    await mp.goto(`${BASE}/giris`); await mp.waitForTimeout(2500);
+    const mv = await videoState(mp);
+    check(`${label}: dikey video oynuyor ve ekranı kaplıyor`, mv !== null && mv.src === "atis-mobil.mp4" && mv.playing && mv.fills, JSON.stringify(mv));
+    const fits = await mp.evaluate(() => { const b = document.querySelector('button[type="submit"]').getBoundingClientRect(); const l = document.querySelector('[data-testid="login-logo"]').getBoundingClientRect(); return { noX: document.documentElement.scrollWidth <= innerWidth + 1, logoTop: l.top >= 0, btnH: b.height, btnVisible: b.bottom <= innerHeight, font: parseFloat(getComputedStyle(document.querySelector('input[name="email"]')).fontSize) }; });
+    check(`${label}: logo ve Giriş düğmesi ekranda, yatay taşma yok, alanlar 16 px`, fits.noX && fits.logoTop && fits.btnVisible && fits.btnH >= 44 && fits.font >= 16, JSON.stringify(fits));
+    await shot(mp, file, false);
+    await mp.fill('input[name="email"]', memberEmail); await mp.fill('input[name="password"]', PW); await mp.click('button[type="submit"]');
+    check(`${label}: giriş yapılır ve panel açılır`, await visible(mp.getByRole("navigation", { name: "Hızlı erişim" })));
+    await mp.context().close();
+  }
+  const land = await newPage({ viewport: { width: 740, height: 360 }, isMobile: true, hasTouch: true });
+  await land.goto(`${BASE}/giris`); await land.waitForTimeout(1500);
+  await land.getByRole("button", { name: "Giriş yap" }).scrollIntoViewIfNeeded();
+  check("yatay telefon: sayfa kaydırılarak Giriş düğmesine ulaşılır", await land.evaluate(() => { const b = document.querySelector('button[type="submit"]').getBoundingClientRect(); return b.top >= 0 && b.bottom <= innerHeight && document.documentElement.scrollWidth <= innerWidth + 1; }));
+  const rm = await newPage({ reducedMotion: "reduce" });
+  await rm.goto(`${BASE}/giris`); await rm.waitForTimeout(800);
+  check("hareketi azalt: video yüklenmez, durağan sahne gösterilir", (await rm.getByTestId("launch-video").count()) === 0 && (await rm.locator("canvas").count()) === 1);
+  await rm.fill('input[name="email"]', adminEmail); await rm.fill('input[name="password"]', PW); await rm.click('button[type="submit"]');
+  check("hareketi azalt: animasyonsuz doğrudan panel açılır", await visible(rm.getByTestId("admin-stats")) && (await rm.getByText("Panel açılıyor…").count()) === 0);
+  const nv = await newPage();
+  await nv.route("**/media/*.mp4", (r) => r.abort());
+  await nv.goto(`${BASE}/giris`); await nv.waitForTimeout(1500);
+  check("video yüklenemezse yıldızlı sahneye düşer, form çalışır", (await nv.locator("canvas").count()) === 1 && await visible(nv.getByRole("button", { name: "Giriş yap" })));
+
   section("Pasif hesap ve çıkış");
   await admin.goto(`${BASE}/yonetim/uyeler`);
   await admin.getByRole("button", { name: "Mert Aydın üyesini düzenle" }).first().click();

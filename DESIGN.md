@@ -44,7 +44,7 @@ Palet logodan türetilir: derin mor zemin, menekşe ana renk ve logodaki macenta
 
 1. **Görev uçuş profili** (`FlightProfile`, `FlightTrack`): görevin aşaması bir yükseliş eğrisi üzerinde gösterilir. Aşama adları ürünün kendi durum adlarıdır.
 2. **T- sayacı** (`TCountdown`): teslim tarihi `T-3` / `T+2` olarak gösterilir; 3 gün ve altında sarı, geçince kırmızı.
-3. **Giriş sahnesi** (`OrbitScene`): yıldız alanı ve yörüngede dönen iki cisim.
+3. **Giriş sahnesi** (`LaunchBackdrop`): takımın atış videosu sessiz ve döngüde, koyu mor katmanın altında oynar; dik ekranda dikey kurgu kullanılır. Açılışta logo yükselip yerine oturur; başarılı girişte logo yukarı fırlar ve video hızlanır (yaklaşık 1 sn), hatalı girişte form sarsılır. "Hareketi azalt" veya veri tasarrufu açıkken ya da video oynatılamazsa yıldızlı sahne (`OrbitScene`) gösterilir.
 
 Bunlar dışında "uzay" süslemesi eklenmez.
 

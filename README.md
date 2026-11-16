@@ -154,3 +154,9 @@ Supabase CLI kuruluysa onun yerine `npx supabase start` da kullanılabilir.
 ## 4. Logo
 
 Logo `public/logo.png` (saydam zeminli) ve `public/favicon.png` dosyalarıdır. Değiştirmek için aynı adlarla yenilerini koymak yeterlidir.
+
+## 5. Giriş ekranı videosu
+
+`public/media/` içinde dört dosya vardır: `atis.mp4` (yatay, 1280×720) ve `atis-mobil.mp4` (dikey, 608×1080) ile ilk kareleri (`.jpg`). Videoyu değiştirmek için aynı adlarla yenilerini koyun; sessiz, 10–15 saniyelik, 1–2 MB altı dosyalar önerilir.
+
+Şu anki görüntü TEKNOFEST resmi yayınından alınmıştır ve ilk saniyelerde TEKNOFEST rozeti görünür. Herkese açık bir sitede kullanmadan önce yayın görüntüsünün kullanım koşullarını kontrol edin.

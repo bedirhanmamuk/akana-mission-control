@@ -62,6 +62,9 @@
   @keyframes sheet-in { from { transform: translateY(100%); } to { transform: none; } }
   @keyframes backdrop-in { from { opacity: 0; } to { opacity: 1; } }
   @keyframes beacon { 0% { transform: scale(1); opacity: 0.7; } 70%, 100% { transform: scale(2.6); opacity: 0; } }
+  @keyframes logo-in { 0% { opacity: 0; transform: translateY(60px) scale(0.9); } 60% { opacity: 1; transform: translateY(-6px); } 100% { transform: none; } }
+  @keyframes liftoff { 0% { transform: none; } 18% { transform: translateY(6px) scale(0.97); } 100% { transform: translateY(-110vh) scale(0.9); } }
+  @keyframes shake { 0%, 100% { transform: none; } 20% { transform: translateX(-8px); } 40% { transform: translateX(7px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(3px); } }
   @keyframes grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
   @keyframes reveal { from { clip-path: inset(-30% 100% -30% -5%); } to { clip-path: inset(-30% -5% -30% -5%); } }
 }
