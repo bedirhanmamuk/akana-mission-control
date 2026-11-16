@@ -8,22 +8,25 @@ Bu dosya arayüzün görsel kararlarını kaydeder. Yeni ekran veya bileşen ekl
 
 ## Renk
 
-Tek tema, koyu. Zemin ve yüzeyler mora çalan tek bir ton merdivenidir:
+Palet logodan türetilir: derin mor zemin, menekşe ana renk ve logodaki macenta "şu an" vurgusu. İki tema vardır; varsayılan koyudur, açık tema Profil ekranından veya menüdeki güneş/ay düğmesinden seçilir ve cihazda hatırlanır.
 
-| Rol | Token | Kullanım |
-|---|---|---|
-| Zemin | `bg` | Sayfa |
-| Ray | `rail` | Sol menü (üstten mor ışık alır) |
-| Yüzey | `surface` | Form alanları, panel içi kutular |
-| Panel | `card` | İçerik panelleri |
-| Yükseltilmiş | `raised` | İkincil düğme, açılır pencere, üzerine gelme |
-| Mor | `accent`, `accent-2` | Yalnızca eylem ve "şu an": birincil düğme, etkin menü, geçerli aşama, odak |
-| Metin | `ink`, `muted`, `faint` | Ana, ikincil, üçüncül |
-| Durum | `success`, `warning`, `danger` | Yalnızca anlam taşıdığında; her zaman bir etiketle birlikte |
+| Rol | Token | Koyu | Açık | Kullanım |
+|---|---|---|---|---|
+| Zemin | `bg` | `#09070f` | `#f3f1fa` | Sayfa |
+| Ray | `rail` | `#160c30` | `#160c30` | Sol menü: **her iki temada koyu** |
+| Yüzey | `surface` | `#110e1c` | `#efecf8` | Form alanları, panel içi kutular |
+| Panel | `card` | `#17132a` | `#ffffff` | İçerik panelleri |
+| Yükseltilmiş | `raised` | `#201a3a` | `#ebe7f7` | İkincil düğme, üzerine gelme |
+| Ana renk | `accent` | `#8452f0` | `#6a35e0` | Birincil düğme, etkin öğe, odak, grafik |
+| Ana renk (metin) | `accent-2` | `#b89cff` | `#5b2bd0` | Bağlantı, görev kodu |
+| Şu an | `hot` | `#e052f5` | `#b318cf` | Geçerli aşama işareti, okunmamış sayacı. Başka yerde kullanılmaz |
+| Metin | `ink` / `muted` / `faint` | | | Ana, ikincil, üçüncül |
+| Durum | `success` / `warning` / `danger` / `info` | | | Yalnızca anlam taşıdığında; her zaman bir etiketle |
 
-- Alanlar birbirinden **çizgiyle değil tonla** ayrılır. Panellerde kenarlık yoktur; form alanlarında ince bir iç çizgi vardır.
-- Panel içine panel konmaz. İç içe yüzey gerekiyorsa bir ton farkı kullanılır.
-- Koda ham renk yazılmaz; token kullanılır. Grafik renkleri `Dashboard.tsx` ve `constants.ts` içindeki durum renkleridir.
+- Alanlar birbirinden **çizgiyle değil tonla** ayrılır. Panel içine panel konmaz.
+- Koda ham renk yazılmaz; token kullanılır. Üzerine gelme gibi katmanlar için `bg-ink/5` kullanılır (temayla birlikte döner); `bg-white/…` yalnızca her zaman koyu olan sol menüde kullanılır.
+- Bir bölümün her temada koyu kalması gerekiyorsa `data-theme="dark"` verilir (sol menü, giriş ekranı).
+- Kontrast: ana ve ikincil metin en az 4,5:1, soluk metin en az 3:1. Testler bunu iki temada da ölçer.
 
 ## Tipografi
 
@@ -70,3 +73,5 @@ Hareket geri bildirim, durum ve süreklilik içindir; her bölüme aynı giriş 
 - **Tablolar:** Masaüstünde tablo, mobilde kart listesi. Başlık satırı soluk ve cümle düzeninde.
 - **Boş, yükleniyor, hata, yetkisiz:** Her veri alanının dördü de vardır (`ui.tsx`).
 - **Dokunma hedefi:** En az 40 px yükseklik.
+- **Pencereler:** `Modal` her zaman `<body>` altına çizilir (portal). Masaüstünde ortada, telefonda alttan açılan sayfa; düğmeler telefonda tam genişlik ve birincil eylem üstte.
+- **Mobil gezinme:** Altta beş öğeli çubuk (Genel, Görevler, Rapor yükle, Arşiv, Bildirim); tam menü üstteki düğmeden açılır.

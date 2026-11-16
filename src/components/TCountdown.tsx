@@ -12,7 +12,7 @@ export default function TCountdown({ dueDate, status, showDate = true }: {
   const d = daysUntil(dueDate);
   if (closed) return <span className="text-xs text-faint tabular-nums">{formatDate(dueDate)}</span>;
 
-  const tone = d < 0 ? "bg-danger/15 text-danger" : d <= 3 ? "bg-warning/15 text-warning" : "bg-white/5 text-muted";
+  const tone = d < 0 ? "bg-danger/15 text-danger" : d <= 3 ? "bg-warning/15 text-warning" : "bg-ink/5 text-muted";
   const label = d < 0 ? `T+${-d}` : `T-${d}`;
   const spoken = d < 0 ? `${-d} gün gecikti` : d === 0 ? "bugün teslim" : `${d} gün kaldı`;
   return (

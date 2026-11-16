@@ -35,11 +35,11 @@ export default function Login() {
   }
 
   return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden p-4">
+    <div data-theme="dark" className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-bg p-4">
       <OrbitScene />
       <div className="relative w-full max-w-sm animate-rise">
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-5 flex size-20 items-center justify-center rounded-3xl bg-ink shadow-[0_24px_50px_-18px_rgb(128_101_216/0.9)]">
+          <div className="mb-5 flex size-20 items-center justify-center rounded-3xl bg-logo-tile shadow-[0_24px_50px_-18px_rgb(132_82_240/0.9)]">
             <img src={`${import.meta.env.BASE_URL}logo.png`} alt="AKANA logosu" className="size-14" />
           </div>
           <h1 className="display text-2xl font-bold tracking-[0.2em]">AKANA</h1>

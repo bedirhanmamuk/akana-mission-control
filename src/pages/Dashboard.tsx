@@ -14,8 +14,8 @@ import {
   Readout, ReadoutGroup, SectionTitle, TaskStatusBadge,
 } from "../components/ui";
 
-const AXIS = { fill: "#9c9bb8", fontSize: 11 };
-const GRID = "#22224a";
+const AXIS = { fill: "var(--color-muted)", fontSize: 11 };
+const GRID = "var(--color-line-soft)";
 
 function ChartTooltip({ active, payload, label, unit }: {
   active?: boolean; payload?: { value?: number | string }[]; label?: string | number; unit: string;
@@ -50,7 +50,7 @@ function AdminDashboard() {
   return (
     <>
       {/* Telemetri şeridi: sekiz eş kutu yerine üç anlamlı grup */}
-      <section className="card grid divide-y divide-white/5 lg:grid-cols-[1.25fr_1.6fr_1.75fr] lg:divide-x lg:divide-y-0" data-testid="admin-stats" aria-label="Özet göstergeler">
+      <section className="card grid divide-y divide-ink/5 lg:grid-cols-[1.25fr_1.6fr_1.75fr] lg:divide-x lg:divide-y-0" data-testid="admin-stats" aria-label="Özet göstergeler">
         <ReadoutGroup title="Ekip" cols={2}>
           <Readout label="Toplam ekip üyesi" value={data.total_members} to="/yonetim/uyeler" />
           <Readout label="Aktif departman" value={data.active_departments} to="/departmanlar" />
@@ -76,9 +76,9 @@ function AdminDashboard() {
                 <BarChart data={deptData} layout="vertical" margin={{ top: 0, right: 16, bottom: 0, left: 0 }} barCategoryGap={10}>
                   <CartesianGrid horizontal={false} stroke={GRID} />
                   <XAxis type="number" allowDecimals={false} tick={AXIS} axisLine={false} tickLine={false} />
-                  <YAxis type="category" dataKey="name" width={96} tick={{ ...AXIS, fill: "#F4F4F8" }} axisLine={false} tickLine={false} />
-                  <Tooltip cursor={{ fill: "rgb(255 255 255 / 0.04)" }} content={<ChartTooltip unit="görev" />} />
-                  <Bar dataKey="total" fill="#8065D8" radius={[0, 4, 4, 0]} maxBarSize={18} animationDuration={700} animationEasing="ease-out" />
+                  <YAxis type="category" dataKey="name" width={96} tick={{ ...AXIS, fill: "var(--color-ink)" }} axisLine={false} tickLine={false} />
+                  <Tooltip cursor={{ fill: "color-mix(in srgb, var(--color-ink) 5%, transparent)" }} content={<ChartTooltip unit="görev" />} />
+                  <Bar dataKey="total" fill="var(--color-accent)" radius={[0, 4, 4, 0]} maxBarSize={18} animationDuration={700} animationEasing="ease-out" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -93,16 +93,16 @@ function AdminDashboard() {
                 <AreaChart data={monthly} margin={{ top: 8, right: 12, bottom: 0, left: -18 }}>
                   <defs>
                     <linearGradient id="uploads" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#8065D8" stopOpacity={0.35} />
-                      <stop offset="100%" stopColor="#8065D8" stopOpacity={0} />
+                      <stop offset="0%" stopColor="var(--color-accent)" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="var(--color-accent)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid vertical={false} stroke={GRID} />
                   <XAxis dataKey="label" tick={AXIS} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={18} />
                   <YAxis allowDecimals={false} tick={AXIS} axisLine={false} tickLine={false} />
-                  <Tooltip cursor={{ stroke: "#A78BFA", strokeOpacity: 0.4 }} content={<ChartTooltip unit="yükleme" />} />
-                  <Area type="monotone" dataKey="count" stroke="#A78BFA" strokeWidth={2} fill="url(#uploads)" animationDuration={700} animationEasing="ease-out"
-                    dot={{ r: 2.5, fill: "#A78BFA", strokeWidth: 0 }} activeDot={{ r: 5, stroke: "#171C30", strokeWidth: 2 }} />
+                  <Tooltip cursor={{ stroke: "var(--color-accent)", strokeOpacity: 0.4 }} content={<ChartTooltip unit="yükleme" />} />
+                  <Area type="monotone" dataKey="count" stroke="var(--color-accent)" strokeWidth={2} fill="url(#uploads)" animationDuration={700} animationEasing="ease-out"
+                    dot={{ r: 2.5, fill: "var(--color-accent)", strokeWidth: 0 }} activeDot={{ r: 5, stroke: "var(--color-card)", strokeWidth: 2 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

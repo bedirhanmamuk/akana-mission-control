@@ -65,8 +65,8 @@ export default function TaskCreate() {
   if (loadError || !data) return <><PageHeader title="Görev Oluştur" /><ErrorState message={loadError ?? ""} onRetry={reload} /></>;
 
   const PersonRow = ({ id, name }: { id: string; name: string }) => (
-    <label className="flex min-h-10 cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-white/5">
-      <input type="checkbox" className="size-4 accent-[#8065D8]" checked={assignees.includes(id)} onChange={() => toggle(id)} data-testid="assignee-checkbox" />
+    <label className="flex min-h-10 cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-ink/5">
+      <input type="checkbox" className="size-4" checked={assignees.includes(id)} onChange={() => toggle(id)} data-testid="assignee-checkbox" />
       <span className="text-sm">{name}</span>
     </label>
   );

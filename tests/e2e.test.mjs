@@ -342,6 +342,102 @@ try {
   await shot(mAdmin, "25-mobil-uye-yonetimi");
 
   // -------------------------------------------------------------------------
+  section("Yönetici: görev düzenleme ve silme (masaüstü + mobil)");
+  const inViewport = async (page, loc) => {
+    const b = await loc.boundingBox().catch(() => null); const v = page.viewportSize();
+    return b !== null && b.y >= 0 && b.x >= 0 && b.y + b.height <= v.height + 1 && b.x + b.width <= v.width + 1;
+  };
+  const newTask = (title) => {
+    sql(`insert into public.tasks (title, department_id, due_date) values ('${title}', '${avy}', current_date + 20)`);
+    return sql(`select id || '|' || code from public.tasks where title='${title}'`).split("|");
+  };
+  const [delPcId, delPcCode] = newTask("Silinecek görev PC");
+  const [, delMobCode] = newTask("Silinecek görev mobil");
+  // Uzun bir sayfada (aşağı kaydırılmışken) pencere yine ekranda açılmalı
+  await admin.goto(`${BASE}/gorevler/${delPcId}`);
+  await visible(admin.getByTestId("flight-profile"));
+  await admin.setViewportSize({ width: 1440, height: 560 });
+  await admin.mouse.wheel(0, 600);
+  await admin.getByRole("button", { name: "Düzenle" }).first().click();
+  check("PC: düzenleme penceresi kısa ekranda da tamamen görünür", await visible(admin.getByRole("dialog")) && await inViewport(admin, admin.getByRole("dialog").locator("> div").nth(1)) && await inViewport(admin, admin.getByRole("button", { name: "Kaydet" })));
+  await admin.getByRole("button", { name: "Vazgeç" }).click();
+  await admin.setViewportSize({ width: 1440, height: 900 });
+  await admin.goto(`${BASE}/gorevler`);
+  await admin.getByRole("link", { name: "AK-MEK-002 görevini düzenle" }).first().click();
+  check("PC: listeden 'düzenle' penceresi açılır", await visible(admin.getByRole("dialog", { name: /AK-MEK-002/ })));
+  await admin.locator("#edit-task input").first().fill("Burun konisi kalıp tasarımı (rev. B)");
+  await shot(admin, "30-gorev-duzenle", false);
+  await admin.getByRole("button", { name: "Kaydet" }).click();
+  check("PC: görev düzenlenir", await visible(admin.getByText("Görev güncellendi.")) && await visible(admin.getByRole("heading", { name: "Burun konisi kalıp tasarımı (rev. B)" })));
+  await admin.goto(`${BASE}/gorevler`);
+  await admin.getByRole("link", { name: `${delPcCode} görevini sil` }).first().click();
+  check("PC: listeden 'sil' onayı açılır", await visible(admin.getByRole("dialog", { name: "Görevi sil" })));
+  await admin.getByRole("button", { name: "Evet, sil" }).click();
+  check("PC: görev silinir", await visible(admin.getByText("Görev silindi.")) && sql(`select count(*) from public.tasks where id='${delPcId}'`) === "0");
+  await admin.goto(`${BASE}/gorevler`);
+  await admin.getByRole("link", { name: "AK-MEK-001 görevini sil" }).first().click();
+  await admin.getByRole("button", { name: "Evet, sil" }).click();
+  check("PC: raporu olan görev silinmez, nedeni açıklanır", await visible(admin.getByText(/rapor yüklendiği için silinemez/)));
+
+  await mAdmin.goto(`${BASE}/gorevler`);
+  await visible(mAdmin.getByTestId("task-item"));
+  check("mobil: görev kartında düzenle/sil düğmeleri var ve ≥ 40 px", await visible(mAdmin.getByRole("link", { name: "AK-MEK-002 görevini düzenle" })) && (await mAdmin.getByRole("link", { name: "AK-MEK-002 görevini düzenle" }).first().boundingBox()).height >= 40);
+  await shot(mAdmin, "31-mobil-gorevler-yonetici");
+  await mAdmin.getByRole("link", { name: "AK-MEK-002 görevini düzenle" }).first().click();
+  await mAdmin.waitForTimeout(500);
+  check("mobil: düzenleme penceresi ekranda açılır, Kaydet görünür", await visible(mAdmin.getByRole("dialog")) && await inViewport(mAdmin, mAdmin.getByRole("button", { name: "Kaydet" })));
+  await shot(mAdmin, "32-mobil-gorev-duzenle", false);
+  await mAdmin.locator("#edit-task textarea").first().fill("Mobilden güncellenen açıklama.");
+  await mAdmin.getByRole("button", { name: "Kaydet" }).click();
+  check("mobil: görev düzenlenir", await visible(mAdmin.getByText("Görev güncellendi.")) && await visible(mAdmin.getByText("Mobilden güncellenen açıklama.")));
+  await mAdmin.goto(`${BASE}/gorevler`);
+  await mAdmin.getByRole("link", { name: `${delMobCode} görevini sil` }).first().click();
+  await mAdmin.waitForTimeout(450);
+  check("mobil: silme onayı ekranda", await inViewport(mAdmin, mAdmin.getByRole("button", { name: "Evet, sil" })));
+  await mAdmin.getByRole("button", { name: "Evet, sil" }).click();
+  check("mobil: görev silinir", await visible(mAdmin.getByText("Görev silindi.")));
+  await mAdmin.getByRole("navigation", { name: "Hızlı erişim" }).getByRole("link", { name: "Arşiv" }).click();
+  await mAdmin.waitForURL(/\/arsiv$/);
+  check("mobil: alt gezinme çubuğu çalışır", true);
+
+  section("Açık tema");
+  const overflowOk = (page) => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
+  await mAdmin.getByRole("button", { name: "Açık temaya geç" }).click();
+  check("mobil: açık temaya geçilir", (await mAdmin.evaluate(() => document.documentElement.dataset.theme)) === "light");
+  for (const [path, name] of [["/", "40-acik-mobil-genel-bakis"], ["/gorevler", "41-acik-mobil-gorevler"]]) {
+    await mAdmin.goto(`${BASE}${path}`); await mAdmin.waitForTimeout(1100);
+    check(`mobil açık tema: ${path} taşma yok`, await overflowOk(mAdmin));
+    await shot(mAdmin, name);
+  }
+  check("tema seçimi sayfa yenilenince korunur", (await mAdmin.evaluate(() => document.documentElement.dataset.theme)) === "light");
+  await admin.goto(`${BASE}/profil`);
+  await admin.getByRole("radio", { name: "Açık" }).click();
+  for (const [path, name] of [["/", "42-acik-genel-bakis"], [task.url.replace(BASE, ""), "43-acik-gorev-detay"], ["/yonetim/uyeler", "44-acik-uyeler"], [`/yonetim/rapor-inceleme/${reportId}`, "45-acik-rapor"]]) {
+    await admin.goto(`${BASE}${path}`); await admin.waitForTimeout(1200);
+    check(`PC açık tema: ${path.slice(0, 28)} taşma yok`, await overflowOk(admin));
+    await shot(admin, name);
+  }
+  // Açık temada metin kontrastı: ana metin ile zemin arasında yeterli fark olmalı
+  const contrast = await admin.evaluate(() => {
+    const lum = (c) => { const [r, g, b] = c.match(/\d+(\.\d+)?/g).slice(0, 3).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+    const probe = (v) => { const d = document.createElement("div"); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return lum(c); };
+    const ratio = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    const card = probe("--color-card"), bg = probe("--color-bg");
+    return { ink: ratio(probe("--color-ink"), card), muted: ratio(probe("--color-muted"), bg), faint: ratio(probe("--color-faint"), card), accent2: ratio(probe("--color-accent-2"), card), btn: ratio(1, probe("--color-accent")) };
+  });
+  check("açık tema: metin kontrastı yeterli (≥ 4.5; soluk ≥ 3)", contrast.ink >= 7 && contrast.muted >= 4.5 && contrast.accent2 >= 4.5 && contrast.btn >= 4.5 && contrast.faint >= 3, JSON.stringify(contrast));
+  await admin.goto(`${BASE}/profil`);
+  await admin.getByRole("radio", { name: "Koyu" }).click();
+  const darkContrast = await admin.evaluate(() => {
+    const lum = (c) => { const [r, g, b] = c.match(/\d+(\.\d+)?/g).slice(0, 3).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+    const probe = (v) => { const d = document.createElement("div"); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return lum(c); };
+    const ratio = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    const card = probe("--color-card");
+    return { muted: ratio(probe("--color-muted"), card), faint: ratio(probe("--color-faint"), card), btn: ratio(1, probe("--color-accent")) };
+  });
+  check("koyu tema: metin kontrastı yeterli", darkContrast.muted >= 4.5 && darkContrast.faint >= 3 && darkContrast.btn >= 4.5, JSON.stringify(darkContrast));
+  await mAdmin.getByRole("button", { name: "Koyu temaya geç" }).click();
+
   section("Pasif hesap ve çıkış");
   await admin.goto(`${BASE}/yonetim/uyeler`);
   await admin.getByRole("button", { name: "Mert Aydın üyesini düzenle" }).first().click();

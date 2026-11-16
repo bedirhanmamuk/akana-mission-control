@@ -63,7 +63,7 @@ export default function Notifications() {
       <PageHeader title="Bildirimler" description="Görev ve rapor süreçlerinizle ilgili güncellemeler."
         actions={<>
           <label className="flex min-h-10 cursor-pointer items-center gap-2 text-sm text-muted">
-            <input type="checkbox" className="size-4 accent-[#8065D8]" checked={onlyUnread} onChange={(e) => setOnlyUnread(e.target.checked)} /> Yalnızca okunmamış
+            <input type="checkbox" className="size-4" checked={onlyUnread} onChange={(e) => setOnlyUnread(e.target.checked)} /> Yalnızca okunmamış
           </label>
           <button className="btn-secondary" onClick={() => void markAll()} disabled={unread === 0}><CheckCheck className="size-4" /> Tümünü okundu işaretle</button>
         </>} />
@@ -89,7 +89,7 @@ export default function Notifications() {
                 </button>
                 <div className="flex shrink-0 flex-col gap-1 sm:flex-row">
                   {!n.is_read && (
-                    <button className="rounded-md p-2 text-muted hover:bg-white/5 hover:text-success" onClick={() => void markRead([n.id])} aria-label="Okundu olarak işaretle" title="Okundu olarak işaretle">
+                    <button className="rounded-md p-2 text-muted hover:bg-ink/5 hover:text-success" onClick={() => void markRead([n.id])} aria-label="Okundu olarak işaretle" title="Okundu olarak işaretle">
                       <CheckCheck className="size-4" />
                     </button>
                   )}

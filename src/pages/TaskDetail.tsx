@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState, type FormEvent } from "react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Pencil, Play, Trash2, Users } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
@@ -103,8 +103,8 @@ function AssigneesModal({ task, directory, onClose, onSaved }: {
       <ul className="max-h-80 space-y-1 overflow-y-auto">
         {people.map((p) => (
           <li key={p.id}>
-            <label className="flex min-h-10 cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-white/5">
-              <input type="checkbox" className="size-4 accent-[#8065D8]" checked={ids.includes(p.id)}
+            <label className="flex min-h-10 cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-ink/5">
+              <input type="checkbox" className="size-4" checked={ids.includes(p.id)}
                 onChange={(e) => setIds(e.target.checked ? [...ids, p.id] : ids.filter((x) => x !== p.id))} />
               <span className="flex-1 text-sm">{fullName(p)}</span>
               {p.department_id === task.department_id && <span className="text-[11px] text-muted">{task.department?.name}</span>}
@@ -124,6 +124,7 @@ export default function TaskDetail() {
   const toast = useToast();
   const navigate = useNavigate();
   const [modal, setModal] = useState<"edit" | "assignees" | "delete" | null>(null);
+  const [params, setParams] = useSearchParams();
   const [busy, setBusy] = useState(false);
 
   const { data, loading, error, reload } = useAsync(async () => {
@@ -138,6 +139,15 @@ export default function TaskDetail() {
     const versions = mine ? await fetchVersions(mine.id) : [];
     return { task, dir, names: nameMap(dir), reports, mine, versions, maxMb };
   }, [id, uid]);
+
+  // Görev listesindeki "düzenle / sil" kısayolları: ?islem=duzenle | sil
+  const action = params.get("islem");
+  const ready = Boolean(data);
+  useEffect(() => {
+    if (!ready || !action) return;
+    if (isAdmin) setModal(action === "duzenle" ? "edit" : action === "sil" ? "delete" : null);
+    setParams({}, { replace: true });
+  }, [ready, action, isAdmin, setParams]);
 
   if (loading) return <LoadingState />;
   if (error) return <ErrorState message={error} onRetry={reload} />;
@@ -184,7 +194,7 @@ export default function TaskDetail() {
           </div>
           <h1 className="display text-2xl font-semibold sm:text-[28px]">{task.title}</h1>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2 [&>*]:flex-1 sm:[&>*]:flex-none">
           {isAssignee && task.status === "NEW" && (
             <button className="btn-secondary" disabled={busy} onClick={() => void run(() => supabase.rpc("start_task", { p_task_id: task.id }), "Görev 'Devam ediyor' olarak işaretlendi.")}>
               <Play className="size-4" /> Göreve başla
@@ -193,7 +203,7 @@ export default function TaskDetail() {
           {isAdmin && (
             <>
               <button className="btn-secondary" onClick={() => setModal("edit")}><Pencil className="size-4" /> Düzenle</button>
-              <button className="btn-danger" onClick={() => setModal("delete")} aria-label="Görevi sil"><Trash2 className="size-4" /></button>
+              <button className="btn-danger" onClick={() => setModal("delete")}><Trash2 className="size-4" /> Sil</button>
             </>
           )}
         </div>

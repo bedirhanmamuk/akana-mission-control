@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { AlertTriangle, Inbox, Loader2, RefreshCw, ShieldAlert, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Tone } from "../lib/constants";
@@ -9,12 +10,12 @@ import type { ReportStatus, TaskPriority, TaskStatus } from "../lib/types";
 import { useCountUp } from "../lib/motion";
 
 const TONE_CLASS: Record<Tone, string> = {
-  neutral: "bg-white/6 text-muted",
+  neutral: "bg-ink/6 text-muted",
   accent: "bg-accent/18 text-accent-2",
   success: "bg-success/12 text-success",
   warning: "bg-warning/14 text-warning",
   danger: "bg-danger/14 text-danger",
-  info: "bg-sky-400/12 text-sky-300",
+  info: "bg-info/14 text-info",
 };
 
 export function Badge({ tone = "neutral", children }: { tone?: Tone; children: ReactNode }) {
@@ -56,7 +57,7 @@ export function EmptyState({ title, description, action, icon }: {
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-surface/70 px-6 py-14 text-center">
-      <div className="flex size-12 items-center justify-center rounded-full bg-white/5 text-muted">
+      <div className="flex size-12 items-center justify-center rounded-full bg-ink/5 text-muted">
         {icon ?? <Inbox className="size-6" />}
       </div>
       <div>
@@ -159,20 +160,23 @@ export function Modal({ open, onClose, title, children, footer, wide }: {
   }, [open, onClose]);
 
   if (!open) return null;
-  return (
+  // Pencere doğrudan <body> altına çizilir: sayfa geçiş animasyonu gibi dönüşüm uygulanan
+  // bir üst öğe, "fixed" konumu ekrana değil kendine bağlar ve pencere görünür alanın dışında kalırdı.
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={title}>
       <div className="absolute inset-0 animate-backdrop bg-[#05050b]/80" onClick={onClose} />
       <div className={`relative flex max-h-[92dvh] w-full animate-sheet flex-col rounded-t-3xl bg-card shadow-[0_30px_80px_-20px_rgb(0_0_0/0.9)] sm:animate-dialog sm:rounded-2xl ${wide ? "sm:max-w-2xl" : "sm:max-w-lg"}`}>
         <div className="flex items-center justify-between border-b border-line-soft px-5 py-4">
           <h2 className="font-semibold">{title}</h2>
-          <button onClick={onClose} className="rounded-md p-1 text-muted hover:bg-white/5 hover:text-ink" aria-label="Kapat">
+          <button onClick={onClose} className="rounded-md p-1 text-muted hover:bg-ink/5 hover:text-ink" aria-label="Kapat">
             <X className="size-5" />
           </button>
         </div>
         <div className="overflow-y-auto px-5 py-4">{children}</div>
-        {footer && <div className="flex flex-wrap justify-end gap-2 border-t border-line-soft px-5 py-4">{footer}</div>}
+        {footer && <div className="flex flex-col-reverse gap-2 border-t border-line-soft px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:flex-wrap sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -195,7 +199,7 @@ export function Readout({ label, value, to, tone }: {
   );
   const cls = "block min-w-0 rounded-xl px-3 py-3 -mx-1";
   return to
-    ? <Link to={to} className={`${cls} transition-colors duration-150 hover:bg-white/5`}>{body}</Link>
+    ? <Link to={to} className={`${cls} transition-colors duration-150 hover:bg-ink/5`}>{body}</Link>
     : <div className={cls}>{body}</div>;
 }
 

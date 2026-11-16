@@ -33,7 +33,7 @@ export default function ReportReview() {
           <button key={t.key} role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}
             className={`flex min-h-9 shrink-0 items-center gap-2 rounded-md px-3 text-sm transition-colors ${tab === t.key ? "bg-accent text-white" : "text-muted hover:text-ink"}`}>
             {t.label}
-            <span className={`rounded-full px-1.5 text-[11px] tabular-nums ${tab === t.key ? "bg-white/20" : "bg-white/5"}`}>{count(t.statuses)}</span>
+            <span className={`rounded-full px-1.5 text-[11px] tabular-nums ${tab === t.key ? "bg-white/25" : "bg-ink/8"}`}>{count(t.statuses)}</span>
           </button>
         ))}
       </div>

@@ -122,7 +122,7 @@ export default function ReportArchive() {
             </thead>
             <tbody className="divide-y divide-line-soft">
               {rows.map((r) => (
-                <tr key={r.id} className="transition-colors hover:bg-white/[0.03]" data-testid="archive-row">
+                <tr key={r.id} className="transition-colors hover:bg-ink/[0.04]" data-testid="archive-row">
                   <td className="td max-w-xs"><Link to={detailPath(r)} className="line-clamp-1 font-medium hover:text-accent-2">{r.title}</Link><span className="text-xs text-muted">V{r.current_version}</span></td>
                   <td className="td whitespace-nowrap"><Link to={`/gorevler/${r.task_id}`} className="code-tag hover:underline">{r.task_code}</Link></td>
                   <td className="td whitespace-nowrap text-muted">{r.department_name}</td>

@@ -161,7 +161,7 @@ function EditMemberModal({ member, departments, isSelf, onClose, onSaved }: {
           </Field>
         </div>
         <label className={`flex min-h-10 items-center gap-3 text-sm ${isSelf ? "opacity-50" : "cursor-pointer"}`}>
-          <input type="checkbox" className="size-4 accent-[#8065D8]" checked={form.is_active} disabled={isSelf} name="is_active"
+          <input type="checkbox" className="size-4" checked={form.is_active} disabled={isSelf} name="is_active"
             onChange={(e) => setForm({ ...form, is_active: e.target.checked })} />
           Hesap aktif <span className="text-xs text-muted">(pasif hesaplar giriş yapsa bile hiçbir veriye erişemez)</span>
         </label>
@@ -230,7 +230,7 @@ export default function Members() {
             </thead>
             <tbody className="divide-y divide-line-soft">
               {filtered.map((m) => (
-                <tr key={m.id} className="transition-colors hover:bg-white/[0.03]" data-testid="member-row">
+                <tr key={m.id} className="transition-colors hover:bg-ink/[0.04]" data-testid="member-row">
                   <td className="td font-medium">{fullName(m)}</td>
                   <td className="td text-muted">{m.email}</td>
                   <td className="td text-muted">{m.department_id ? data.deptName.get(m.department_id) ?? "—" : "—"}</td>

@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
-import { KeyRound, Save } from "lucide-react";
+import { KeyRound, Moon, Save, Sun } from "lucide-react";
+import { useTheme } from "../lib/theme";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
@@ -13,6 +14,7 @@ import { Badge, Card, Field, InfoRow, PageHeader, SectionTitle, Spinner } from "
 export default function Profile() {
   const { profile, refreshProfile } = useAuth();
   const toast = useToast();
+  const [theme, setTheme] = useTheme();
   const p = profile!;
   const departments = useAsync(fetchDepartments, []);
   const [first, setFirst] = useState(p.first_name);
@@ -78,6 +80,19 @@ export default function Profile() {
         </Card>
 
         <div className="space-y-4">
+          <Card className="p-5">
+            <SectionTitle>Görünüm</SectionTitle>
+            <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Tema">
+              {([["dark", "Koyu", Moon], ["light", "Açık", Sun]] as const).map(([value, label, Icon]) => (
+                <button key={value} type="button" role="radio" aria-checked={theme === value} onClick={() => setTheme(value)}
+                  className={`flex min-h-12 items-center justify-center gap-2 rounded-lg text-sm font-medium transition-colors duration-150 active:scale-[0.98] ${theme === value ? "bg-accent text-white" : "bg-surface text-muted hover:text-ink"}`}>
+                  <Icon className="size-4" /> {label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-muted">Seçim bu cihazda hatırlanır. Sol menü her iki temada da koyu kalır.</p>
+          </Card>
+
           <Card className="p-5">
             <SectionTitle>Kişisel bilgiler</SectionTitle>
             <form onSubmit={saveName} className="space-y-4">

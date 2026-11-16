@@ -3,7 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#090B14" />
+    <meta name="theme-color" content="#09070f" />
+    <script>
+      // Tema, sayfa çizilmeden önce uygulanır (açılışta renk sıçraması olmasın)
+      try { if (localStorage.getItem("amc.theme") === "light") { document.documentElement.dataset.theme = "light"; document.querySelector('meta[name="theme-color"]').content = "#f3f1fa"; } } catch (e) {}
+    </script>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/favicon.png" />
     <title>AKANA Görev Paneli</title>

@@ -17,7 +17,9 @@ function locate(status: TaskStatus): { index: number; tone: "accent" | "warning"
   }
 }
 
-const TONE = { accent: "#a78bfa", warning: "#f0a31d", danger: "#f0514f", success: "#2fc66a" } as const;
+const TONE = { accent: "var(--color-accent)", warning: "var(--color-warning)", danger: "var(--color-danger)", success: "var(--color-success)" } as const;
+/** Geçerli aşama işareti: logodaki macenta ("şu an") */
+const NOW = "var(--color-hot)";
 
 // Yükseliş eğrisi: hızlı tırmanış, sonra yörüngeye oturma. x,y yüzde cinsinden (y: 0 üst).
 const X0 = 5, X1 = 95, Y_BOTTOM = 82, Y_TOP = 16;
@@ -43,7 +45,7 @@ export default function FlightProfile({ status }: { status: TaskStatus }) {
     <div role="img" aria-label={`Görev aşaması: ${currentLabel} (${index + 1}/${PHASES.length})`} data-testid="flight-profile">
       <div className="relative h-28 sm:h-32">
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 size-full overflow-visible" aria-hidden>
-          <path d={PATH} fill="none" stroke="#2e2e57" strokeWidth="2" strokeDasharray="1 5" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+          <path d={PATH} fill="none" stroke="var(--color-line-strong)" strokeWidth="2" strokeDasharray="1 5" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
         </svg>
         {/* Kat edilen yol: açılışta soldan sağa bir kez açılır */}
         {progress > 0 && (
@@ -58,12 +60,12 @@ export default function FlightProfile({ status }: { status: TaskStatus }) {
           const current = i === index;
           return (
             <div key={phase} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ left: `${p.x}%`, top: `${p.y}%` }}>
-              {current && <span className="absolute inset-0 animate-beacon rounded-full" style={{ background: color }} />}
+              {current && <span className="absolute inset-0 animate-beacon rounded-full" style={{ background: tone === "accent" ? NOW : color }} />}
               <span className="relative block rounded-full"
                 style={{
                   width: current ? 14 : 10, height: current ? 14 : 10,
-                  background: done || current ? color : "#141427",
-                  boxShadow: done || current ? "0 0 0 3px #141427" : "0 0 0 2px #3a3a66 inset, 0 0 0 3px #141427",
+                  background: current && tone === "accent" ? NOW : done || current ? color : "var(--color-card)",
+                  boxShadow: done || current ? "0 0 0 3px var(--color-card)" : "0 0 0 2px var(--color-line-strong) inset, 0 0 0 3px var(--color-card)",
                 }} />
               <span className={`absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap text-[11px] ${current ? "font-medium text-ink" : "hidden text-faint sm:block"}`}>
                 {current ? currentLabel : TASK_STATUS_META[phase].label}
@@ -82,7 +84,7 @@ export function FlightTrack({ status }: { status: TaskStatus }) {
   return (
     <span className="inline-flex items-center gap-1" role="img" aria-label={`Aşama ${index + 1}/${PHASES.length}: ${TASK_STATUS_META[status].label}`}>
       {PHASES.map((p, i) => (
-        <span key={p} className="h-1 rounded-full" style={{ width: i === index ? 16 : 8, background: i <= index ? TONE[tone] : "#2e2e57", opacity: i < index ? 0.55 : 1 }} />
+        <span key={p} className="h-1 rounded-full" style={{ width: i === index ? 16 : 8, background: i <= index ? TONE[tone] : "var(--color-line-strong)", opacity: i < index ? 0.55 : 1 }} />
       ))}
     </span>
   );
