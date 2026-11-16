@@ -32,16 +32,14 @@ const ADMIN_NAV: NavItem[] = [
 function Logo() {
   return (
     <Link to="/" className="flex items-center gap-3">
-      {/* LOGO ALANI: AKANA logosu hazır olduğunda bu kutunun içine <img src="/logo.svg" /> yerleştirin. */}
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent/25" data-logo-slot>
-        <svg viewBox="0 0 32 32" className="size-6" aria-hidden>
-          <path d="M16 5l9 21h-4.2l-1.7-4.2h-6.2L11.2 26H7l9-21zm0 8.2l-1.9 5h3.8l-1.9-5z" fill="#A78BFA" />
-        </svg>
-      </div>
-      <div className="leading-tight">
-        <p className="display text-[15px] font-bold tracking-[0.18em]">AKANA</p>
-        <p className="text-[10px] font-medium tracking-[0.22em] text-accent-2/80">MISSION CONTROL</p>
-      </div>
+      {/* Logo açık zeminli bir kutuda durur: koyu mor tonları koyu menüde kaybolmasın diye */}
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-ink">
+        <img src={`${import.meta.env.BASE_URL}logo.png`} alt="" className="size-7" />
+      </span>
+      <span className="leading-tight">
+        <span className="display block text-[15px] font-bold tracking-[0.18em]">AKANA</span>
+        <span className="block text-xs font-medium text-accent-2/90">Görev Paneli</span>
+      </span>
     </Link>
   );
 }
@@ -141,7 +139,7 @@ export default function AppLayout() {
           <button className="-ml-2 rounded-md p-2 text-ink hover:bg-white/5" onClick={() => setOpen(true)} aria-label="Menüyü aç">
             <Menu className="size-6" />
           </button>
-          <span className="display text-xs font-bold tracking-[0.18em]">AKANA <span className="font-sans font-medium text-accent-2/80">MISSION CONTROL</span></span>
+          <span className="flex items-center gap-2"><span className="flex size-7 items-center justify-center rounded-lg bg-ink"><img src={`${import.meta.env.BASE_URL}logo.png`} alt="" className="size-5" /></span><span className="display text-xs font-bold tracking-[0.18em]">AKANA</span><span className="text-xs font-medium text-accent-2/90">Görev Paneli</span></span>
           <Link to="/bildirimler" className="relative -mr-2 rounded-md p-2 text-ink hover:bg-white/5" aria-label="Bildirimler">
             <Bell className="size-5" />
             {unreadCount > 0 && <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-accent ring-2 ring-bg" />}

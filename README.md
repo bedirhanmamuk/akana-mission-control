@@ -153,4 +153,4 @@ Supabase CLI kuruluysa onun yerine `npx supabase start` da kullanılabilir.
 
 ## 4. Logo
 
-Logo alanı `src/components/AppLayout.tsx` ve `src/pages/Login.tsx` içinde `data-logo-slot` ile işaretlidir. Logoyu `public/logo.svg` olarak ekleyip bu kutulardaki geçici SVG'yi `<img src="/logo.svg" alt="AKANA" />` ile değiştirin.
+Logo `public/logo.png` (saydam zeminli) ve `public/favicon.png` dosyalarıdır. Değiştirmek için aynı adlarla yenilerini koymak yeterlidir.

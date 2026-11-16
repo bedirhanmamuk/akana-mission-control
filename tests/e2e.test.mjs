@@ -303,6 +303,7 @@ try {
   await shot(mobile, "20-mobil-genel-bakis");
   await mobile.getByRole("button", { name: "Menüyü aç" }).click();
   check("mobil: menü açılır", await visible(mobile.getByRole("navigation", { name: "Ana menü" }).getByRole("link", { name: "Rapor Yükle" })));
+  await mobile.waitForTimeout(450); // menü kayarak açılır
   await shot(mobile, "21-mobil-menu", false);
   await mobile.getByRole("navigation", { name: "Ana menü" }).getByRole("link", { name: "Görevlerim" }).click();
   check("mobil: menü kapanır ve görevler listelenir", await visible(mobile.getByTestId("task-item").filter({ hasText: "AK-MEK-002" })) && !(await mobile.getByRole("navigation", { name: "Ana menü" }).isVisible().catch(() => false)));

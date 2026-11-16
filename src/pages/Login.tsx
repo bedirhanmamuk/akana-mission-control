@@ -39,14 +39,11 @@ export default function Login() {
       <OrbitScene />
       <div className="relative w-full max-w-sm animate-rise">
         <div className="mb-8 flex flex-col items-center text-center">
-          {/* LOGO ALANI: AKANA logosu buraya eklenecek */}
-          <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-accent/25 shadow-[0_18px_40px_-16px_rgb(128_101_216/0.9)]" data-logo-slot>
-            <svg viewBox="0 0 32 32" className="size-10" aria-hidden>
-              <path d="M16 5l9 21h-4.2l-1.7-4.2h-6.2L11.2 26H7l9-21zm0 8.2l-1.9 5h3.8l-1.9-5z" fill="#A78BFA" />
-            </svg>
+          <div className="mb-5 flex size-20 items-center justify-center rounded-3xl bg-ink shadow-[0_24px_50px_-18px_rgb(128_101_216/0.9)]">
+            <img src={`${import.meta.env.BASE_URL}logo.png`} alt="AKANA logosu" className="size-14" />
           </div>
           <h1 className="display text-2xl font-bold tracking-[0.2em]">AKANA</h1>
-          <p className="mt-1 text-xs font-medium tracking-[0.26em] text-accent-2/80">MISSION CONTROL</p>
+          <p className="mt-1 text-sm font-medium text-accent-2">Görev Paneli</p>
         </div>
 
         <form onSubmit={onSubmit} className="card space-y-4 bg-card/95 p-6" noValidate>
