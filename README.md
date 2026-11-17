@@ -1,9 +1,11 @@
 # AKANA MISSION CONTROL
 
-AKANA Roket Takımı için bağımsız **görev, raporlama ve dokümantasyon yönetim sistemi**.
+AKANA Roket Takımı için **mühendislik proje ve operasyon yönetim platformu**: kontrol merkezi, projeler, görevler (Kanban / tablo / liste, alt görev, departmanlar arası bağımlılık, yorum, ilerleme, bloke), Gantt zaman çizelgesi, takvim, doküman merkezi (STL/STEP dahil, sürüm + onay), rapor inceleme, risk matrisi, performans analitiği, ekip ve organizasyon şeması, bildirim tercihleri, global arama (Ctrl+K), denetim kaydı ve isteğe bağlı yapay zekâ özetleri.
+
+*One Team. One Mission. Beyond the Limits.*
 
 - **Frontend:** React 19 + TypeScript + Vite + Tailwind CSS 4, Lucide, Recharts
-- **Backend:** Supabase (PostgreSQL + Auth + Storage + bir Edge Function)
+- **Backend:** Supabase (PostgreSQL + Auth + Storage + iki Edge Function)
 - **Yetkilendirme:** tamamı veritabanında (Row Level Security + `SECURITY DEFINER` RPC'ler). Arayüzdeki rol kontrolleri yalnızca yönlendirme içindir.
 
 > **GitHub Pages ile yayına almak için:** [GITHUB-KURULUM.md](GITHUB-KURULUM.md) — depo GitHub'a yüklendiğinde site ve Supabase kurulumu iş akışlarıyla otomatik yapılır.
@@ -22,9 +24,13 @@ npx supabase login
 npx supabase link --project-ref <PROJE_REF>
 npx supabase db push                        # supabase/migrations/*.sql
 npx supabase functions deploy admin-users --no-verify-jwt
+npx supabase functions deploy ai-insights --no-verify-jwt    # isteğe bağlı YZ modülü
+npx supabase secrets set ANTHROPIC_API_KEY=...               # yalnızca YZ modülü kullanılacaksa
 ```
 
-CLI kullanmak istemezseniz: `supabase/migrations/` altındaki 5 dosyayı **sırayla** Dashboard → SQL Editor'da çalıştırın; `admin-users` fonksiyonunu Dashboard → Edge Functions üzerinden oluşturup `supabase/functions/admin-users/index.ts` içeriğini yapıştırın ve "Verify JWT" seçeneğini kapatın (fonksiyon JWT'yi kendi içinde Auth sunucusuna doğrulatır ve ayrıca veritabanından ADMIN rolünü kontrol eder).
+`ANTHROPIC_API_KEY` tanımlı değilse YZ modülü açıkça "yapılandırılmamış" (503) döner; kural tabanlı haftalık operasyon raporu anahtar olmadan da çalışır. YZ modülü veriyi **kullanıcının kendi oturumuyla** (RLS geçerli) okur, modele hiçbir yazma aracı verilmez; görev değiştiremez, silemez, onaylayamaz. Model `claude-opus-5-5`'tir (`AI_MODEL` sırrıyla değiştirilebilir); güvenlik sınıflandırıcısı reddederse sunucu taraflı yedek modele (`fallbacks: "default"`) geçer.
+
+CLI kullanmak istemezseniz: `supabase/migrations/` altındaki 7 dosyayı **sırayla** Dashboard → SQL Editor'da çalıştırın; `admin-users` fonksiyonunu Dashboard → Edge Functions üzerinden oluşturup `supabase/functions/admin-users/index.ts` içeriğini yapıştırın ve "Verify JWT" seçeneğini kapatın (fonksiyon JWT'yi kendi içinde Auth sunucusuna doğrulatır ve ayrıca veritabanından ADMIN rolünü kontrol eder).
 
 `SUPABASE_URL` ve `SUPABASE_SERVICE_ROLE_KEY` Edge Function ortamına Supabase tarafından otomatik verilir; elle bir anahtar girmeniz gerekmez.
 
@@ -67,9 +73,9 @@ npm run build    # dist/ — herhangi bir statik barındırmaya (Vercel, Netlify
 
 Statik barındırmada tüm yolların `index.html`'e yönlendirilmesi (SPA fallback) gerekir; derleme bunun için `dist/404.html` üretir (GitHub Pages bunu kendiliğinden kullanır). Alt dizinde yayınlıyorsan `VITE_BASE_PATH=/<dizin>/ npm run build` kullan.
 
-### 1.5 (Önerilir) Teslim tarihi kontrolünü zamanlayın
+### 1.5 Teslim tarihi kontrolü (pg_cron)
 
-"Teslim tarihi yaklaşıyor / görev gecikti" bildirimleri ve `Gecikmiş` durumu `process_deadlines()` ile üretilir. Uygulama bunu her oturum açılışında çağırır; kimse giriş yapmasa da çalışması için `pg_cron` ile günlük çalıştırın (Dashboard → Database → Extensions → pg_cron):
+"Teslim tarihi yaklaşıyor / görev gecikti" bildirimleri ve `Gecikmiş` durumu `process_deadlines()` ile üretilir. `0007` migration'ı `pg_cron` eklentisi varsa görevi her gün 05:00 UTC'de çalışacak şekilde **otomatik zamanlar**. Eklenti kurulamazsa migration bir uyarı yazar ve devam eder; o durumda elle zamanlayın:
 
 ```sql
 select cron.schedule('akana-deadlines', '0 5 * * *', $$select public.process_deadlines()$$);
@@ -87,7 +93,8 @@ src/
   pages/        üye sayfaları      pages/admin/  yönetici sayfaları
 supabase/
   migrations/   0001 şema · 0002 fonksiyon/tetikleyici/RPC · 0003 RLS · 0004 Storage · 0005 başlangıç verisi
-  functions/    admin-users (üye oluşturma, e-posta değişimi, şifre sıfırlama)
+                0006 yeni enum değerleri · 0007 projeler, gelişmiş görevler, sorumlu yetkileri, doküman, takvim, risk, analitik, arama
+  functions/    admin-users (üye oluşturma, e-posta değişimi, şifre sıfırlama) · ai-insights (isteğe bağlı YZ özeti)
 local/          yerel Supabase test yığını (Docker)      tests/  güvenlik + uçtan uca testler
 ```
 
@@ -98,6 +105,23 @@ local/          yerel Supabase test yığını (Docker)      tests/  güvenlik +
 - **Rapor modeli:** bir görev için bir üyenin tek `reports` kaydı vardır; her yükleme yeni bir `report_versions` satırı (V1, V2, …) ve ona bağlı `report_files` satırları üretir. Sürüm ve dosya kayıtları tetikleyiciyle **silinemez / değiştirilemez**; Storage'da üzerine yazma politikası yoktur.
 - **Görev kodu:** `AK-<departman kodu>-<sıra>`; departman satırı kilitlenerek üretilir (eşzamanlı oluşturmada da benzersiz). Departmanlar tablodan gelir; kodda sabit departman adı yoktur.
 - **Yazma işlemleri RPC ile:** `create_task`, `set_task_assignees`, `start_task`, `submit_report`, `review_report`, `set_max_file_size_mb`, `update_own_profile`. Kimlik her zaman `auth.uid()`'den alınır; istemcinin gönderdiği kullanıcı/rol/departman bilgisine güvenilmez.
+
+### Yetki modeli
+
+| Rol | Nasıl atanır | Yetki |
+|---|---|---|
+| Yönetici (`ADMIN`) — kaptan / kaptan yardımcısı | Üye Yönetimi → Rol | Her şey; proje oluşturma/silme, üye ve yetki yönetimi, denetim kaydı |
+| Departman sorumlusu | Yönetim Paneli → departmanın sorumlusu (`departments.lead_id`) | **Yalnızca kendi departmanında:** görev oluşturma/düzenleme/atama/silme, rapor ve doküman onayı, takvime etkinlik, analitik. Kendi raporunu veya yüklediği doküman sürümünü onaylayamaz (sunucuda zorlanır). |
+| Takım üyesi | — | Atandığı görevde ilerleme, bloke, rapor; doküman ve risk kaydı; yorum |
+
+Takım pozisyonu (`team_position`: kaptan, yardımcı, sorumlu, üye) organizasyon şeması içindir; yetki vermez. Sorumlu atanınca pozisyon otomatik "Departman Sorumlusu" olur.
+
+### Yeni modüllerin veri modeli (0006–0007)
+
+- `projects` (+ `project_overview` görünümü: ilerleme = iptal edilmeyen görevlerin ilerleme ortalaması), `tasks.project_id / parent_id / progress / difficulty / blocked_reason`, `task_dependencies` (döngü tetikleyiciyle engellenir; ön koşulu bitmemiş görev "Tamamlandı" yapılamaz), `task_comments`.
+- `documents` + `document_versions` (özel `documents` bucket'ı, `create_document` → yükleme → `add_document_version` sunucu doğrulaması → `review_document`), `events`, `risks` (`score` = olasılık × etki, üretilmiş sütun), `notification_preferences` (kapalı türde bildirim hiç oluşmaz), profil alanları ve özel `avatars` bucket'ı.
+- Okuma RPC'leri: `mission_overview`, `analytics`, `weekly_report`, `activity_feed`, `task_history`, `task_dependency_info`, `global_search` — hepsi çağıranın yetkisine göre süzer.
+- Görev durumlarına `BLOCKED` ve `CANCELLED` eklendi. Mevcut `OVERDUE` davranışı geriye dönük uyumluluk için korundu (ayrıntı: Bilinen sınırlar).
 
 ### Dosya yükleme akışı
 
@@ -110,7 +134,8 @@ local/          yerel Supabase test yığını (Docker)      tests/  güvenlik +
 
 - **Dosya içeriği sunucuda taranmaz.** Sunucu; uzantıyı, beyan edilen MIME'ı ve boyutu zorlar. İçerik imzası (magic bytes) kontrolü istemcidedir, bilinçli bir saldırgan API'yi doğrudan çağırarak atlayabilir. Yüklenen dosyalar hiçbir zaman sunucuda çalıştırılmaz/açılmaz (ZIP dahil) ve yalnızca yükleyen + yöneticiler indirebilir. Daha sıkı güvence gerekiyorsa yükleme sonrası antivirüs/imza taraması yapan bir Edge Function eklenmelidir.
 - Bildirimler 30 sn aralıkla ve sekme odaklandığında yenilenir (Realtime aboneliği yok). E-posta bildirimi yok.
-- Departman sorumlusu bilgi amaçlıdır; ek yetki vermez. Departman bazlı "sorumlu kendi departmanının raporlarını görsün" kuralı istenirse `can_view_report` ve `can_read_object` fonksiyonlarına eklenmelidir.
+- **"Gecikmiş" hâlâ bir durum olarak saklanır.** Gecikme aslında tarihten türetilen bir özelliktir; ancak mevcut testler ve iş akışı buna bağlı olduğu için değiştirilmedi. Kontrol merkezi ve analitik gecikmeyi `status = OVERDUE` **veya** `due_date < bugün` (açık görev) olarak hesaplar; bloke görevler `OVERDUE`'ya çevrilmez.
+- Kontrol merkezi görünür sekmede 60 sn'de bir ve sekmeye dönüldüğünde yenilenir (Realtime aboneliği yok).
 - Yönetici şifre sıfırladığında geçici şifreyi üyeye kendisi iletir; "ilk girişte şifre değiştirmeye zorla" akışı yok.
 
 ---
@@ -122,12 +147,14 @@ Testler **gerçek Supabase servislerine** (Postgres + GoTrue + PostgREST + Stora
 ```bash
 npm run local:up          # temiz yerel yığın + migration'lar; anahtarlar local/.env.local'a yazılır
 npm run test:security     # 117 API/RLS/Storage kontrolü
+npm run test:mission      # 137 kontrol: 0006–0007 modülleri, rol bazlı yetki, Storage, YZ fonksiyonu
 
 npm run local:up          # e2e de temiz yığın ister (ilk yönetici kurulumu test edilir)
 # .env.local -> VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY = local/.env.local içindeki değerler
 npm run dev &
 npm i -D playwright && npx playwright install chromium   # yoksa
-npm run test:e2e          # 70 tarayıcı kontrolü (masaüstü + iPhone 13)
+npm run test:e2e          # 107 tarayıcı kontrolü (masaüstü + iPhone 13)
+npm run test:modules      # 71 tarayıcı kontrolü: yeni modüller, masaüstü + mobil + açık tema, konsol hatası
 npm run local:down
 ```
 

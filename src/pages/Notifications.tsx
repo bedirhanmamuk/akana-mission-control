@@ -11,6 +11,7 @@ import { NOTIFICATION_META } from "../lib/constants";
 import { formatDateTime, timeAgo } from "../lib/format";
 import type { Notification } from "../lib/types";
 import { Badge, EmptyState, ErrorState, LoadingState, PageHeader } from "../components/ui";
+import NotificationPreferences from "../components/NotificationPreferences";
 
 export default function Notifications() {
   const { profile } = useAuth();
@@ -74,7 +75,7 @@ export default function Notifications() {
       ) : (
         <ul className="stagger space-y-2" data-testid="notification-list">
           {data.map((n) => {
-            const meta = NOTIFICATION_META[n.type];
+            const meta = NOTIFICATION_META[n.type] ?? { label: n.type, tone: "neutral" as const };
             return (
               <li key={n.id} data-testid="notification-item" data-read={n.is_read}
                 className={`card flex items-start gap-3 p-4 transition-colors ${n.is_read ? "opacity-70" : "border-accent/40"}`}>
@@ -102,6 +103,7 @@ export default function Notifications() {
           })}
         </ul>
       )}
+      <div className="mt-8"><NotificationPreferences /></div>
     </>
   );
 }

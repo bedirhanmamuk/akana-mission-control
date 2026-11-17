@@ -34,14 +34,14 @@ export default function OrbitScene() {
       ctx!.clearRect(0, 0, w, h);
       for (const s of stars) {
         ctx!.globalAlpha = s.a * (reduced ? 1 : 0.75 + 0.25 * Math.sin(time * 0.0008 + s.tw));
-        ctx!.fillStyle = "#cfc8f5";
+        ctx!.fillStyle = "#d7dce8";
         ctx!.beginPath(); ctx!.arc(s.x * w, s.y * h, s.r, 0, Math.PI * 2); ctx!.fill();
       }
       const cx = w * 0.5, cy = h * 0.56, base = Math.max(w, h * 1.2);
       for (const o of orbits) {
         const rx = o.rx * base * 0.6, ry = o.ry * base * 0.6;
         ctx!.globalAlpha = 1;
-        ctx!.strokeStyle = "rgba(128, 101, 216, 0.22)";
+        ctx!.strokeStyle = "rgba(217, 164, 65, 0.18)";
         ctx!.lineWidth = 1;
         ctx!.beginPath(); ctx!.ellipse(cx, cy, rx, ry, o.tilt, 0, Math.PI * 2); ctx!.stroke();
         if (!o.size) continue;
@@ -52,7 +52,7 @@ export default function OrbitScene() {
           const x = cx + rx * Math.cos(a) * Math.cos(o.tilt) - ry * Math.sin(a) * Math.sin(o.tilt);
           const y = cy + rx * Math.cos(a) * Math.sin(o.tilt) + ry * Math.sin(a) * Math.cos(o.tilt);
           ctx!.globalAlpha = (1 - k / 28) * (k === 0 ? 1 : 0.35);
-          ctx!.fillStyle = k === 0 ? "#ffffff" : "#a78bfa";
+          ctx!.fillStyle = k === 0 ? "#ffffff" : "#e8bd66";
           ctx!.beginPath(); ctx!.arc(x, y, k === 0 ? o.size : o.size * (1 - k / 34), 0, Math.PI * 2); ctx!.fill();
         }
       }

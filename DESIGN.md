@@ -4,29 +4,28 @@ Bu dosya arayüzün görsel kararlarını kaydeder. Yeni ekran veya bileşen ekl
 
 ## Yön
 
-**Uçuş kontrol konsolu.** Kullanıcı bir iş yapmaya gelir: görevini bulur, raporunu yükler, incelemeyi sonuçlandırır. Ekran önce çalışan bir araçtır; kimlik dört yerden gelir: yazı tipi, renk, yoğunluk ve üç imza öğe. Düzen, gezinme ve denetimler herkesin bildiği standart kalıplardır.
+**Görev kontrol merkezi.** Kullanıcı bir iş yapmaya gelir: kritik durumu görür, görevini bulur, raporunu yükler, onayı sonuçlandırır. Ekran önce çalışan bir araçtır; kimlik dört yerden gelir: yazı tipi, renk, yoğunluk ve üç imza öğe. Düzen, gezinme ve denetimler herkesin bildiği standart kalıplardır.
 
 ## Renk
 
-Palet logodan türetilir: derin mor zemin, menekşe ana renk ve logodaki macenta "şu an" vurgusu. İki tema vardır; varsayılan koyudur, açık tema Profil ekranından veya menüdeki güneş/ay düğmesinden seçilir ve cihazda hatırlanır.
+Palet ürünün kimliğinden gelir: gece mavisi / antrasit zemin, **kontrollü altın-amber** vurgu. Altın yalnızca birincil eylem, seçili durum ve "şu an" için kullanılır; büyük yüzeylere sürülmez. İki tema vardır; varsayılan koyudur.
 
 | Rol | Token | Koyu | Açık | Kullanım |
 |---|---|---|---|---|
-| Zemin | `bg` | `#09070f` | `#f3f1fa` | Sayfa |
-| Ray | `rail` | `#160c30` | `#160c30` | Sol menü: **her iki temada koyu** |
-| Yüzey | `surface` | `#110e1c` | `#efecf8` | Form alanları, panel içi kutular |
-| Panel | `card` | `#17132a` | `#ffffff` | İçerik panelleri |
-| Yükseltilmiş | `raised` | `#201a3a` | `#ebe7f7` | İkincil düğme, üzerine gelme |
-| Ana renk | `accent` | `#8452f0` | `#6a35e0` | Birincil düğme, etkin öğe, odak, grafik |
-| Ana renk (metin) | `accent-2` | `#b89cff` | `#5b2bd0` | Bağlantı, görev kodu |
-| Şu an | `hot` | `#e052f5` | `#b318cf` | Geçerli aşama işareti, okunmamış sayacı. Başka yerde kullanılmaz |
-| Metin | `ink` / `muted` / `faint` | | | Ana, ikincil, üçüncül |
-| Durum | `success` / `warning` / `danger` / `info` | | | Yalnızca anlam taşıdığında; her zaman bir etiketle |
+| Zemin | `bg` | `#0a0f1a` | `#f1f3f7` | Sayfa |
+| Ray | `rail` | `#0b1220` | `#0b1220` | Sol menü: **her iki temada koyu** |
+| Yüzey | `surface` | `#0e1524` | `#eaedf3` | Form alanları, panel içi kutular |
+| Panel | `card` | `#131b2c` | `#ffffff` | İçerik panelleri |
+| Yükseltilmiş | `raised` | `#1a2438` | `#e6eaf1` | İkincil düğme, üzerine gelme |
+| Ana renk | `accent` | `#d9a441` | `#c8922a` | Birincil düğme zemini, etkin öğe, grafik |
+| Ana renk üstü metin | `on-accent` | `#161004` | `#161004` | Altın zemindeki metin (beyaz değil: altın + beyaz 2,3:1'de kalır) |
+| Ana renk (metin) | `accent-2` | `#e8bd66` | `#875a00` | Bağlantı, görev kodu |
+| Şu an | `hot` | `#ffc857` | `#b86e00` | Geçerli aşama işareti |
+| Durum | `success` yeşil / `warning` turuncu / `danger` kırmızı / `info` mavi | | | Yalnızca anlam taşıdığında; her zaman bir etiketle |
 
+- Kontrast (hesaplanmış): koyu temada ana metin 15,2:1, ikincil 7,0:1, soluk 4,45:1, altın düğme 8,4:1; açık temada ana metin 17,4:1, ikincil 7,2:1, altın düğme 6,9:1. E2E testleri bunları iki temada da ölçer.
 - Alanlar birbirinden **çizgiyle değil tonla** ayrılır. Panel içine panel konmaz.
-- Koda ham renk yazılmaz; token kullanılır. Üzerine gelme gibi katmanlar için `bg-ink/5` kullanılır (temayla birlikte döner); `bg-white/…` yalnızca her zaman koyu olan sol menüde kullanılır.
-- Bir bölümün her temada koyu kalması gerekiyorsa `data-theme="dark"` verilir (sol menü, giriş ekranı).
-- Kontrast: ana ve ikincil metin en az 4,5:1, soluk metin en az 3:1. Testler bunu iki temada da ölçer.
+- Koda ham renk yazılmaz; token kullanılır. Grafik serileri de token kullanır (`var(--color-success)` vb.).
 
 ## Tipografi
 
@@ -74,4 +73,8 @@ Hareket geri bildirim, durum ve süreklilik içindir; her bölüme aynı giriş 
 - **Boş, yükleniyor, hata, yetkisiz:** Her veri alanının dördü de vardır (`ui.tsx`).
 - **Dokunma hedefi:** En az 40 px yükseklik.
 - **Pencereler:** `Modal` her zaman `<body>` altına çizilir (portal). Masaüstünde ortada, telefonda alttan açılan sayfa; düğmeler telefonda tam genişlik ve birincil eylem üstte.
-- **Mobil gezinme:** Altta beş öğeli çubuk (Genel, Görevler, Rapor yükle, Arşiv, Bildirim); tam menü üstteki düğmeden açılır.
+- **Mobil gezinme:** Altta beş öğeli çubuk (Genel, Görevler, Rapor yükle, Arşiv, Bildirim); tam menü üstteki düğmeden açılır, arama üst çubuktaki büyüteçtedir.
+- **Menü:** Operasyon / Mühendislik / Organizasyon / Hesap / Yönetim gruplarıdır. Grup başlıkları bilgi taşır (rol ve iş alanı); etkin öğe soldaki altın çizgiyle işaretlenir.
+- **Yükleniyor:** Spinner yerine içerik yerleşimini taklit eden iskelet (`.skeleton`). Yenilemeler sessizdir (`useAsync().refresh`); ekrandaki veri silinip yeniden çizilmez.
+- **Geniş içerik (Kanban, Gantt, tablolar):** sayfa asla yatay taşmaz; içerik kendi kabında kayar (`.scroll-x`). Gantt'ta görev sütunu sabit kalır.
+- **Aynı ekranda aynı adlı iki eylem olmaz** (ör. pencerede "Kaydet", sayfada "İlerlemeyi güncelle").

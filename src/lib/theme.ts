@@ -13,7 +13,7 @@ export function getTheme(): Theme {
 
 export function applyTheme(theme: Theme): void {
   document.documentElement.dataset.theme = theme;
-  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "light" ? "#f3f1fa" : "#09070f");
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "light" ? "#f1f3f7" : "#0a0f1a");
   try { localStorage.setItem(KEY, theme); } catch { /* özel pencere: yalnızca bu oturum */ }
   window.dispatchEvent(new CustomEvent("amc-theme", { detail: theme }));
 }

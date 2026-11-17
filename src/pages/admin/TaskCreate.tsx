@@ -1,13 +1,14 @@
-import { useMemo, useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { FilePlus2, UsersRound } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useToast } from "../../context/ToastContext";
+import { useAuth } from "../../context/AuthContext";
 import { useAsync } from "../../lib/useAsync";
-import { fetchDepartments, fetchDirectory } from "../../lib/api";
+import { fetchDepartments, fetchDirectory, fetchProjectList, fetchTask } from "../../lib/api";
 import { errorMessage } from "../../lib/errors";
 import { PRIORITIES, PRIORITY_META } from "../../lib/constants";
-import { ALLOWED_EXTENSIONS } from "../../lib/files";
+import { PICKABLE_EXTENSIONS } from "../../lib/files";
 import { fullName, todayISO } from "../../lib/format";
 import type { Task, TaskPriority } from "../../lib/types";
 import { Card, ErrorState, Field, LoadingState, PageHeader, Spinner } from "../../components/ui";
@@ -15,9 +16,13 @@ import { Card, ErrorState, Field, LoadingState, PageHeader, Spinner } from "../.
 export default function TaskCreate() {
   const toast = useToast();
   const navigate = useNavigate();
+  const { canManageDepartment, isAdmin } = useAuth();
+  const [params] = useSearchParams();
+  const parentId = params.get("ust");
+  const presetProject = params.get("proje") ?? "";
   const [form, setForm] = useState({
     title: "", description: "", department_id: "", start_date: todayISO(), due_date: "",
-    priority: "NORMAL" as TaskPriority, notes: "",
+    priority: "NORMAL" as TaskPriority, notes: "", project_id: presetProject, difficulty: 3,
   });
   const [types, setTypes] = useState<string[]>([]);
   const [assignees, setAssignees] = useState<string[]>([]);
@@ -25,9 +30,28 @@ export default function TaskCreate() {
   const [error, setError] = useState<string | null>(null);
 
   const { data, loading, error: loadError, reload } = useAsync(async () => {
-    const [departments, people] = await Promise.all([fetchDepartments(), fetchDirectory()]);
-    return { departments: departments.filter((d) => d.is_active), people: people.filter((p) => p.is_active) };
-  }, []);
+    const [departments, people, projects, parent] = await Promise.all([
+      fetchDepartments(), fetchDirectory(), fetchProjectList(), parentId ? fetchTask(parentId) : Promise.resolve(null),
+    ]);
+    return {
+      // Departman sorumlusu yalnızca kendi departmanlarına görev açabilir (sunucu da zorlar)
+      departments: departments.filter((d) => d.is_active && canManageDepartment(d.id)),
+      people: people.filter((p) => p.is_active),
+      projects: projects.filter((p) => p.status !== "CANCELLED" && p.status !== "COMPLETED"),
+      parent,
+    };
+  }, [parentId, canManageDepartment]);
+
+  // Alt görev: üst görevin departmanı ve projesi önceden seçilir
+  useEffect(() => {
+    if (!data?.parent) return;
+    const p = data.parent;
+    setForm((f) => ({
+      ...f,
+      department_id: data.departments.some((d) => d.id === p.department_id) ? p.department_id : f.department_id,
+      project_id: p.project_id ?? f.project_id,
+    }));
+  }, [data]);
 
   const dept = data?.departments.find((d) => d.id === form.department_id) ?? null;
   const { deptPeople, otherPeople } = useMemo(() => {
@@ -53,6 +77,7 @@ export default function TaskCreate() {
       p_title: form.title, p_description: form.description, p_department_id: form.department_id,
       p_start_date: form.start_date, p_due_date: form.due_date, p_priority: form.priority,
       p_required_file_types: types, p_notes: form.notes, p_assignee_ids: assignees,
+      p_project_id: form.project_id || null, p_parent_id: data?.parent?.id ?? null, p_difficulty: form.difficulty,
     });
     setBusy(false);
     if (err) return setError(errorMessage(err));
@@ -73,7 +98,11 @@ export default function TaskCreate() {
 
   return (
     <>
-      <PageHeader title="Görev Oluştur" description="Bir departmana görev tanımlayın ve sorumlularını atayın. Görev kodu otomatik üretilir." />
+      <PageHeader title={data.parent ? "Alt Görev Oluştur" : "Görev Oluştur"}
+        description={data.parent ? `${data.parent.code} — ${data.parent.title} görevinin altına bir iş paketi ekleyin.` : isAdmin ? "Bir departmana görev tanımlayın ve sorumlularını atayın. Görev kodu otomatik üretilir." : "Sorumlu olduğunuz departmana görev tanımlayın. Görev kodu otomatik üretilir."} />
+      {data.departments.length === 0 && (
+        <p className="mb-4 rounded-lg bg-warning/10 px-3 py-2 text-sm text-warning">Görev oluşturabileceğiniz aktif bir departman yok.</p>
+      )}
       <form onSubmit={submit} className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]" noValidate>
         <Card className="space-y-4 p-5">
           <Field label="Görev başlığı" required>
@@ -104,10 +133,23 @@ export default function TaskCreate() {
               </select>
             </Field>
           </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Proje" hint="Görev, projenin ilerleme ve Gantt hesabına dahil edilir.">
+              <select className="input" value={form.project_id} name="project" onChange={(e) => setForm({ ...form, project_id: e.target.value })}>
+                <option value="">Projesiz</option>
+                {data.projects.map((p) => <option key={p.id} value={p.id}>{p.code} — {p.name}</option>)}
+              </select>
+            </Field>
+            <Field label="Zorluk" hint="1 çok kolay – 5 çok zor. Performans puanında ağırlık olarak kullanılır.">
+              <select className="input" value={form.difficulty} name="difficulty" onChange={(e) => setForm({ ...form, difficulty: Number(e.target.value) })}>
+                {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} — {["", "Çok kolay", "Kolay", "Orta", "Zor", "Çok zor"][n]}</option>)}
+              </select>
+            </Field>
+          </div>
           <div>
             <span className="label">İstenen dosya türü</span>
             <div className="flex flex-wrap gap-2">
-              {ALLOWED_EXTENSIONS.filter((x) => x !== "jpeg").map((ext) => {
+              {PICKABLE_EXTENSIONS.map((ext) => {
                 const on = types.includes(ext);
                 return <button type="button" key={ext} aria-pressed={on} onClick={() => setTypes(on ? types.filter((x) => x !== ext) : [...types, ext])}
                   className={`min-h-9 rounded-md border px-2.5 font-mono text-xs uppercase transition-colors ${on ? "border-accent bg-accent/20 text-accent-2" : "border-line text-muted hover:text-ink"}`}>{ext}</button>;
@@ -149,7 +191,7 @@ export default function TaskCreate() {
 
           {error && <p className="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2.5 text-sm text-danger" role="alert">{error}</p>}
           <button type="submit" className="btn-primary w-full" disabled={busy}>
-            {busy ? <Spinner className="size-4 text-white" /> : <FilePlus2 className="size-4" />} Görevi oluştur ve ata
+            {busy ? <Spinner className="size-4 text-current" /> : <FilePlus2 className="size-4" />} Görevi oluştur ve ata
           </button>
         </div>
       </form>

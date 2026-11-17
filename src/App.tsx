@@ -23,6 +23,19 @@ const Members = lazy(() => import("./pages/admin/Members"));
 const TaskCreate = lazy(() => import("./pages/admin/TaskCreate"));
 const ReportReview = lazy(() => import("./pages/admin/ReportReview"));
 const Logs = lazy(() => import("./pages/admin/Logs"));
+const Projects = lazy(() => import("./pages/Projects"));
+const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
+const DepartmentDetail = lazy(() => import("./pages/DepartmentDetail"));
+const Team = lazy(() => import("./pages/Team"));
+const MemberProfile = lazy(() => import("./pages/MemberProfile"));
+const OrgChart = lazy(() => import("./pages/OrgChart"));
+const Documents = lazy(() => import("./pages/Documents"));
+const DocumentDetail = lazy(() => import("./pages/DocumentDetail"));
+const Calendar = lazy(() => import("./pages/Calendar"));
+const Timeline = lazy(() => import("./pages/Timeline"));
+const Risks = lazy(() => import("./pages/Risks"));
+const RiskDetail = lazy(() => import("./pages/RiskDetail"));
+const Analytics = lazy(() => import("./pages/Analytics"));
 
 function FullScreen({ children }: { children: ReactNode }) {
   return <div className="flex min-h-dvh items-center justify-center p-6">{children}</div>;
@@ -88,6 +101,12 @@ function RequireAdmin() {
   return isAdmin ? <Outlet /> : <Unauthorized />;
 }
 
+/** Yönetici veya departman sorumlusu (sunucu tarafı yetki ayrıca RLS/RPC'de kontrol edilir) */
+function RequireManager() {
+  const { isManager } = useAuth();
+  return isManager ? <Outlet /> : <Unauthorized />;
+}
+
 function NotFound() {
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-center">
@@ -131,6 +150,24 @@ export default function App() {
                 <Route path="gorevler" element={<MyTasks />} />
                 <Route path="gorevler/:id" element={<TaskDetail />} />
                 <Route path="departmanlar" element={<Departments />} />
+                <Route path="departmanlar/:id" element={<DepartmentDetail />} />
+                <Route path="projeler" element={<Projects />} />
+                <Route path="projeler/:id" element={<ProjectDetail />} />
+                <Route path="ekip" element={<Team />} />
+                <Route path="ekip/:id" element={<MemberProfile />} />
+                <Route path="organizasyon" element={<OrgChart />} />
+                <Route path="dokumanlar" element={<Documents />} />
+                <Route path="dokumanlar/:id" element={<DocumentDetail />} />
+                <Route path="takvim" element={<Calendar />} />
+                <Route path="zaman-cizelgesi" element={<Timeline />} />
+                <Route path="riskler" element={<Risks />} />
+                <Route path="riskler/:id" element={<RiskDetail />} />
+                <Route element={<RequireManager />}>
+                  <Route path="analitik" element={<Analytics />} />
+                  <Route path="yonetim/gorev-olustur" element={<TaskCreate />} />
+                  <Route path="yonetim/rapor-inceleme" element={<ReportReview />} />
+                  <Route path="yonetim/rapor-inceleme/:id" element={<ReportDetail />} />
+                </Route>
                 <Route path="rapor-yukle" element={<ReportUpload />} />
                 <Route path="arsiv" element={<ReportArchive />} />
                 <Route path="raporlar/:id" element={<ReportDetail />} />
@@ -139,9 +176,6 @@ export default function App() {
                 <Route path="yonetim" element={<RequireAdmin />}>
                   <Route index element={<AdminPanel />} />
                   <Route path="uyeler" element={<Members />} />
-                  <Route path="gorev-olustur" element={<TaskCreate />} />
-                  <Route path="rapor-inceleme" element={<ReportReview />} />
-                  <Route path="rapor-inceleme/:id" element={<ReportDetail />} />
                   <Route path="kayitlar" element={<Logs />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />

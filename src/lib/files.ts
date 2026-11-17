@@ -1,6 +1,6 @@
 import { REPORTS_BUCKET, SUPABASE_ANON_KEY, SUPABASE_URL, supabase } from "./supabase";
 
-type Magic = "pdf" | "zip" | "ole" | "png" | "jpg" | "text";
+type Magic = "pdf" | "zip" | "ole" | "png" | "jpg" | "text" | "stl" | "step";
 
 interface FileRule {
   /** Storage'a gönderilen ve sunucuda (bucket + submit_report) doğrulanan kanonik MIME */
@@ -36,9 +36,17 @@ export const FILE_RULES: Record<string, FileRule> = {
   png: { mime: "image/png", accepted: ["image/png"], magic: "png" },
   jpg: { mime: "image/jpeg", accepted: ["image/jpeg"], magic: "jpg" },
   jpeg: { mime: "image/jpeg", accepted: ["image/jpeg"], magic: "jpg" },
+  // CAD: tarayıcılar bu türler için çoğunlukla boş veya genel MIME bildirir
+  stl: { mime: "model/stl", accepted: ["model/stl", "application/sla", "application/vnd.ms-pki.stl", "application/octet-stream", "model/x.stl-binary", "model/x.stl-ascii"], magic: "stl" },
+  step: { mime: "model/step", accepted: ["model/step", "application/step", "application/octet-stream", "model/x-step", "application/x-step"], magic: "step" },
+  stp: { mime: "model/step", accepted: ["model/step", "application/step", "application/octet-stream", "model/x-step", "application/x-step"], magic: "step" },
 };
 
 export const ALLOWED_EXTENSIONS = Object.keys(FILE_RULES);
+/** Seçim listelerinde gösterilen uzantılar (eş anlamlı jpeg/stp tekrarlanmaz) */
+export const PICKABLE_EXTENSIONS = ALLOWED_EXTENSIONS.filter((x) => x !== "jpeg" && x !== "stp");
+export const DOCUMENTS_BUCKET = "documents";
+export const AVATARS_BUCKET = "avatars";
 export const ACCEPT_ATTR = ALLOWED_EXTENSIONS.map((e) => `.${e}`).join(",");
 export const MAX_FILES_PER_UPLOAD = 10;
 
@@ -59,6 +67,10 @@ function checkMagic(bytes: Uint8Array, magic: Magic): boolean {
     case "png": return startsWith(bytes, [0x89, 0x50, 0x4e, 0x47]);
     case "jpg": return startsWith(bytes, [0xff, 0xd8, 0xff]);
     case "text": return !bytes.includes(0); // ikili içerik barındırmamalı
+    // STL: ASCII ("solid") veya 80 baytlık başlıklı ikili biçim; ikili biçimin imzası yoktur
+    case "stl": return bytes.length >= 84 || startsWith(bytes, [0x73, 0x6f, 0x6c, 0x69, 0x64]);
+    // STEP (ISO 10303-21) düz metin, "ISO-10303-21" ile başlar
+    case "step": return new TextDecoder().decode(bytes.slice(0, 32)).trimStart().startsWith("ISO-10303-21");
   }
 }
 
@@ -142,11 +154,12 @@ export function uploadWithProgress(
   accessToken: string,
   onProgress: (loaded: number, total: number) => void,
   signal?: AbortSignal,
+  bucket: string = REPORTS_BUCKET,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     const encoded = path.split("/").map(encodeURIComponent).join("/");
-    xhr.open("POST", `${SUPABASE_URL}/storage/v1/object/${REPORTS_BUCKET}/${encoded}`);
+    xhr.open("POST", `${SUPABASE_URL}/storage/v1/object/${bucket}/${encoded}`);
     xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
     xhr.setRequestHeader("apikey", SUPABASE_ANON_KEY);
     xhr.setRequestHeader("x-upsert", "false");
@@ -177,10 +190,10 @@ export function uploadWithProgress(
 }
 
 /** Yarım kalan yüklemeden artan nesneleri temizler (henüz rapora bağlanmamış olanlar silinebilir). */
-export async function removeOrphans(paths: string[]): Promise<void> {
+export async function removeOrphans(paths: string[], bucket: string = REPORTS_BUCKET): Promise<void> {
   if (paths.length === 0) return;
   try {
-    await supabase.storage.from(REPORTS_BUCKET).remove(paths);
+    await supabase.storage.from(bucket).remove(paths);
   } catch { /* en iyi çaba */ }
 }
 
@@ -188,9 +201,9 @@ export async function removeOrphans(paths: string[]): Promise<void> {
  * Kısa ömürlü (60 sn) imzalı URL üretir. İmzalama isteği kullanıcının
  * oturumuyla yapılır; Storage RLS politikası izin vermezse URL üretilmez.
  */
-export async function getSignedUrl(path: string, downloadName?: string): Promise<string> {
+export async function getSignedUrl(path: string, downloadName?: string, bucket: string = REPORTS_BUCKET): Promise<string> {
   const { data, error } = await supabase.storage
-    .from(REPORTS_BUCKET)
+    .from(bucket)
     .createSignedUrl(path, 60, downloadName ? { download: downloadName } : undefined);
   if (error || !data?.signedUrl) {
     throw new Error("Dosyaya erişilemedi. Yetkiniz olmayabilir veya dosya bulunamadı.");

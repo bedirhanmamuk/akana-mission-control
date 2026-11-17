@@ -42,7 +42,7 @@ function DepartmentModal({ department, people, onClose, onSaved }: {
   return (
     <Modal open onClose={onClose} title={department ? "Departmanı düzenle" : "Yeni departman"}
       footer={<><button className="btn-secondary" onClick={onClose} disabled={busy}>Vazgeç</button>
-        <button className="btn-primary" type="submit" form="dept-form" disabled={busy}>{busy && <Spinner className="size-4 text-white" />} Kaydet</button></>}>
+        <button className="btn-primary" type="submit" form="dept-form" disabled={busy}>{busy && <Spinner className="size-4 text-current" />} Kaydet</button></>}>
       <form id="dept-form" onSubmit={save} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-[1fr_120px]">
           <Field label="Departman adı" required><input className="input" value={form.name} maxLength={60} onChange={(e) => setForm({ ...form, name: e.target.value })} name="dept-name" /></Field>

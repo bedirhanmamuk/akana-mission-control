@@ -106,6 +106,17 @@ if docker image inspect "$EDGE_IMAGE" >/dev/null 2>&1; then
     curl -s -o /dev/null -X POST http://127.0.0.1:9000/ -d '{}' && break
     sleep 1
   done
+  # İsteğe bağlı YZ modülü (ANTHROPIC_API_KEY ortamda varsa iletilir; yoksa 503 döner)
+  # Kurumsal proxy arkasında npm paketi indirebilmek için proxy/CA ayarları (varsa) iletilir
+  EDGE_NET_ARGS=()
+  [ -n "${HTTPS_PROXY:-}" ] && EDGE_NET_ARGS+=(-e "HTTPS_PROXY=$HTTPS_PROXY" -e "HTTP_PROXY=${HTTP_PROXY:-$HTTPS_PROXY}" -e "NO_PROXY=${NO_PROXY:-localhost,127.0.0.1}")
+  [ -n "${SSL_CERT_FILE:-}" ] && [ -f "$SSL_CERT_FILE" ] && EDGE_NET_ARGS+=(-v "$SSL_CERT_FILE:/etc/ssl/certs/ca-certificates.crt:ro" -e DENO_TLS_CA_STORE=system)
+  docker run -d --name akana-edge-ai --network host "${EDGE_NET_ARGS[@]}" \
+    -v "$ROOT/supabase/functions:/home/deno/functions:ro" \
+    -e SUPABASE_URL=http://127.0.0.1:54321 \
+    -e SUPABASE_ANON_KEY="$ANON_KEY" \
+    -e ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}" \
+    "$EDGE_IMAGE" start --main-service /home/deno/functions/ai-insights -p 9001 >/dev/null
 else
   echo "    UYARI: $EDGE_IMAGE bulunamadı; admin-users fonksiyonu çalışmayacak."
 fi

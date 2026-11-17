@@ -11,6 +11,12 @@ interface AuthState {
   loading: boolean;
   profileError: string | null;
   isAdmin: boolean;
+  /** Kullanıcının sorumlusu olduğu departmanlar (departments.lead_id) */
+  leadDepartmentIds: string[];
+  /** Yönetici veya en az bir departmanın sorumlusu */
+  isManager: boolean;
+  /** Departmanı yönetebilir mi (yönetici veya o departmanın sorumlusu) */
+  canManageDepartment: (departmentId: string | null | undefined) => boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -24,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [sessionReady, setSessionReady] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
+  const [leadDepartmentIds, setLeadDepartmentIds] = useState<string[]>([]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -53,6 +60,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(null);
     } else {
       setProfile(data as Profile);
+      // Sorumluluk bilgisi arayüz için; asıl yetki kontrolü sunucuda (RLS/RPC) yapılır.
+      const { data: led } = await supabase.from("departments").select("id").eq("lead_id", uid);
+      setLeadDepartmentIds((led ?? []).map((d: { id: string }) => d.id));
     }
   }, []);
 
@@ -82,22 +92,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setProfile(null);
+    setLeadDepartmentIds([]);
   }, []);
 
   const refreshProfile = useCallback(async () => {
     if (userId) await loadProfile(userId);
   }, [userId, loadProfile]);
 
+  const isAdmin = profile?.role === "ADMIN" && profile.is_active;
+  const canManageDepartment = useCallback(
+    (id: string | null | undefined) => Boolean(isAdmin || (id && leadDepartmentIds.includes(id))),
+    [isAdmin, leadDepartmentIds],
+  );
+
   const value = useMemo<AuthState>(() => ({
     session,
     profile,
     loading: !sessionReady || (Boolean(userId) && !profile && !profileError) || (profileLoading && !profile),
     profileError,
-    isAdmin: profile?.role === "ADMIN" && profile.is_active,
+    isAdmin: Boolean(isAdmin),
+    leadDepartmentIds,
+    isManager: Boolean(isAdmin || (profile?.is_active && leadDepartmentIds.length > 0)),
+    canManageDepartment,
     signIn,
     signOut,
     refreshProfile,
-  }), [session, profile, sessionReady, userId, profileLoading, profileError, signIn, signOut, refreshProfile]);
+  }), [session, profile, sessionReady, userId, profileLoading, profileError, isAdmin, leadDepartmentIds, canManageDepartment, signIn, signOut, refreshProfile]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

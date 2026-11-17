@@ -6,9 +6,9 @@ import { useToast } from "../../context/ToastContext";
 import { useAsync } from "../../lib/useAsync";
 import { adminUsers, fetchDepartments, fetchProfiles } from "../../lib/api";
 import { errorMessage } from "../../lib/errors";
-import { ROLE_LABEL } from "../../lib/constants";
+import { POSITIONS, POSITION_META, ROLE_LABEL } from "../../lib/constants";
 import { formatDate, fullName } from "../../lib/format";
-import type { Department, Profile, UserRole } from "../../lib/types";
+import type { Department, Profile, TeamPosition, UserRole } from "../../lib/types";
 import { Badge, EmptyState, ErrorState, Field, LoadingState, Modal, PageHeader, Spinner } from "../../components/ui";
 
 function generatePassword(): string {
@@ -59,7 +59,7 @@ function CreateMemberModal({ departments, onClose, onSaved }: { departments: Dep
   return (
     <Modal open onClose={onClose} title="Yeni ekip üyesi" wide
       footer={<><button className="btn-secondary" onClick={onClose} disabled={busy}>Vazgeç</button>
-        <button className="btn-primary" type="submit" form="member-form" disabled={busy}>{busy && <Spinner className="size-4 text-white" />} Üyeyi oluştur</button></>}>
+        <button className="btn-primary" type="submit" form="member-form" disabled={busy}>{busy && <Spinner className="size-4 text-current" />} Üyeyi oluştur</button></>}>
       <form id="member-form" onSubmit={save} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Ad" required><input className="input" value={form.first_name} maxLength={60} onChange={(e) => setForm({ ...form, first_name: e.target.value })} name="first_name" /></Field>
@@ -94,6 +94,7 @@ function EditMemberModal({ member, departments, isSelf, onClose, onSaved }: {
   const [form, setForm] = useState({
     first_name: member.first_name, last_name: member.last_name, email: member.email,
     department_id: member.department_id ?? "", role: member.role, is_active: member.is_active,
+    team_position: member.team_position ?? "MEMBER", title: member.title ?? "",
   });
   const [newPassword, setNewPassword] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -110,6 +111,7 @@ function EditMemberModal({ member, departments, isSelf, onClose, onSaved }: {
       const { error: err } = await supabase.from("profiles").update({
         first_name: form.first_name.trim(), last_name: form.last_name.trim(),
         department_id: form.department_id || null, role: form.role, is_active: form.is_active,
+        team_position: form.team_position, title: form.title.trim(),
       }).eq("id", member.id);
       if (err) throw err;
       if (email !== member.email.toLowerCase()) await adminUsers({ action: "update_email", user_id: member.id, email });
@@ -139,7 +141,7 @@ function EditMemberModal({ member, departments, isSelf, onClose, onSaved }: {
   return (
     <Modal open onClose={onClose} title={`${fullName(member)} — düzenle`} wide
       footer={<><button className="btn-secondary" onClick={onClose} disabled={busy}>Kapat</button>
-        <button className="btn-primary" type="submit" form="member-edit" disabled={busy}>{busy && <Spinner className="size-4 text-white" />} Kaydet</button></>}>
+        <button className="btn-primary" type="submit" form="member-edit" disabled={busy}>{busy && <Spinner className="size-4 text-current" />} Kaydet</button></>}>
       <form id="member-edit" onSubmit={save} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Ad" required><input className="input" value={form.first_name} maxLength={60} onChange={(e) => setForm({ ...form, first_name: e.target.value })} /></Field>
@@ -158,6 +160,16 @@ function EditMemberModal({ member, departments, isSelf, onClose, onSaved }: {
               <option value="MEMBER">{ROLE_LABEL.MEMBER}</option>
               <option value="ADMIN">{ROLE_LABEL.ADMIN}</option>
             </select>
+          </Field>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Takım pozisyonu" hint="Organizasyon şemasında kullanılır. Kaptan ve yardımcısına yönetici rolü verilmesi önerilir; departman sorumlusu Yönetim Paneli'nden atanır.">
+            <select className="input" value={form.team_position} name="team_position" onChange={(e) => setForm({ ...form, team_position: e.target.value as TeamPosition })}>
+              {POSITIONS.map((x) => <option key={x} value={x}>{POSITION_META[x].label}</option>)}
+            </select>
+          </Field>
+          <Field label="Unvan" hint="Örn. Yapısal Analiz Sorumlusu, Uçuş Yazılımı Geliştirici">
+            <input className="input" value={form.title} maxLength={80} name="title" onChange={(e) => setForm({ ...form, title: e.target.value })} />
           </Field>
         </div>
         <label className={`flex min-h-10 items-center gap-3 text-sm ${isSelf ? "opacity-50" : "cursor-pointer"}`}>

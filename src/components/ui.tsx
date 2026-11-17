@@ -4,10 +4,12 @@ import { AlertTriangle, Inbox, Loader2, RefreshCw, ShieldAlert, X } from "lucide
 import { Link } from "react-router-dom";
 import type { Tone } from "../lib/constants";
 import {
-  PRIORITY_META, REPORT_STATUS_META, TASK_STATUS_META,
+  DOCUMENT_STATUS_META, PRIORITY_META, PROJECT_STATUS_META, REPORT_STATUS_META, RISK_STATUS_META, TASK_STATUS_META, riskBand,
 } from "../lib/constants";
-import type { ReportStatus, TaskPriority, TaskStatus } from "../lib/types";
+import type { DocumentStatus, ProjectStatus, ReportStatus, RiskStatus, TaskPriority, TaskStatus } from "../lib/types";
 import { useCountUp } from "../lib/motion";
+import { useAvatarUrl } from "../lib/avatars";
+import { initials } from "../lib/format";
 
 const TONE_CLASS: Record<Tone, string> = {
   neutral: "bg-ink/6 text-muted",
@@ -38,16 +40,100 @@ export function PriorityBadge({ priority }: { priority: TaskPriority }) {
   const m = PRIORITY_META[priority];
   return <Badge tone={m.tone}>{m.label}</Badge>;
 }
-
-export function Spinner({ className = "size-5" }: { className?: string }) {
-  return <Loader2 className={`animate-spin text-accent-2 ${className}`} aria-hidden />;
+export function ProjectStatusBadge({ status }: { status: ProjectStatus }) {
+  const m = PROJECT_STATUS_META[status];
+  return <Badge tone={m.tone}>{m.label}</Badge>;
+}
+export function RiskStatusBadge({ status }: { status: RiskStatus }) {
+  const m = RISK_STATUS_META[status];
+  return <Badge tone={m.tone}>{m.label}</Badge>;
+}
+export function DocumentStatusBadge({ status }: { status: DocumentStatus }) {
+  const m = DOCUMENT_STATUS_META[status];
+  return <Badge tone={m.tone}>{m.label}</Badge>;
+}
+/** Risk puanı (olasılık × etki, 1–25) ve bandı */
+export function RiskScore({ score }: { score: number }) {
+  const b = riskBand(score);
+  return (
+    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-0.5 text-[11px] font-semibold tabular-nums ${TONE_CLASS[b.tone]}`} title={`Risk puanı ${score}/25 · ${b.label}`}>
+      {score}<span className="font-medium opacity-80">{b.label}</span>
+    </span>
+  );
 }
 
-export function LoadingState({ label = "Yükleniyor…" }: { label?: string }) {
+/** İlerleme çubuğu: değer 0–100. Renk yalnızca durum anlamı taşıdığında değişir. */
+export function ProgressBar({ value, tone = "accent", label, className = "" }: {
+  value: number; tone?: "accent" | "success" | "danger" | "warning"; label?: string; className?: string;
+}) {
+  const v = Math.max(0, Math.min(100, Math.round(value)));
+  const bg = { accent: "bg-accent", success: "bg-success", danger: "bg-danger", warning: "bg-warning" }[tone];
   return (
-    <div className="flex min-h-48 flex-col items-center justify-center gap-3 py-12 text-muted" role="status">
-      <Spinner className="size-7" />
-      <span className="text-sm">{label}</span>
+    <div className={`h-1.5 overflow-hidden rounded-full bg-ink/8 ${className}`} role="progressbar" aria-valuenow={v} aria-valuemin={0} aria-valuemax={100} aria-label={label ?? `İlerleme yüzde ${v}`}>
+      <div className={`bar-grow h-full rounded-full ${bg}`} style={{ width: `${v}%` }} />
+    </div>
+  );
+}
+
+/** Kişi avatarı: fotoğraf varsa imzalı URL ile, yoksa baş harfler */
+export function Avatar({ person, size = 32, className = "" }: {
+  person: { first_name: string; last_name: string; avatar_path?: string | null } | null | undefined; size?: number; className?: string;
+}) {
+  const url = useAvatarUrl(person?.avatar_path);
+  const style = { width: size, height: size, fontSize: Math.max(10, Math.round(size * 0.36)) };
+  return url ? (
+    <img src={url} alt="" style={style} className={`shrink-0 rounded-full object-cover ${className}`} />
+  ) : (
+    <span style={style} className={`flex shrink-0 items-center justify-center rounded-full bg-accent/18 font-semibold text-accent-2 ${className}`} aria-hidden>
+      {initials(person)}
+    </span>
+  );
+}
+
+/** Sekmeli seçim (görünüm, kapsam). Klavye ile gezilebilir düğme grubu. */
+export function Segmented<T extends string>({ options, value, onChange, label, size = "md" }: {
+  options: readonly (readonly [T, string])[]; value: T; onChange: (v: T) => void; label: string; size?: "sm" | "md";
+}) {
+  return (
+    <div className="inline-flex max-w-full shrink-0 self-start overflow-x-auto rounded-lg bg-surface p-1" role="tablist" aria-label={label}>
+      {options.map(([k, text]) => (
+        <button key={k} type="button" role="tab" aria-selected={value === k} onClick={() => onChange(k)}
+          className={`shrink-0 rounded-md px-3 transition-colors duration-150 ${size === "sm" ? "min-h-8 text-xs" : "min-h-9 text-sm"} ${value === k ? "bg-accent font-medium text-on-accent" : "text-muted hover:text-ink"}`}>
+          {text}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function FormError({ children }: { children: ReactNode }) {
+  if (!children) return null;
+  return <p className="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">{children}</p>;
+}
+
+export function Skeleton({ className = "" }: { className?: string }) {
+  return <div className={`skeleton ${className}`} aria-hidden />;
+}
+
+export function Spinner({ className = "size-5" }: { className?: string }) {
+  return <Loader2 className={`animate-spin ${/\btext-/.test(className) ? "" : "text-accent-2"} ${className}`} aria-hidden />;
+}
+
+/** Yükleniyor: içerik yerleşimini taklit eden iskelet (ekran okuyucuya etiket okunur) */
+export function LoadingState({ label = "Yükleniyor…", variant = "page" }: { label?: string; variant?: "page" | "list" | "compact" }) {
+  return (
+    <div className="py-2" role="status" aria-live="polite">
+      <span className="sr-only">{label}</span>
+      {variant === "compact" ? (
+        <div className="space-y-2"><Skeleton className="h-4 w-2/3" /><Skeleton className="h-4 w-1/2" /></div>
+      ) : variant === "list" ? (
+        <div className="space-y-2">{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-14" />)}</div>
+      ) : (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}</div>
+          <div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-64 rounded-2xl" /><Skeleton className="h-64 rounded-2xl" /></div>
+        </div>
+      )}
     </div>
   );
 }
@@ -164,7 +250,7 @@ export function Modal({ open, onClose, title, children, footer, wide }: {
   // bir üst öğe, "fixed" konumu ekrana değil kendine bağlar ve pencere görünür alanın dışında kalırdı.
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={title}>
-      <div className="absolute inset-0 animate-backdrop bg-[#05050b]/80" onClick={onClose} />
+      <div className="absolute inset-0 animate-backdrop bg-[#04070d]/80" onClick={onClose} />
       <div className={`relative flex max-h-[92dvh] w-full animate-sheet flex-col rounded-t-3xl bg-card shadow-[0_30px_80px_-20px_rgb(0_0_0/0.9)] sm:animate-dialog sm:rounded-2xl ${wide ? "sm:max-w-2xl" : "sm:max-w-lg"}`}>
         <div className="flex items-center justify-between border-b border-line-soft px-5 py-4">
           <h2 className="font-semibold">{title}</h2>

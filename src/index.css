@@ -10,32 +10,33 @@
 @import "@fontsource/ibm-plex-mono/latin-ext-500.css";
 
 /* Tasarım sistemi: bkz. DESIGN.md
-   Zemin ve yüzeyler mora çalan tek bir ton merdivenidir (bg → surface → card → raised);
-   ayrım çizgiyle değil tonla yapılır. Mor yalnızca eylem ve "şu an" için kullanılır. */
+   Zemin ve yüzeyler laciverte çalan antrasit bir ton merdivenidir (bg → surface → card → raised);
+   ayrım çizgiyle değil tonla yapılır. Altın/amber yalnızca eylem, seçim ve "şu an" için kullanılır. */
 @theme {
-  /* Koyu tema (varsayılan). Renkler logodan türetilir: derin mor zemin, menekşe ana renk, macenta "şu an" vurgusu. */
-  --color-bg: #09070f;
-  --color-rail: #160c30;
-  --color-surface: #110e1c;
-  --color-card: #17132a;
-  --color-raised: #201a3a;
-  --color-raised-hover: #29224a;
-  --color-line: #2e2654;
-  --color-line-strong: #3d3470;
-  --color-line-soft: #211b3f;
-  --color-accent: #8452f0;
-  --color-accent-hover: #9265f5;
-  --color-accent-2: #b89cff;
-  --color-accent-deep: #5a2fc4;
-  --color-hot: #e052f5;
-  --color-ink: #f4f2fa;
-  --color-muted: #a39fc0;
-  --color-faint: #746f94;
-  --color-success: #34c972;
-  --color-warning: #f2a922;
-  --color-danger: #f25654;
-  --color-info: #7cc7f5;
-  --color-logo-tile: #f4f2fa;
+  /* Koyu tema (varsayılan): gece mavisi zemin, kontrollü altın vurgu */
+  --color-bg: #0a0f1a;
+  --color-rail: #0b1220;
+  --color-surface: #0e1524;
+  --color-card: #131b2c;
+  --color-raised: #1a2438;
+  --color-raised-hover: #212d45;
+  --color-line: #263249;
+  --color-line-strong: #35425e;
+  --color-line-soft: #1b2539;
+  --color-accent: #d9a441;
+  --color-accent-hover: #e6b555;
+  --color-accent-2: #e8bd66;
+  --color-accent-deep: #9c7020;
+  --color-on-accent: #161004;
+  --color-hot: #ffc857;
+  --color-ink: #eef1f7;
+  --color-muted: #9ba6bc;
+  --color-faint: #76829a;
+  --color-success: #3fbf7f;
+  --color-warning: #f28c38;
+  --color-danger: #ef5350;
+  --color-info: #6aa9e9;
+  --color-logo-tile: #eef1f7;
 
   --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-display: "Archivo Variable", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
@@ -66,6 +67,7 @@
   @keyframes liftoff { 0% { transform: none; } 18% { transform: translateY(6px) scale(0.97); } 100% { transform: translateY(-110vh) scale(0.9); } }
   @keyframes shake { 0%, 100% { transform: none; } 20% { transform: translateX(-8px); } 40% { transform: translateX(7px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(3px); } }
   @keyframes grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
   @keyframes reveal { from { clip-path: inset(-30% 100% -30% -5%); } to { clip-path: inset(-30% -5% -30% -5%); } }
 }
 
@@ -80,7 +82,7 @@
     background-attachment: fixed;
   }
   h1, h2, h3 { text-wrap: balance; }
-  ::selection { background: color-mix(in srgb, var(--color-accent) 45%, transparent); color: #fff; }
+  ::selection { background: color-mix(in srgb, var(--color-accent) 40%, transparent); color: var(--color-ink); }
   * { scrollbar-width: thin; scrollbar-color: var(--color-line-strong) transparent; }
   :focus-visible { outline: 2px solid var(--color-accent-2); outline-offset: 2px; border-radius: 6px; }
   a { text-underline-offset: 3px; }
@@ -107,8 +109,8 @@
   .btn:active:not(:disabled), .btn-primary:active:not(:disabled), .btn-secondary:active:not(:disabled), .btn-ghost:active:not(:disabled),
   .btn-danger:active:not(:disabled), .btn-success:active:not(:disabled), .btn-warning:active:not(:disabled) { transform: scale(0.97); }
   .btn-primary {
-    @apply bg-accent text-white hover:bg-accent-hover;
-    box-shadow: 0 1px 0 rgb(255 255 255 / 0.18) inset, 0 8px 18px -10px color-mix(in srgb, var(--color-accent) 85%, transparent);
+    @apply bg-accent text-on-accent font-semibold hover:bg-accent-hover;
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.22) inset, 0 8px 18px -12px color-mix(in srgb, var(--color-accent) 70%, transparent);
   }
   .btn-secondary { @apply bg-raised text-ink hover:bg-raised-hover; }
   .btn-ghost { @apply text-muted hover:bg-ink/5 hover:text-ink; }
@@ -136,6 +138,16 @@
   /* Liste öğeleri sırayla belirir; toplam gecikme sınırlıdır (ilk 8 öğe) */
   .stagger > * { animation: rise 0.32s var(--ease-out) both; animation-delay: calc(min(var(--i, 0), 8) * 32ms); }
   .bar-grow { transform-origin: left; animation: grow-x 0.7s var(--ease-out) both; }
+
+  /* Yükleniyor iskeleti: içerik yerleşimini önceden gösterir, ışık soldan sağa akar */
+  .skeleton {
+    @apply rounded-lg;
+    background: linear-gradient(90deg, var(--color-raised) 0%, var(--color-raised-hover) 50%, var(--color-raised) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+  /* Yatay kaydırılan alanlar (Kanban, Gantt): kaydırma çubuğu ince */
+  .scroll-x { overflow-x: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
 }
 
 /* Hareketi azalt: konum/ölçek hareketi kalkar, anlam taşıyan opaklık ve renk geçişleri kalır */
@@ -161,27 +173,27 @@
    --------------------------------------------------------------------------- */
 :root, [data-theme="dark"] {
   --scheme: dark;
-  --glow: rgb(132 82 240 / 0.10);
-  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 12px 28px -18px rgb(0 0 0 / 0.75);
+  --glow: rgb(217 164 65 / 0.06);
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.035) inset, 0 12px 28px -18px rgb(0 0 0 / 0.8);
 }
 [data-theme="dark"] {
-  --color-bg: #09070f; --color-surface: #110e1c; --color-card: #17132a; --color-raised: #201a3a; --color-raised-hover: #29224a;
-  --color-line: #2e2654; --color-line-strong: #3d3470; --color-line-soft: #211b3f;
-  --color-accent: #8452f0; --color-accent-hover: #9265f5; --color-accent-2: #b89cff; --color-hot: #e052f5;
-  --color-ink: #f4f2fa; --color-muted: #a39fc0; --color-faint: #746f94;
-  --color-success: #34c972; --color-warning: #f2a922; --color-danger: #f25654; --color-info: #7cc7f5;
+  --color-bg: #0a0f1a; --color-surface: #0e1524; --color-card: #131b2c; --color-raised: #1a2438; --color-raised-hover: #212d45;
+  --color-line: #263249; --color-line-strong: #35425e; --color-line-soft: #1b2539;
+  --color-accent: #d9a441; --color-accent-hover: #e6b555; --color-accent-2: #e8bd66; --color-on-accent: #161004; --color-hot: #ffc857;
+  --color-ink: #eef1f7; --color-muted: #9ba6bc; --color-faint: #76829a;
+  --color-success: #3fbf7f; --color-warning: #f28c38; --color-danger: #ef5350; --color-info: #6aa9e9;
   color: var(--color-ink);
   color-scheme: dark;
 }
 :root[data-theme="light"] {
   --scheme: light;
-  --glow: rgb(132 82 240 / 0.07);
-  --shadow-card: 0 0 0 1px rgb(60 40 120 / 0.06), 0 10px 24px -16px rgb(50 30 110 / 0.28);
-  --color-bg: #f3f1fa; --color-surface: #efecf8; --color-card: #ffffff; --color-raised: #ebe7f7; --color-raised-hover: #e0daf2;
-  --color-line: #d6d0eb; --color-line-strong: #b9b0dc; --color-line-soft: #e9e5f5;
-  --color-accent: #6a35e0; --color-accent-hover: #5a28cc; --color-accent-2: #5b2bd0; --color-hot: #b318cf;
-  --color-ink: #17122b; --color-muted: #595474; --color-faint: #827c9e;
-  --color-success: #128a45; --color-warning: #a8620a; --color-danger: #d02b2b; --color-info: #0b6aa8;
+  --glow: rgb(200 146 42 / 0.05);
+  --shadow-card: 0 0 0 1px rgb(15 26 46 / 0.06), 0 10px 24px -16px rgb(15 26 46 / 0.25);
+  --color-bg: #f1f3f7; --color-surface: #eaedf3; --color-card: #ffffff; --color-raised: #e6eaf1; --color-raised-hover: #dce1ea;
+  --color-line: #d2d8e3; --color-line-strong: #b3bdcd; --color-line-soft: #e5e9f0;
+  --color-accent: #c8922a; --color-accent-hover: #b8841f; --color-accent-2: #875a00; --color-on-accent: #161004; --color-hot: #b86e00;
+  --color-ink: #0f1a2e; --color-muted: #4c586d; --color-faint: #6c778b;
+  --color-success: #0f7a45; --color-warning: #b45309; --color-danger: #c62828; --color-info: #1d5fa0;
 }
 
 /* Telefonda form alanları 16 px: iOS odaklanınca sayfayı yakınlaştırmasın */
