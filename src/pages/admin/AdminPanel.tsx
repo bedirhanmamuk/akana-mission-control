@@ -148,7 +148,7 @@ export default function AdminPanel() {
           <Card className="h-fit p-5">
             <SectionTitle><span className="flex items-center gap-2"><HardDrive className="size-4" /> Dosya yükleme ayarları</span></SectionTitle>
             <form onSubmit={saveMaxMb} className="space-y-3">
-              <Field label="Dosya başına boyut sınırı (MB)" hint="Sınır hem uygulamada hem de depolama katmanında zorlanır.">
+              <Field label="Dosya başına boyut sınırı (MB)" hint="Tüm yüklemelere uygulanır.">
                 <input type="number" min={1} max={500} step={1} className="input" value={maxMb ?? String(data.mb)} onChange={(e) => setMaxMb(e.target.value)} name="max-mb" />
               </Field>
               <button className="btn-secondary w-full" disabled={savingMb || maxMb === null || Number(maxMb) === data.mb}>

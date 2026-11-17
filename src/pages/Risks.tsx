@@ -49,7 +49,7 @@ export default function Risks() {
 
   return (
     <>
-      <PageHeader title="Risk Yönetimi" description="Her ekip üyesi risk bildirebilir. Puan = olasılık × etki (1–25); 15 ve üzeri kritik sayılır ve kontrol merkezinde gösterilir."
+      <PageHeader title="Risk Yönetimi" description="Puan = olasılık × etki. 15 ve üzeri kritiktir."
         actions={<button className="btn-primary" onClick={() => setCreating(true)}><Plus className="size-4" /> Risk kaydet</button>} />
 
       {loading && !data ? <LoadingState /> : error || !data ? <ErrorState message={error ?? ""} onRetry={reload} /> : (
@@ -69,7 +69,7 @@ export default function Risks() {
                   <p className={`num text-[34px] font-semibold leading-none ${cls}`}>{value}</p>
                 </div>
               ))}
-              <p className="col-span-2 rounded-lg bg-surface px-3 py-2 text-xs text-muted">Bantlar: 1–4 düşük · 5–9 orta · 10–14 yüksek · 15–25 kritik. Kritik risklerin önleyici faaliyeti ve B planı mutlaka doldurulmalıdır.</p>
+              <p className="col-span-2 rounded-lg bg-surface px-3 py-2 text-xs text-muted">Puan bandı: 1–4 düşük, 5–9 orta, 10–14 yüksek, 15–25 kritik. Kritik risklerde önleyici faaliyet ve B planı zorunludur.</p>
             </Card>
           </div>
 
@@ -92,7 +92,7 @@ export default function Risks() {
 
           {list.length === 0 ? (
             <EmptyState icon={<ShieldAlert className="size-6" />} title={data.risks.length === 0 ? "Henüz risk kaydı yok" : "Filtrelere uyan risk yok"}
-              description={data.risks.length === 0 ? "Uçuş, kurtarma, tedarik veya takvim risklerini erken kaydetmek yarışma öncesi sürprizleri azaltır." : "Matris seçimini veya filtreleri değiştirin."}
+              description={data.risks.length === 0 ? "İlk riski kaydedin." : "Matris seçimini veya filtreleri değiştirin."}
               action={<button className="btn-primary" onClick={() => setCreating(true)}><Plus className="size-4" /> Risk kaydet</button>} />
           ) : (
             <div className="card overflow-hidden" data-testid="risk-list">

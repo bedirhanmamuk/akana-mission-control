@@ -61,7 +61,7 @@ export default function Profile() {
 
   return (
     <>
-      <PageHeader title="Profil ve Ayarlar" description="Hesap bilgileriniz, ekip profiliniz ve güvenlik ayarlarınız." />
+      <PageHeader title="Profil ve Ayarlar" description="Hesap, ekip profili ve güvenlik." />
       <div className="mb-4"><ProfileDetails /></div>
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="p-5">
@@ -79,7 +79,7 @@ export default function Profile() {
             <InfoRow label="Hesap durumu"><Badge tone="success">Aktif</Badge></InfoRow>
             <InfoRow label="Kayıt tarihi">{formatDate(p.created_at)}</InfoRow>
           </dl>
-          <p className="mt-4 text-xs text-muted">E-posta, rol ve departman bilgileri yalnızca yönetici tarafından değiştirilebilir.</p>
+          <p className="mt-4 text-xs text-muted">E-posta, rol ve departmanı yalnızca yönetici değiştirir.</p>
         </Card>
 
         <div className="space-y-4">
@@ -93,7 +93,7 @@ export default function Profile() {
                 </button>
               ))}
             </div>
-            <p className="mt-3 text-xs text-muted">Seçim bu cihazda hatırlanır. Sol menü her iki temada da koyu kalır.</p>
+            <p className="mt-3 text-xs text-muted">Bu cihazda hatırlanır.</p>
           </Card>
 
           <Card className="p-5">

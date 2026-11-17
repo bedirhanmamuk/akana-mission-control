@@ -54,9 +54,9 @@ export default function MemberProfile() {
               <li className="flex items-center justify-between gap-2"><span className="text-muted">Takım pozisyonu</span><Badge tone="accent">{position}</Badge></li>
               {leads.map((d) => <li key={d.id} className="flex items-center justify-between gap-2"><span className="text-muted">Sorumlu olduğu departman</span><span>{d.name}</span></li>)}
               <li className="rounded-lg bg-surface px-3 py-2 text-xs text-muted">
-                {p.team_position === "CAPTAIN" || p.team_position === "VICE_CAPTAIN" ? "Kaptan ve kaptan yardımcısı yönetici yetkisiyle tüm modülleri yönetir."
-                  : leads.length ? "Departman sorumlusu kendi departmanında görev oluşturur, atar, rapor ve doküman onaylar, takvime etkinlik ekler."
-                  : "Takım üyesi atandığı görevleri yürütür, ilerleme ve rapor yükler, doküman ve risk kaydeder."}
+                {p.team_position === "CAPTAIN" || p.team_position === "VICE_CAPTAIN" ? "Tüm modülleri yönetir."
+                  : leads.length ? "Kendi departmanında görev açar, atar, rapor ve doküman onaylar."
+                  : "Atandığı görevleri yürütür, rapor yükler."}
               </li>
             </ul>
           </Card>

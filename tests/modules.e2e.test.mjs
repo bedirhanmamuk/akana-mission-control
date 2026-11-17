@@ -97,7 +97,7 @@ try {
   await a.getByRole("button", { name: "Yorumu gönder" }).click();
   check("yorum gönderilir ve listelenir", await visible(a.getByTestId("comment-item").filter({ hasText: "Levha pazartesi" })));
   await a.getByRole("button", { name: "Blokajı kaldır" }).click();
-  check("blokaj kaldırılır", await visible(a.getByText("Blokaj kaldırıldı; görev 'Devam ediyor'.")));
+  check("blokaj kaldırılır", await visible(a.getByText("Blokaj kaldırıldı.")));
   const slider = a.getByRole("slider", { name: "İlerleme yüzdesi" });
   await slider.focus(); for (let i = 0; i < 9; i++) await a.keyboard.press("ArrowRight");
   await a.getByRole("button", { name: "İlerlemeyi güncelle" }).click();

@@ -61,7 +61,7 @@ export default function Login() {
           </div>
           <div className={`transition-[opacity,transform] duration-300 ${launching ? "translate-y-2 opacity-0" : ""}`}>
             <h1 className="display animate-[rise_0.5s_var(--ease-out)_0.35s_backwards] text-2xl font-bold tracking-[0.2em]">AKANA</h1>
-            <p className="mt-1 animate-[rise_0.5s_var(--ease-out)_0.45s_backwards] text-sm font-medium text-accent-2">Mission Control</p>
+            <p className="mt-1 animate-[rise_0.5s_var(--ease-out)_0.45s_backwards] text-sm font-medium text-accent-2">Yönetim Paneli</p>
           </div>
         </div>
 
@@ -102,7 +102,7 @@ export default function Login() {
           </button>
         </form>
         </div>
-        <p className="mt-6 text-center text-[11px] text-ink/60">AKANA Roket Takımı · Görev, Raporlama ve Dokümantasyon Yönetim Sistemi</p>
+        <p className="mt-6 text-center text-[11px] text-ink/60">AKANA Roket Takımı</p>
         </div>
       </div>
       {launching && (

@@ -91,7 +91,7 @@ function Board({ tasks, names, canManage, onMoved }: {
     const task = tasks.find((t) => t.id === id);
     if (!task || task.status === status) return;
     if (status === "BLOCKED") {
-      toast.error("Bloke etmek için görev detayında nedeni yazın.");
+      toast.error("Bloke etmek için görevi açıp nedenini yazın.");
       return;
     }
     const { error } = await supabase.from("tasks").update({ status }).eq("id", task.id);
@@ -221,7 +221,7 @@ export default function MyTasks() {
     <>
       <PageHeader
         title="Görevler"
-        description={isAdmin ? "Tüm departmanların görevleri ve size atanan görevler." : isManager ? "Sorumlu olduğunuz departmanların görevleri ve size atanan görevler." : "Size atanan görevler ve departmanınızın görevleri."}
+        description={isAdmin ? "Tüm departmanların görevleri ve size atanan görevler." : isManager ? "Departmanlarınızın ve size atanan görevler." : "Size atanan görevler ve departmanınızın görevleri."}
         actions={isManager && <Link to="/yonetim/gorev-olustur" className="btn-primary"><Plus className="size-4" /> Görev oluştur</Link>}
       />
 

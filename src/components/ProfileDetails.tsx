@@ -100,7 +100,7 @@ export default function ProfileDetails() {
           {p.avatar_path && <button type="button" className="btn-ghost" onClick={() => void removePhoto()} disabled={busy !== null}><Trash2 className="size-4" /> Kaldır</button>}
           <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" data-testid="avatar-input"
             onChange={(e) => { void uploadPhoto(e.target.files?.[0]); e.target.value = ""; }} />
-          <p className="w-full text-xs text-muted">PNG, JPG veya WEBP · en fazla 2 MB · yalnızca ekip üyeleri görür.</p>
+          <p className="w-full text-xs text-muted">PNG, JPG veya WEBP, en fazla 2 MB.</p>
         </div>
       </div>
       <form onSubmit={save} className="space-y-4">

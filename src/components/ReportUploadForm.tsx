@@ -25,7 +25,7 @@ interface Selected {
 
 type Phase = "idle" | "preparing" | "uploading" | "saving";
 
-export const UPLOAD_SUCCESS_MESSAGE = "Raporunuz başarıyla AKANA MISSION CONTROL sistemine yüklendi.";
+export const UPLOAD_SUCCESS_MESSAGE = "Raporunuz başarıyla AKANA Yönetim Paneli'ne yüklendi.";
 
 export default function ReportUploadForm({ task, existingReport, maxFileSizeMb, onDone }: {
   task: Pick<Task, "id" | "code" | "title" | "required_file_types">;
@@ -124,7 +124,7 @@ export default function ReportUploadForm({ task, existingReport, maxFileSizeMb, 
       const hashes: string[] = [];
       for (const it of items) hashes.push(await sha256Hex(it.file));
       if (new Set(hashes).size !== hashes.length) {
-        throw new Error("Seçilen dosyalar arasında içeriği aynı olan dosyalar var. Tekrar edenleri kaldırın.");
+        throw new Error("Aynı içerikte dosyalar var. Tekrar edenleri kaldırın.");
       }
 
       setPhase("uploading");

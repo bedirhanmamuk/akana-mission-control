@@ -52,7 +52,7 @@ export default function Documents() {
 
   return (
     <>
-      <PageHeader title="Doküman Merkezi" description="Teknik raporlar, CAD modelleri (STL, STEP), analiz ve test dosyaları. Her yükleme yeni bir sürümdür; eski sürümler silinmez."
+      <PageHeader title="Doküman Merkezi" description="Teknik raporlar, CAD (STL, STEP), analiz ve test dosyaları."
         actions={<button className="btn-primary" onClick={() => setCreating(true)}><Plus className="size-4" /> Doküman yükle</button>} />
       <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center">
         <Segmented label="Doküman kapsamı" value={scope} onChange={setScope}
@@ -77,7 +77,7 @@ export default function Documents() {
 
       {loading && !data ? <LoadingState variant="list" /> : error || !data ? <ErrorState message={error ?? ""} onRetry={reload} /> : list.length === 0 ? (
         <EmptyState icon={<Library className="size-6" />} title={data.docs.length === 0 ? "Henüz doküman yok" : "Filtrelere uyan doküman yok"}
-          description={data.docs.length === 0 ? "İlk teknik raporu, CAD modelini veya test verisini yükleyin; departman sorumlusu onaylar." : "Arama metnini veya filtreleri değiştirin."}
+          description={data.docs.length === 0 ? "İlk dokümanı yükleyin." : "Arama metnini veya filtreleri değiştirin."}
           action={<button className="btn-primary" onClick={() => setCreating(true)}><Plus className="size-4" /> Doküman yükle</button>} />
       ) : (
         <div className="card overflow-hidden" data-testid="document-list">

@@ -78,7 +78,7 @@ function Logo() {
       </span>
       <span className="leading-tight">
         <span className="display block text-[15px] font-bold tracking-[0.18em]">AKANA</span>
-        <span className="block text-xs font-medium text-accent-2/90">Mission Control</span>
+        <span className="block text-xs font-medium text-accent-2/90">Yönetim Paneli</span>
       </span>
     </Link>
   );
@@ -224,7 +224,7 @@ export default function AppLayout() {
           <Link to="/" className="flex items-center gap-2">
             <span className="flex size-7 items-center justify-center rounded-lg bg-logo-tile"><img src={`${import.meta.env.BASE_URL}logo.png`} alt="" className="size-5" /></span>
             <span className="display text-xs font-bold tracking-[0.18em]">AKANA</span>
-            <span className="hidden text-xs font-medium text-accent-2 min-[380px]:inline">Mission Control</span>
+            <span className="hidden text-xs font-medium text-accent-2 min-[380px]:inline">Yönetim Paneli</span>
           </Link>
           <span className="-mr-2 flex">
             <button onClick={() => setSearch(true)} className="flex size-11 items-center justify-center rounded-lg text-ink hover:bg-ink/5" aria-label="Ara">

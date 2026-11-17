@@ -48,7 +48,7 @@ function SetupRequired() {
         <div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-warning/10 text-warning"><ServerCog className="size-6" /></div>
         <h1 className="text-lg font-semibold">Supabase bağlantısı yapılandırılmamış</h1>
         <p className="mt-2 text-sm text-muted">
-          AKANA Mission Control'ün çalışması için proje kökünde bir <code className="font-mono text-accent-2">.env</code> dosyası
+          AKANA Yönetim Paneli'nin çalışması için proje kökünde bir <code className="font-mono text-accent-2">.env</code> dosyası
           oluşturup aşağıdaki değişkenleri tanımlayın ve geliştirme sunucusunu yeniden başlatın:
         </p>
         <pre className="mt-3 overflow-x-auto rounded-lg border border-line bg-bg p-3 font-mono text-xs text-ink">
@@ -83,11 +83,11 @@ function RequireAuth() {
   if (!session) return <Navigate to="/giris" replace state={{ from: location.pathname }} />;
   if (!profile) {
     return <AccountBlocked icon={<AlertTriangle className="size-7" />} title="Profil yüklenemedi"
-      message={profileError ?? "Profil bilgilerinize ulaşılamadı. Lütfen daha sonra tekrar deneyin."} />;
+      message={profileError ?? "Profil yüklenemedi. Daha sonra tekrar deneyin."} />;
   }
   if (!profile.is_active) {
     return <AccountBlocked icon={<UserX className="size-7" />} title="Hesabınız aktif değil"
-      message="Hesabınız pasif durumda veya henüz bir yönetici tarafından etkinleştirilmemiş. Takım yöneticinizle iletişime geçin." />;
+      message="Hesabınız etkin değil. Takım yöneticinize başvurun." />;
   }
   return (
     <NotificationProvider>
@@ -128,7 +128,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean
         <div className="card max-w-md p-6 text-center">
           <AlertTriangle className="mx-auto mb-3 size-10 text-danger" />
           <h1 className="text-lg font-semibold">Beklenmeyen bir hata oluştu</h1>
-          <p className="mt-2 text-sm text-muted">Sayfa görüntülenirken bir sorun çıktı. Sayfayı yenileyerek tekrar deneyin.</p>
+          <p className="mt-2 text-sm text-muted">Sayfa açılamadı. Yenileyip tekrar deneyin.</p>
           <button className="btn-primary mt-5" onClick={() => window.location.reload()}>Sayfayı yenile</button>
         </div>
       </FullScreen>

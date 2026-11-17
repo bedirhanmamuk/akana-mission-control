@@ -219,7 +219,7 @@ export default function Calendar() {
 
   return (
     <>
-      <PageHeader title="Takvim" description="Toplantılar, atölye günleri, testler, görev teslim tarihleri ve proje kilometre taşları."
+      <PageHeader title="Takvim" description="Toplantılar, atölye günleri, teslimler ve kilometre taşları."
         actions={isManager && <button className="btn-primary" onClick={() => setEditing({ event: null, date: selected })}><Plus className="size-4" /> Etkinlik ekle</button>} />
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
@@ -295,7 +295,7 @@ export default function Calendar() {
         </div>
       ) : (
         <div className="card p-5" data-testid="calendar-day">
-          <Agenda items={byDay.get(iso(cursor)) ?? []} onEvent={isManager ? openEvent : readOnlyEvent} empty="Bu gün için planlanmış etkinlik, teslim veya kilometre taşı yok." />
+          <Agenda items={byDay.get(iso(cursor)) ?? []} onEvent={isManager ? openEvent : readOnlyEvent} empty="Bu gün için kayıt yok." />
           {isManager && <button className="btn-ghost mt-2 w-full" onClick={() => setEditing({ event: null, date: iso(cursor) })}><Plus className="size-4" /> Bu güne etkinlik ekle</button>}
         </div>
       )}

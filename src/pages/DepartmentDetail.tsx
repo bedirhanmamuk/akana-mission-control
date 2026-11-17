@@ -85,7 +85,7 @@ export default function DepartmentDetail() {
               <div key={k as string} className="rounded-lg bg-surface px-3 py-2"><dt className="text-[11px] text-muted">{k}</dt><dd className={`num text-lg font-semibold ${k === "Geciken" && Number(v) > 0 ? "text-danger" : ""}`}>{v}</dd></div>
             ))}
           </dl>
-          {!canSeeInternals && <p className="mt-4 rounded-lg bg-surface px-3 py-2 text-xs text-muted">Bu departmanın görev ayrıntıları yalnızca üyelerine, sorumlusuna ve yöneticilere açıktır. Size atanmış görevler sayılara dahildir.</p>}
+          {!canSeeInternals && <p className="mt-4 rounded-lg bg-surface px-3 py-2 text-xs text-muted">Görev ayrıntılarını yalnızca departman üyeleri ve yöneticiler görür.</p>}
         </Card>
 
         <div className="min-w-0 space-y-4">
@@ -116,7 +116,7 @@ export default function DepartmentDetail() {
       <div className="mt-4 grid gap-4 xl:grid-cols-3">
         <Card className="p-5 xl:col-span-2">
           <SectionTitle aside={<Link to="/gorevler" className="text-xs text-accent-2 hover:underline">Görevler</Link>}>Aktif görevler</SectionTitle>
-          {derived.open.length === 0 ? <EmptyState title="Açık görev yok" description="Bu departmanda görüntüleyebileceğiniz açık görev bulunmuyor." /> : (
+          {derived.open.length === 0 ? <EmptyState title="Açık görev yok" /> : (
             <ul className="divide-y divide-line-soft">
               {derived.open.slice(0, 15).map((t) => (
                 <li key={t.id}>
@@ -134,7 +134,7 @@ export default function DepartmentDetail() {
         <div className="space-y-4">
           <Card className="p-5">
             <SectionTitle>Departman aktiviteleri</SectionTitle>
-            {!canSeeInternals ? <p className="text-sm text-muted">Aktiviteler yalnızca departman üyelerine ve yöneticilere açıktır.</p>
+            {!canSeeInternals ? <p className="text-sm text-muted">Yalnızca departman üyeleri ve yöneticiler görebilir.</p>
               : activity.loading && !activity.data ? <LoadingState variant="compact" /> : (activity.data ?? []).length === 0 ? <p className="text-sm text-muted">Henüz kayıt yok.</p> : (
                 <ul className="space-y-2.5">{activity.data!.map((a) => (
                   <li key={a.id}><p className="text-sm leading-snug">{a.summary || ACTION_LABEL[a.action]}</p><p className="text-xs text-muted">{a.actor} · {timeAgo(a.created_at)}</p></li>

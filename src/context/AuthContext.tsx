@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfileError(errorMessage(error));
       setProfile(null);
     } else if (!data) {
-      setProfileError("Profil kaydınız bulunamadı. Yöneticinizle iletişime geçin.");
+      setProfileError("Profil bulunamadı. Yöneticinize başvurun.");
       setProfile(null);
     } else {
       setProfile(data as Profile);

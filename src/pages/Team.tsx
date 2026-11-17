@@ -27,7 +27,7 @@ export default function Team() {
 
   return (
     <>
-      <PageHeader title="Ekip" description="Takım üyeleri, pozisyonları ve teknik yetkinlikleri. Yetkinliğe göre arayarak bir iş için doğru kişiyi bulun."
+      <PageHeader title="Ekip" description="Takım üyeleri ve yetkinlikleri."
         actions={<Link to="/organizasyon" className="btn-secondary"><Network className="size-4" /> Organizasyon şeması</Link>} />
       <div className="mb-4 flex flex-col gap-2 sm:flex-row">
         <div className="relative flex-1">

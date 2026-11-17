@@ -59,7 +59,7 @@ export default function ProjectDetail() {
     const { error: err } = await supabase.from("projects").delete().eq("id", p.id);
     setBusy(false);
     if (err) return toast.error(errorMessage(err));
-    toast.success("Proje silindi; görevleri korunarak projesiz kaldı.");
+    toast.success("Proje silindi.");
     navigate("/projeler");
   }
 

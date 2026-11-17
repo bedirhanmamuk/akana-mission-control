@@ -34,7 +34,7 @@ export default function OrgChart() {
 
   return (
     <>
-      <PageHeader title="Organizasyon Şeması" description="Pozisyonlar Üye Yönetimi'nden, departman sorumluları Yönetim Paneli'nden atanır." />
+      <PageHeader title="Organizasyon Şeması" description="Takımın yapısı." />
       {data.dir.length === 0 ? <EmptyState icon={<Network className="size-6" />} title="Ekip boş" /> : (
         <div className="flex flex-col items-center gap-0" data-testid="org-chart">
           <div className="flex flex-wrap justify-center gap-3">
