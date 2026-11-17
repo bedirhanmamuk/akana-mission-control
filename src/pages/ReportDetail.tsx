@@ -26,7 +26,7 @@ const ACTION_UI: Record<Exclude<Action, "START">, { title: string; label: string
 
 export default function ReportDetail() {
   const { id = "" } = useParams();
-  const { profile, isAdmin } = useAuth();
+  const { profile, isAdmin, isManager, canManageDepartment } = useAuth();
   const uid = profile!.id;
   const toast = useToast();
   const [action, setAction] = useState<Exclude<Action, "START"> | null>(null);
@@ -50,7 +50,9 @@ export default function ReportDetail() {
 
   const { report, task, versions, names } = data;
   const isOwner = report.uploaded_by === uid;
-  const reviewable = isAdmin && (report.status === "PENDING" || report.status === "IN_REVIEW");
+  // İnceleme: yönetici veya görevin departman sorumlusu (sorumlu kendi raporunu inceleyemez; sunucu da zorlar)
+  const canReview = task ? canManageDepartment(task.department_id) && (isAdmin || !isOwner) : isAdmin;
+  const reviewable = canReview && (report.status === "PENDING" || report.status === "IN_REVIEW");
   const canUpload = isOwner && task !== null && task.status !== "COMPLETED" && canUploadNewVersion(report);
 
   async function review(a: Action, n: string | null) {
@@ -78,8 +80,8 @@ export default function ReportDetail() {
 
   return (
     <>
-      <Link to={isAdmin ? "/yonetim/rapor-inceleme" : "/arsiv"} className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
-        <ArrowLeft className="size-4" /> {isAdmin ? "Rapor inceleme" : "Rapor arşivi"}
+      <Link to={isManager ? "/yonetim/rapor-inceleme" : "/arsiv"} className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
+        <ArrowLeft className="size-4" /> {isManager ? "Rapor inceleme" : "Rapor arşivi"}
       </Link>
       <div className="mb-6">
         <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -123,7 +125,7 @@ export default function ReportDetail() {
         </div>
 
         <div className="space-y-4">
-          {isAdmin && (
+          {canReview && (
             <Card className="p-5" >
               <SectionTitle>İnceleme kararı</SectionTitle>
               {reviewable ? (

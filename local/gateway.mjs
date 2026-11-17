@@ -9,6 +9,7 @@ const routes = [
   ["/rest/v1", 3000],
   ["/storage/v1", 5000],
   ["/functions/v1/admin-users", 9000],
+  ["/functions/v1/ai-insights", 9001],
 ];
 const CORS = {
   "access-control-allow-origin": "*",

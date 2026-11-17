@@ -9,3 +9,8 @@ enable_signup = false
 # JWT doğrulaması fonksiyonun içinde yapılır (Auth sunucusuna sorarak) ve
 # ayrıca veritabanından ADMIN rolü kontrol edilir.
 verify_jwt = false
+
+[functions.ai-insights]
+# JWT, veri okunurken PostgREST tarafından (RLS ile) doğrulanır; fonksiyon
+# kullanıcının oturumuyla weekly_report / analytics RPC'lerini çağırır.
+verify_jwt = false

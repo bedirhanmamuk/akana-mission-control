@@ -16,7 +16,7 @@ function Metric({ label, value }: { label: string; value: number | string }) {
 }
 
 export default function Departments() {
-  const { profile, isAdmin } = useAuth();
+  const { profile, isAdmin, canManageDepartment } = useAuth();
   const { data, loading, error, reload } = useAsync(async () => {
     const [departments, stats, dir] = await Promise.all([fetchDepartments(), fetchDepartmentStats(), fetchDirectory()]);
     return { departments, stats: new Map(stats.map((s) => [s.department_id, s])), names: nameMap(dir) };
@@ -34,14 +34,14 @@ export default function Departments() {
         <div className="stagger grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {data.departments.map((d) => {
             const s = data.stats.get(d.id);
-            const mine = profile?.department_id === d.id;
+            const mine = profile?.department_id === d.id || (canManageDepartment(d.id) && !isAdmin);
             return (
-              <article key={d.id} className={`card flex flex-col p-5 ${mine ? "border-accent/50" : ""} ${d.is_active ? "" : "opacity-60"}`} data-testid="department-card">
+              <article key={d.id} className={`card card-link relative flex flex-col p-5 ${mine ? "border-accent/50" : ""} ${d.is_active ? "" : "opacity-60"}`} data-testid="department-card">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="flex size-10 items-center justify-center rounded-lg bg-accent/15 font-mono text-xs font-bold text-accent-2">{d.code}</div>
                     <div>
-                      <h2 className="font-semibold leading-tight">{d.name}</h2>
+                      <h2 className="font-semibold leading-tight"><Link to={`/departmanlar/${d.id}`} className="after:absolute after:inset-0 after:rounded-2xl">{d.name}</Link></h2>
                       <p className="mt-0.5 flex items-center gap-1 text-xs text-muted">
                         <UserRound className="size-3.5" /> Sorumlu: {d.lead_id ? fullName(data.names.get(d.lead_id)) : "Atanmadı"}
                       </p>

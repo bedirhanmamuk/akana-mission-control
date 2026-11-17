@@ -11,7 +11,9 @@
     "local:up": "bash local/up.sh",
     "local:down": "bash local/down.sh",
     "test:security": "node tests/security.test.mjs",
-    "test:e2e": "node tests/e2e.test.mjs"
+    "test:mission": "node tests/mission.test.mjs",
+    "test:e2e": "node tests/e2e.test.mjs",
+    "test:modules": "node tests/modules.e2e.test.mjs"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.3.0",

@@ -8,7 +8,7 @@ import type { TaskStatus } from "../lib/types";
 export default function TCountdown({ dueDate, status, showDate = true }: {
   dueDate: string; status: TaskStatus; showDate?: boolean;
 }) {
-  const closed = status === "COMPLETED" || status === "APPROVED";
+  const closed = status === "COMPLETED" || status === "APPROVED" || status === "CANCELLED";
   const d = daysUntil(dueDate);
   if (closed) return <span className="text-xs text-faint tabular-nums">{formatDate(dueDate)}</span>;
 

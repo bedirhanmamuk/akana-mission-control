@@ -11,6 +11,8 @@ const PHASES: TaskStatus[] = ["NEW", "IN_PROGRESS", "AWAITING_REPORT", "IN_REVIE
 function locate(status: TaskStatus): { index: number; tone: "accent" | "warning" | "danger" | "success" } {
   switch (status) {
     case "OVERDUE": return { index: 1, tone: "danger" };
+    case "BLOCKED": return { index: 1, tone: "danger" };
+    case "CANCELLED": return { index: 0, tone: "danger" };
     case "REVISION_REQUESTED": return { index: 3, tone: "warning" };
     case "COMPLETED": return { index: 5, tone: "success" };
     default: return { index: Math.max(0, PHASES.indexOf(status)), tone: "accent" };
@@ -18,7 +20,7 @@ function locate(status: TaskStatus): { index: number; tone: "accent" | "warning"
 }
 
 const TONE = { accent: "var(--color-accent)", warning: "var(--color-warning)", danger: "var(--color-danger)", success: "var(--color-success)" } as const;
-/** Geçerli aşama işareti: logodaki macenta ("şu an") */
+/** Geçerli aşama işareti: amber "şu an" vurgusu */
 const NOW = "var(--color-hot)";
 
 // Yükseliş eğrisi: hızlı tırmanış, sonra yörüngeye oturma. x,y yüzde cinsinden (y: 0 üst).

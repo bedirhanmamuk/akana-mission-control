@@ -11,7 +11,7 @@ function saveData(): boolean {
 }
 
 /**
- * Giriş ekranı arka planı: takımın atış videosu (sessiz, döngüde, koyu mor katman altında).
+ * Giriş ekranı arka planı: takımın atış videosu (sessiz, döngüde, koyu lacivert katman altında).
  * Dik ekranlarda roketin kadrajda kaldığı dikey kurgu kullanılır.
  * "Hareketi azalt" / veri tasarrufu açıkken ya da video oynatılamadığında yıldızlı sahneye düşer.
  */
@@ -69,7 +69,7 @@ export default function LaunchBackdrop({ boost }: { boost: boolean }) {
         className={`pointer-events-none absolute inset-0 size-full object-cover transition-[opacity,filter,transform] duration-1000 ease-out ${ready ? "opacity-100" : "opacity-0"} ${boost ? "scale-110 brightness-150 saturate-125" : ""}`}
       />
       {/* Okunabilirlik katmanı: ortası biraz açık, kenarları koyu */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(75%_60%_at_50%_42%,rgb(9_7_15/0.42),rgb(9_7_15/0.86))]" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(75%_60%_at_50%_42%,rgb(6_10_18/0.45),rgb(6_10_18/0.88))]" aria-hidden />
     </>
   );
 }

@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { unwrap, useAsync } from "../lib/useAsync";
 import { fetchDepartments, fetchDirectory } from "../lib/api";
 import { REPORT_STATUS_META, REPORT_STATUSES } from "../lib/constants";
-import { ALLOWED_EXTENSIONS } from "../lib/files";
+import { PICKABLE_EXTENSIONS } from "../lib/files";
 import { formatBytes, formatDateTime, fullName } from "../lib/format";
 import type { ReportOverview, ReportStatus } from "../lib/types";
 import { EmptyState, ErrorState, LoadingState, PageHeader, ReportStatusBadge } from "../components/ui";
@@ -34,7 +34,8 @@ function like(s: string): string {
 }
 
 export default function ReportArchive() {
-  const { isAdmin } = useAuth();
+  const { isAdmin: canSeeAll, isManager } = useAuth();
+  const isAdmin = isManager;
   const [filters, setFilters] = useState<Filters>(EMPTY);
   const [asc, setAsc] = useState(false);
   const [page, setPage] = useState(0);
@@ -68,7 +69,7 @@ export default function ReportArchive() {
 
   return (
     <>
-      <PageHeader title="Rapor Arşivi" description={isAdmin ? "Tüm departmanların raporları." : "Yüklediğiniz raporlar ve inceleme durumları."} />
+      <PageHeader title="Rapor Arşivi" description={canSeeAll ? "Tüm departmanların raporları." : isManager ? "Sorumlu olduğunuz departmanların raporları ve kendi raporlarınız." : "Yüklediğiniz raporlar ve inceleme durumları."} />
 
       <div className="card mb-4 grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="relative sm:col-span-2">
@@ -92,7 +93,7 @@ export default function ReportArchive() {
         )}
         <select className="input" value={filters.ext} onChange={(e) => set({ ext: e.target.value })} aria-label="Dosya formatı">
           <option value="">Tüm formatlar</option>
-          {ALLOWED_EXTENSIONS.filter((x) => x !== "jpeg").map((x) => <option key={x} value={x}>{x.toUpperCase()}</option>)}
+          {PICKABLE_EXTENSIONS.map((x) => <option key={x} value={x}>{x.toUpperCase()}</option>)}
         </select>
         <div className="flex items-center gap-2 sm:col-span-2 lg:col-span-1">
           <input type="date" className="input" value={filters.from} max={filters.to || undefined} onChange={(e) => set({ from: e.target.value })} aria-label="Başlangıç tarihi" />

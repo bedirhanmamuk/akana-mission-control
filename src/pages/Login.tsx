@@ -56,12 +56,12 @@ export default function Login() {
       <div className="relative w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
           <div data-testid="login-logo"
-            className={`mb-5 flex size-20 items-center justify-center rounded-3xl bg-logo-tile shadow-[0_24px_50px_-18px_rgb(132_82_240/0.9)] ${launching ? "animate-[liftoff_0.95s_cubic-bezier(0.5,0,0.9,0.4)_forwards]" : "animate-[logo-in_0.9s_var(--ease-out)_backwards]"}`}>
+            className={`mb-5 flex size-20 items-center justify-center rounded-3xl bg-logo-tile shadow-[0_24px_50px_-18px_rgb(217_164_65/0.55)] ${launching ? "animate-[liftoff_0.95s_cubic-bezier(0.5,0,0.9,0.4)_forwards]" : "animate-[logo-in_0.9s_var(--ease-out)_backwards]"}`}>
             <img src={`${import.meta.env.BASE_URL}logo.png`} alt="AKANA logosu" className="size-14" />
           </div>
           <div className={`transition-[opacity,transform] duration-300 ${launching ? "translate-y-2 opacity-0" : ""}`}>
             <h1 className="display animate-[rise_0.5s_var(--ease-out)_0.35s_backwards] text-2xl font-bold tracking-[0.2em]">AKANA</h1>
-            <p className="mt-1 animate-[rise_0.5s_var(--ease-out)_0.45s_backwards] text-sm font-medium text-accent-2">Görev Paneli</p>
+            <p className="mt-1 animate-[rise_0.5s_var(--ease-out)_0.45s_backwards] text-sm font-medium text-accent-2">Mission Control</p>
           </div>
         </div>
 
@@ -98,7 +98,7 @@ export default function Login() {
             </div>
           )}
           <button type="submit" className="btn-primary min-h-11 w-full" disabled={busy}>
-            {busy && <Spinner className="size-4 text-white" />} {busy ? "Bağlanılıyor…" : "Giriş yap"}
+            {busy && <Spinner className="size-4 text-current" />} {busy ? "Bağlanılıyor…" : "Giriş yap"}
           </button>
         </form>
         </div>

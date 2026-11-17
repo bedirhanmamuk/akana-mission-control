@@ -7,9 +7,10 @@ import { useToast } from "../context/ToastContext";
 import { useAsync } from "../lib/useAsync";
 import { fetchDepartments } from "../lib/api";
 import { errorMessage } from "../lib/errors";
-import { ROLE_LABEL } from "../lib/constants";
-import { formatDate, initials } from "../lib/format";
-import { Badge, Card, Field, InfoRow, PageHeader, SectionTitle, Spinner } from "../components/ui";
+import { POSITION_META, ROLE_LABEL } from "../lib/constants";
+import { formatDate } from "../lib/format";
+import { Avatar, Badge, Card, Field, InfoRow, PageHeader, SectionTitle, Spinner } from "../components/ui";
+import ProfileDetails from "../components/ProfileDetails";
 
 export default function Profile() {
   const { profile, refreshProfile } = useAuth();
@@ -60,11 +61,12 @@ export default function Profile() {
 
   return (
     <>
-      <PageHeader title="Profil ve Ayarlar" description="Hesap bilgileriniz ve güvenlik ayarlarınız." />
+      <PageHeader title="Profil ve Ayarlar" description="Hesap bilgileriniz, ekip profiliniz ve güvenlik ayarlarınız." />
+      <div className="mb-4"><ProfileDetails /></div>
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="p-5">
           <div className="mb-5 flex items-center gap-4">
-            <div className="flex size-14 items-center justify-center rounded-full bg-accent/20 text-lg font-semibold text-accent-2">{initials(p)}</div>
+            <Avatar person={p} size={56} />
             <div className="min-w-0">
               <p className="truncate font-semibold">{p.first_name} {p.last_name}</p>
               <p className="truncate text-sm text-muted">{p.email}</p>
@@ -72,6 +74,7 @@ export default function Profile() {
           </div>
           <dl className="divide-y divide-line-soft">
             <InfoRow label="Rol"><Badge tone={p.role === "ADMIN" ? "accent" : "neutral"}>{ROLE_LABEL[p.role]}</Badge></InfoRow>
+            <InfoRow label="Takım pozisyonu">{p.title || POSITION_META[p.team_position ?? "MEMBER"].label}</InfoRow>
             <InfoRow label="Departman">{dept?.name ?? (departments.loading ? "…" : "Atanmadı")}</InfoRow>
             <InfoRow label="Hesap durumu"><Badge tone="success">Aktif</Badge></InfoRow>
             <InfoRow label="Kayıt tarihi">{formatDate(p.created_at)}</InfoRow>
@@ -85,7 +88,7 @@ export default function Profile() {
             <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Tema">
               {([["dark", "Koyu", Moon], ["light", "Açık", Sun]] as const).map(([value, label, Icon]) => (
                 <button key={value} type="button" role="radio" aria-checked={theme === value} onClick={() => setTheme(value)}
-                  className={`flex min-h-12 items-center justify-center gap-2 rounded-lg text-sm font-medium transition-colors duration-150 active:scale-[0.98] ${theme === value ? "bg-accent text-white" : "bg-surface text-muted hover:text-ink"}`}>
+                  className={`flex min-h-12 items-center justify-center gap-2 rounded-lg text-sm font-medium transition-colors duration-150 active:scale-[0.98] ${theme === value ? "bg-accent text-on-accent" : "bg-surface text-muted hover:text-ink"}`}>
                   <Icon className="size-4" /> {label}
                 </button>
               ))}
@@ -102,7 +105,7 @@ export default function Profile() {
               </div>
               <div className="flex justify-end">
                 <button className="btn-primary" disabled={saving || (first === p.first_name && last === p.last_name)}>
-                  {saving ? <Spinner className="size-4 text-white" /> : <Save className="size-4" />} Kaydet
+                  {saving ? <Spinner className="size-4 text-current" /> : <Save className="size-4" />} Kaydet
                 </button>
               </div>
             </form>

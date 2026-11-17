@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Download, Eye, FileArchive, FileImage, FileSpreadsheet, FileText, Presentation, type LucideIcon } from "lucide-react";
+import { Box, Download, Eye, FileArchive, FileImage, FileSpreadsheet, FileText, Presentation, type LucideIcon } from "lucide-react";
 import { canPreviewInBrowser, getSignedUrl } from "../lib/files";
 import { formatBytes } from "../lib/format";
 import { errorMessage } from "../lib/errors";
@@ -12,6 +12,7 @@ const ICONS: Record<string, LucideIcon> = {
   xls: FileSpreadsheet, xlsx: FileSpreadsheet, csv: FileSpreadsheet,
   ppt: Presentation, pptx: Presentation, zip: FileArchive,
   png: FileImage, jpg: FileImage, jpeg: FileImage,
+  stl: Box, step: Box, stp: Box,
 };
 
 export function fileIcon(ext: string): LucideIcon {

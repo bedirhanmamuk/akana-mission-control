@@ -287,7 +287,7 @@ try {
   check("arşiv: görev kodu + format filtresi raporu bulur", await visible(admin.getByTestId("archive-row").filter({ hasText: "Gövde analiz raporu" })));
   await shot(admin, "14-arsiv");
   await admin.goto(`${BASE}/departmanlar`);
-  check("departman kartları (6) ve sayılar", (await visible(admin.getByTestId("department-card"))) && (await admin.getByTestId("department-card").count()) === 6);
+  check("departman kartları (8) ve sayılar", (await visible(admin.getByTestId("department-card"))) && (await admin.getByTestId("department-card").count()) === 8);
   await shot(admin, "15-departmanlar");
   await admin.goto(`${BASE}/yonetim`);
   await visible(admin.getByText("Dosya yükleme ayarları"));
@@ -423,7 +423,7 @@ try {
     const probe = (v) => { const d = document.createElement("div"); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return lum(c); };
     const ratio = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
     const card = probe("--color-card"), bg = probe("--color-bg");
-    return { ink: ratio(probe("--color-ink"), card), muted: ratio(probe("--color-muted"), bg), faint: ratio(probe("--color-faint"), card), accent2: ratio(probe("--color-accent-2"), card), btn: ratio(1, probe("--color-accent")) };
+    return { ink: ratio(probe("--color-ink"), card), muted: ratio(probe("--color-muted"), bg), faint: ratio(probe("--color-faint"), card), accent2: ratio(probe("--color-accent-2"), card), btn: ratio(probe("--color-on-accent"), probe("--color-accent")) };
   });
   check("açık tema: metin kontrastı yeterli (≥ 4.5; soluk ≥ 3)", contrast.ink >= 7 && contrast.muted >= 4.5 && contrast.accent2 >= 4.5 && contrast.btn >= 4.5 && contrast.faint >= 3, JSON.stringify(contrast));
   await admin.goto(`${BASE}/profil`);
@@ -433,7 +433,7 @@ try {
     const probe = (v) => { const d = document.createElement("div"); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return lum(c); };
     const ratio = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
     const card = probe("--color-card");
-    return { muted: ratio(probe("--color-muted"), card), faint: ratio(probe("--color-faint"), card), btn: ratio(1, probe("--color-accent")) };
+    return { muted: ratio(probe("--color-muted"), card), faint: ratio(probe("--color-faint"), card), btn: ratio(probe("--color-on-accent"), probe("--color-accent")) };
   });
   check("koyu tema: metin kontrastı yeterli", darkContrast.muted >= 4.5 && darkContrast.faint >= 3 && darkContrast.btn >= 4.5, JSON.stringify(darkContrast));
   await mAdmin.getByRole("button", { name: "Koyu temaya geç" }).click();

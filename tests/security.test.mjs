@@ -86,7 +86,7 @@ const admin = await login(adminEmail, PW);
 // ---------------------------------------------------------------------------
 section("2. Üye oluşturma (Kabul #2)");
 const { data: depts } = await admin.from("departments").select("*").order("name");
-check("6 başlangıç departmanı mevcut", depts.length === 6, String(depts.length));
+check("8 başlangıç departmanı mevcut (Elektronik ve Gömülü Yazılım dahil)", depts.length === 8, String(depts.length));
 const MEK = depts.find((d) => d.code === "MEK");
 const AVY = depts.find((d) => d.code === "AVY");
 const members = {};
@@ -373,7 +373,7 @@ section("8. Bildirimler, teslim tarihleri, kayıtlar, ayarlar");
   const ds = await A.rpc("department_stats");
   check("üye yalnızca kendi departman istatistiğini alır", ds.data.length === 1 && ds.data[0].department_id === MEK.id);
   const dsAll = await admin.rpc("department_stats");
-  check("yönetici tüm departman istatistiklerini alır", dsAll.data.length === 6);
+  check("yönetici tüm departman istatistiklerini alır", dsAll.data.length === 8);
 
   const logs = await admin.from("activity_logs").select("action,actor_id");
   const acts = new Set(logs.data.map((l) => l.action));

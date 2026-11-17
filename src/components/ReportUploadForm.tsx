@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type DragEvent, type FormEven
 import { AlertCircle, CheckCircle2, Trash2, UploadCloud } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import {
-  ACCEPT_ATTR, ALLOWED_EXTENSIONS, FILE_RULES, MAX_FILES_PER_UPLOAD, fileExtension,
+  ACCEPT_ATTR, FILE_RULES, MAX_FILES_PER_UPLOAD, PICKABLE_EXTENSIONS, fileExtension,
   removeOrphans, safeObjectName, sha256Hex, uploadWithProgress, validateFile,
 } from "../lib/files";
 import { errorMessage } from "../lib/errors";
@@ -219,7 +219,7 @@ export default function ReportUploadForm({ task, existingReport, maxFileSizeMb, 
           <UploadCloud className="size-8 text-accent-2" />
           <p className="text-sm font-medium">Dosyaları buraya sürükleyin veya <span className="text-accent-2 underline underline-offset-2">seçmek için dokunun</span></p>
           <p className="text-xs text-muted">
-            {ALLOWED_EXTENSIONS.filter((e) => e !== "jpeg").join(", ").toUpperCase()} · dosya başına en fazla {maxFileSizeMb} MB · en fazla {MAX_FILES_PER_UPLOAD} dosya
+            {PICKABLE_EXTENSIONS.join(", ").toUpperCase()} · dosya başına en fazla {maxFileSizeMb} MB · en fazla {MAX_FILES_PER_UPLOAD} dosya
           </p>
           {task.required_file_types.length > 0 && (
             <p className="text-xs text-warning">Bu görev için istenen tür: {task.required_file_types.join(", ").toUpperCase()}</p>
@@ -299,7 +299,7 @@ export default function ReportUploadForm({ task, existingReport, maxFileSizeMb, 
           <button type="button" className="btn-secondary" onClick={() => abortRef.current?.abort()}>İptal et</button>
         )}
         <button type="submit" className="btn-primary w-full sm:w-auto" disabled={busy}>
-          {busy ? <Spinner className="size-4 text-white" /> : <UploadCloud className="size-4" />}
+          {busy ? <Spinner className="size-4 text-current" /> : <UploadCloud className="size-4" />}
           {isRevision ? "Yeni sürümü yükle" : "Raporu yükle"}
         </button>
       </div>
