@@ -342,12 +342,15 @@ on conflict (id) do update set public = false, allowed_mime_types = excluded.all
 drop policy if exists avatars_insert on storage.objects;
 drop policy if exists avatars_select on storage.objects;
 drop policy if exists avatars_delete on storage.objects;
+drop policy if exists avatars_insert on storage.objects;
 create policy avatars_insert on storage.objects for insert to authenticated
   with check (bucket_id = 'avatars' and private.is_active_user()
               and split_part(name, '/', 1) = auth.uid()::text
               and array_length(string_to_array(name, '/'), 1) = 2);
+drop policy if exists avatars_select on storage.objects;
 create policy avatars_select on storage.objects for select to authenticated
   using (bucket_id = 'avatars' and private.is_active_user());
+drop policy if exists avatars_delete on storage.objects;
 create policy avatars_delete on storage.objects for delete to authenticated
   using (bucket_id = 'avatars' and split_part(name, '/', 1) = auth.uid()::text);
 
@@ -929,10 +932,12 @@ $$;
 drop policy if exists documents_objects_insert on storage.objects;
 drop policy if exists documents_objects_select on storage.objects;
 drop policy if exists documents_objects_delete on storage.objects;
+drop policy if exists documents_objects_insert on storage.objects;
 create policy documents_objects_insert on storage.objects for insert to authenticated
   with check (bucket_id = 'documents' and private.can_upload_document_object(name));
 -- Okuma: dokümanı görebilen herkes. Storage API silmeden önce nesneyi okuduğu
 -- için yönetici ve (sürüme bağlı olmayan) kendi nesnesinin sahibi de okuyabilir.
+drop policy if exists documents_objects_select on storage.objects;
 create policy documents_objects_select on storage.objects for select to authenticated
   using (bucket_id = 'documents' and (
     private.can_view_document(private.try_uuid(split_part(name, '/', 1)))
@@ -941,6 +946,7 @@ create policy documents_objects_select on storage.objects for select to authenti
         and not exists (select 1 from public.document_versions v where v.storage_path = name))
   ));
 -- Silme: yönetici; ya da sahibi, nesne artık bir doküman sürümüne bağlı değilse
+drop policy if exists documents_objects_delete on storage.objects;
 create policy documents_objects_delete on storage.objects for delete to authenticated
   using (bucket_id = 'documents' and (
     private.is_admin()
@@ -2033,67 +2039,88 @@ create policy reports_select on public.reports for select to authenticated
   );
 
 -- projects: herkes görür; yönetici oluşturur/siler; proje sorumlusu günceller
+drop policy if exists projects_select on public.projects;
 create policy projects_select on public.projects for select to authenticated
   using (private.is_active_user());
+drop policy if exists projects_insert on public.projects;
 create policy projects_insert on public.projects for insert to authenticated
   with check (private.is_admin());
+drop policy if exists projects_update on public.projects;
 create policy projects_update on public.projects for update to authenticated
   using (private.is_admin() or (private.is_active_user() and owner_id = (select auth.uid())))
   with check (private.is_admin() or (private.is_active_user() and owner_id = (select auth.uid())));
+drop policy if exists projects_delete on public.projects;
 create policy projects_delete on public.projects for delete to authenticated
   using (private.is_admin());
 
 -- task_dependencies: görünen görevlerin bağımlılıkları; yazma yalnızca RPC
+drop policy if exists task_dependencies_select on public.task_dependencies;
 create policy task_dependencies_select on public.task_dependencies for select to authenticated
   using (private.can_view_task(task_id) or private.can_view_task(depends_on_id));
 
 -- task_comments
+drop policy if exists task_comments_select on public.task_comments;
 create policy task_comments_select on public.task_comments for select to authenticated
   using (private.can_view_task(task_id));
+drop policy if exists task_comments_insert on public.task_comments;
 create policy task_comments_insert on public.task_comments for insert to authenticated
   with check (private.is_active_user() and author_id = (select auth.uid()) and private.can_view_task(task_id));
+drop policy if exists task_comments_update on public.task_comments;
 create policy task_comments_update on public.task_comments for update to authenticated
   using (private.is_active_user() and author_id = (select auth.uid()))
   with check (author_id = (select auth.uid()));
+drop policy if exists task_comments_delete on public.task_comments;
 create policy task_comments_delete on public.task_comments for delete to authenticated
   using (private.is_active_user() and (author_id = (select auth.uid()) or private.can_manage_task(task_id)));
 
 -- documents
+drop policy if exists documents_select on public.documents;
 create policy documents_select on public.documents for select to authenticated
   using (private.can_view_document(id));
+drop policy if exists documents_update on public.documents;
 create policy documents_update on public.documents for update to authenticated
   using (private.can_edit_document(id)) with check (private.is_active_user());
+drop policy if exists document_versions_select on public.document_versions;
 create policy document_versions_select on public.document_versions for select to authenticated
   using (private.can_view_document(document_id));
 
 -- events: herkes görür; yönetici ve departman sorumluları yönetir
+drop policy if exists events_select on public.events;
 create policy events_select on public.events for select to authenticated
   using (private.is_active_user());
+drop policy if exists events_insert on public.events;
 create policy events_insert on public.events for insert to authenticated
   with check (private.is_manager() and (department_id is null or private.can_manage_department(department_id)));
+drop policy if exists events_update on public.events;
 create policy events_update on public.events for update to authenticated
   using (private.is_admin() or (private.is_active_user() and created_by = (select auth.uid()))
          or private.is_dept_lead(department_id))
   with check (private.is_manager() and (department_id is null or private.can_manage_department(department_id)
                                         or created_by = (select auth.uid())));
+drop policy if exists events_delete on public.events;
 create policy events_delete on public.events for delete to authenticated
   using (private.is_admin() or (private.is_active_user() and created_by = (select auth.uid()))
          or private.is_dept_lead(department_id));
 
 -- risks: herkes görür ve risk bildirebilir; sahibi, oluşturan, sorumlu veya yönetici günceller
+drop policy if exists risks_select on public.risks;
 create policy risks_select on public.risks for select to authenticated
   using (private.is_active_user());
+drop policy if exists risks_insert on public.risks;
 create policy risks_insert on public.risks for insert to authenticated
   with check (private.is_active_user());
+drop policy if exists risks_update on public.risks;
 create policy risks_update on public.risks for update to authenticated
   using (private.is_admin()
          or (private.is_active_user() and (created_by = (select auth.uid()) or owner_id = (select auth.uid())))
          or private.is_dept_lead(department_id))
   with check (private.is_active_user());
+drop policy if exists risks_delete on public.risks;
 create policy risks_delete on public.risks for delete to authenticated
   using (private.is_admin());
 
 -- notification_preferences: yalnızca sahibi
+drop policy if exists notification_preferences_all on public.notification_preferences;
 create policy notification_preferences_all on public.notification_preferences for all to authenticated
   using (user_id = (select auth.uid()) and private.is_active_user())
   with check (user_id = (select auth.uid()) and private.is_active_user());
