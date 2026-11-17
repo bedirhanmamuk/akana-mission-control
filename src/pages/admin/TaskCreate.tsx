@@ -99,7 +99,7 @@ export default function TaskCreate() {
   return (
     <>
       <PageHeader title={data.parent ? "Alt Görev Oluştur" : "Görev Oluştur"}
-        description={data.parent ? `${data.parent.code} — ${data.parent.title} görevinin altına bir iş paketi ekleyin.` : isAdmin ? "Bir departmana görev tanımlayın ve sorumlularını atayın. Görev kodu otomatik üretilir." : "Sorumlu olduğunuz departmana görev tanımlayın. Görev kodu otomatik üretilir."} />
+        description={data.parent ? `${data.parent.code} — ${data.parent.title} görevinin altına bir iş paketi ekleyin.` : isAdmin ? "Görevi tanımlayın ve sorumlularını seçin. Görev kodu otomatik verilir." : "Departmanınıza görev tanımlayın. Görev kodu otomatik verilir."} />
       {data.departments.length === 0 && (
         <p className="mb-4 rounded-lg bg-warning/10 px-3 py-2 text-sm text-warning">Görev oluşturabileceğiniz aktif bir departman yok.</p>
       )}
@@ -110,7 +110,7 @@ export default function TaskCreate() {
           </Field>
           <Field label="Görev açıklaması">
             <textarea className="input min-h-32" value={form.description} maxLength={5000} onChange={(e) => setForm({ ...form, description: e.target.value })} name="description"
-              placeholder="Görevin kapsamı, beklenen çıktılar, kabul ölçütleri…" />
+              placeholder="Kapsam, beklenen çıktı, kabul ölçütü" />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="İlgili departman" required>
@@ -158,7 +158,7 @@ export default function TaskCreate() {
             <span className="mt-1 block text-xs text-muted">Seçilmezse izin verilen tüm türler kabul edilir.</span>
           </div>
           <Field label="Ek açıklamalar">
-            <textarea className="input min-h-20" value={form.notes} maxLength={2000} onChange={(e) => setForm({ ...form, notes: e.target.value })} name="notes" placeholder="Referans dokümanlar, şablonlar, dikkat edilecek noktalar…" />
+            <textarea className="input min-h-20" value={form.notes} maxLength={2000} onChange={(e) => setForm({ ...form, notes: e.target.value })} name="notes" placeholder="Referans, şablon, dikkat edilecekler" />
           </Field>
         </Card>
 

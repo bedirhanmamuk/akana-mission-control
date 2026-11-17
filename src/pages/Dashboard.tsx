@@ -48,7 +48,7 @@ function ProjectPanel({ projects }: { projects: MissionOverview["projects"] }) {
         <span className="flex items-center gap-2"><FolderKanban className="size-4 text-muted" /> Proje ilerlemesi</span>
       </SectionTitle>
       {projects.length === 0 ? (
-        <EmptyState title="Aktif proje yok" description="Projeler, görevleri yarışma ve alt sistem hedefleri altında toplar."
+        <EmptyState title="Aktif proje yok"
           action={<Link to="/projeler" className="btn-secondary">Projelere git</Link>} />
       ) : (
         <ul className="divide-y divide-line-soft" data-testid="project-progress">
@@ -129,7 +129,7 @@ function Upcoming({ rows }: { rows: MissionTaskRow[] }) {
         <span className="flex items-center gap-2"><CalendarClock className="size-4 text-muted" /> Yaklaşan teslimler</span>
       </SectionTitle>
       {rows.length === 0 ? (
-        <EmptyState title="Bu hafta teslim yok" description="Önümüzdeki 7 gün içinde teslim tarihi gelen açık görev bulunmuyor." icon={<CalendarClock className="size-6" />} />
+        <EmptyState title="Bu hafta teslim yok" description="7 gün içinde teslim yok." icon={<CalendarClock className="size-6" />} />
       ) : (
         <ul className="divide-y divide-line-soft" data-testid="upcoming-list">
           {rows.map((t) => (
@@ -223,7 +223,7 @@ function SidePanels({ data }: { data: MissionOverview }) {
           <span className="flex items-center gap-2"><CalendarDays className="size-4 text-muted" /> Yaklaşan etkinlikler</span>
         </SectionTitle>
         {data.upcoming_events.length === 0 ? (
-          <p className="py-4 text-sm text-muted">Önümüzdeki 14 gün için planlanmış toplantı, atölye veya test yok.</p>
+          <p className="py-4 text-sm text-muted">14 gün içinde etkinlik yok.</p>
         ) : (
           <ul className="space-y-2">
             {data.upcoming_events.map((e) => (
@@ -398,7 +398,7 @@ export default function Dashboard() {
       <PageHeader
         title="Kontrol Merkezi"
         description={isAdmin
-          ? "AKANA Roket Takımı operasyon durumu. Tüm veriler canlı veritabanından gelir ve dakikada bir yenilenir."
+          ? "Takımın güncel durumu. Veriler dakikada bir yenilenir."
           : `Hoş geldin, ${fullName(profile)}. ${isManager ? "Sorumlu olduğun departmanların" : "Departmanının ve sana atanan görevlerin"} güncel durumu.`}
         actions={isManager && <Badge tone="accent">{isAdmin ? "Yönetici görünümü" : "Departman sorumlusu"}</Badge>}
       />

@@ -92,7 +92,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
           {error ? (
             <p className="flex items-center gap-2 px-3 py-6 text-sm text-danger"><AlertTriangle className="size-4" /> {error}</p>
           ) : q.trim().length < 2 ? (
-            <p className="px-3 py-8 text-center text-sm text-muted">En az iki karakter yazın. Sonuçlar yalnızca erişim yetkiniz olan kayıtları içerir.</p>
+            <p className="px-3 py-8 text-center text-sm text-muted">Aramak için en az iki karakter yazın.</p>
           ) : !busy && ordered.length === 0 ? (
             <p className="px-3 py-8 text-center text-sm text-muted">“{q.trim()}” için sonuç bulunamadı.</p>
           ) : (

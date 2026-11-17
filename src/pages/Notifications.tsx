@@ -71,7 +71,7 @@ export default function Notifications() {
 
       {loading ? <LoadingState /> : error || !data ? <ErrorState message={error ?? ""} onRetry={reload} /> : data.length === 0 ? (
         <EmptyState icon={<Bell className="size-6" />} title={onlyUnread ? "Okunmamış bildiriminiz yok" : "Henüz bildiriminiz yok"}
-          description="Görev atamaları, teslim tarihleri ve rapor inceleme sonuçları burada görünür." />
+          description="Atamalar, teslim tarihleri ve inceleme sonuçları." />
       ) : (
         <ul className="stagger space-y-2" data-testid="notification-list">
           {data.map((n) => {

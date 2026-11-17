@@ -37,7 +37,7 @@ export default function NotificationPreferences() {
   return (
     <Card className="p-5">
       <SectionTitle><span className="flex items-center gap-2"><BellRing className="size-4 text-muted" /> Bildirim tercihleri</span></SectionTitle>
-      <p className="mb-4 text-xs text-muted">Kapattığınız türler için bildirim oluşturulmaz. Görev ve rapor iş akışı bundan etkilenmez.</p>
+      <p className="mb-4 text-xs text-muted">Kapattığınız türlerde bildirim almazsınız.</p>
       {loading && !data ? <LoadingState variant="compact" /> : (
         <div className="grid gap-5 md:grid-cols-3" data-testid="notification-preferences">
           {NOTIFICATION_GROUPS.map((g) => (

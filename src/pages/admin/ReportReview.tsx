@@ -27,7 +27,7 @@ export default function ReportReview() {
 
   return (
     <>
-      <PageHeader title="Rapor İnceleme" description="Yüklenen raporlar onaylanmadan önce burada incelenir. Kuyruk en eski yüklemeden başlar." />
+      <PageHeader title="Rapor İnceleme" description="Onay bekleyen raporlar. En eskiden başlar." />
       <div className="mb-4 flex gap-1 overflow-x-auto rounded-lg bg-surface p-1" role="tablist">
         {TABS.map((t) => (
           <button key={t.key} role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}

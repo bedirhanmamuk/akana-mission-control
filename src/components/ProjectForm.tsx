@@ -45,7 +45,7 @@ export default function ProjectForm({ project, departments, people, onClose, onS
         <button className="btn-primary" type="submit" form="project-form" disabled={busy}>{busy && <Spinner className="size-4 text-current" />} {project ? "Kaydet" : "Projeyi oluştur"}</button></>}>
       <form id="project-form" onSubmit={save} className="space-y-4">
         <Field label="Proje adı" required><input className="input" name="name" value={form.name} maxLength={120} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Örn. TEKNOFEST 2027 Orta İrtifa Roketi" /></Field>
-        <Field label="Açıklama"><textarea className="input min-h-24" value={form.description} maxLength={5000} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Kapsam, hedef irtifa, yarışma takvimi, kabul ölçütleri…" /></Field>
+        <Field label="Açıklama"><textarea className="input min-h-24" value={form.description} maxLength={5000} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Kapsam, hedef irtifa, takvim" /></Field>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Proje sorumlusu"><select className="input" name="owner" value={form.owner_id} onChange={(e) => setForm({ ...form, owner_id: e.target.value })}>
             <option value="">Atanmadı</option>{people.filter((p) => p.is_active).map((p) => <option key={p.id} value={p.id}>{fullName(p)}</option>)}</select></Field>

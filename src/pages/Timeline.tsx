@@ -46,7 +46,7 @@ export default function Timeline() {
 
   return (
     <>
-      <PageHeader title="Zaman Çizelgesi" description="Görevlerin süreleri, aralarındaki bağımlılıklar ve proje hedef tarihleri. Çubuğa tıklayarak göreve gidin." />
+      <PageHeader title="Zaman Çizelgesi" description="Görev süreleri, bağımlılıklar ve proje hedefleri." />
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
         <Segmented label="Yakınlaştırma" value={zoom} onChange={setZoom} options={[["day", "Gün"], ["week", "Hafta"], ["month", "Ay"]] as const} />
         <Segmented label="Gruplama" value={groupBy} onChange={setGroupBy} options={[["project", "Projeye göre"], ["department", "Departmana göre"]] as const} />
@@ -67,7 +67,7 @@ export default function Timeline() {
         )}
       </div>
       {loading && !data ? <LoadingState /> : error || !data ? <ErrorState message={error ?? ""} onRetry={reload} /> : groups.length === 0 ? (
-        <EmptyState icon={<GanttChart className="size-6" />} title="Gösterilecek görev yok" description="Filtreleri değiştirin veya görev oluşturun. Zaman çizelgesi erişiminiz olan görevleri gösterir." />
+        <EmptyState icon={<GanttChart className="size-6" />} title="Gösterilecek görev yok" description="Filtreleri değiştirin." />
       ) : (
         <>
           <Gantt groups={groups} dependencies={data.deps} milestones={milestones} zoom={zoom} />

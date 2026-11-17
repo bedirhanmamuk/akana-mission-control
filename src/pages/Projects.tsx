@@ -29,12 +29,12 @@ export default function Projects() {
 
   return (
     <>
-      <PageHeader title="Projeler" description="Görevler projeler altında toplanır; ilerleme, iptal edilmeyen görevlerin ilerleme ortalamasından hesaplanır."
+      <PageHeader title="Projeler" description="İlerleme, projedeki görevlerin ortalamasıdır."
         actions={isAdmin && <button className="btn-primary" onClick={() => setCreating(true)}><Plus className="size-4" /> Yeni proje</button>} />
       <div className="mb-4"><Segmented label="Proje filtresi" value={filter} onChange={setFilter} options={[["open", "Süren"], ["closed", "Kapanan"], ["all", "Tümü"]] as const} /></div>
       {loading && !data ? <LoadingState variant="list" /> : error || !data ? <ErrorState message={error ?? ""} onRetry={reload} /> : list.length === 0 ? (
         <EmptyState icon={<FolderKanban className="size-6" />} title={data.projects.length === 0 ? "Henüz proje yok" : "Bu filtrede proje yok"}
-          description={isAdmin ? "Yarışma roketi, alt sistem geliştirme veya test kampanyası gibi hedefleri proje olarak tanımlayın." : "Projeler yönetici tarafından oluşturulur."}
+          description={isAdmin ? "İlk projeyi oluşturun." : "Projeler yönetici tarafından oluşturulur."}
           action={isAdmin && data.projects.length === 0 ? <button className="btn-primary" onClick={() => setCreating(true)}><Plus className="size-4" /> Yeni proje</button> : undefined} />
       ) : (
         <div className="stagger grid gap-4 md:grid-cols-2 xl:grid-cols-3" data-testid="project-list">

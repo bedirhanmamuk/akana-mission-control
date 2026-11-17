@@ -151,14 +151,14 @@ try {
     const t = await member.getByTestId("upload-percent").textContent({ timeout: 500 }).catch(() => null);
     const n = t ? Number(t.replace("%", "")) : NaN;
     if (n > 0 && n < 100) mid = n;
-    if (await member.getByText("Raporunuz başarıyla AKANA MISSION CONTROL sistemine yüklendi.").count()) earlySuccess = true;
+    if (await member.getByText("Raporunuz başarıyla AKANA Yönetim Paneli'ne yüklendi.").count()) earlySuccess = true;
     await member.waitForTimeout(100);
   }
   if (mid !== null) await shot(member, "06-yukleme-ilerleme", false);
   check("yükleme sırasında gerçek ilerleme yüzdesi gösterilir", mid !== null, String(mid));
   check("yükleme bitmeden başarı mesajı gösterilmez", !earlySuccess);
   await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
-  check("#5 #6 PDF + Word + Excel yüklendi; başarı mesajı gösterildi", await visible(member.getByText("Raporunuz başarıyla AKANA MISSION CONTROL sistemine yüklendi."), 30000));
+  check("#5 #6 PDF + Word + Excel yüklendi; başarı mesajı gösterildi", await visible(member.getByText("Raporunuz başarıyla AKANA Yönetim Paneli'ne yüklendi."), 30000));
   await member.waitForURL(/\/raporlar\/[0-9a-f-]{36}$/);
   const reportId = member.url().split("/").pop();
   check("rapor 'İnceleme bekliyor' durumunda (otomatik onay yok)", await visible(member.getByTestId("report-status").getByText("İnceleme bekliyor")));
@@ -245,7 +245,7 @@ try {
   await member.getByTestId("file-input").setInputFiles([pdfV2]);
   await member.fill('textarea[name="note"]', "Bölüm 3'e emniyet katsayısı hesabı eklendi.");
   await member.getByRole("button", { name: "Yeni sürümü yükle" }).click();
-  check("#11 üye revizyon sonrası V2 yükler", await visible(member.getByText("Raporunuz başarıyla AKANA MISSION CONTROL sistemine yüklendi."), 20000));
+  check("#11 üye revizyon sonrası V2 yükler", await visible(member.getByText("Raporunuz başarıyla AKANA Yönetim Paneli'ne yüklendi."), 20000));
   check("#12 sürüm geçmişinde V1 ve V2 birlikte görünür", await visible(member.getByTestId("version-1").getByText("Gövde Analiz Raporu.pdf")) && await visible(member.getByTestId("version-2").getByText("Gövde Analiz Raporu v2.pdf")) && await visible(member.getByTestId("version-1").getByText("Revizyon istendi")));
   await shot(member, "11-surum-gecmisi");
   const orphan = sql(`select count(*) from storage.objects o where o.bucket_id='reports' and not exists (select 1 from public.report_files f where f.storage_path=o.name)`);
@@ -315,7 +315,7 @@ try {
   await visible(mobile.getByText("Kalıp Çizimi.pdf"));
   await shot(mobile, "22-mobil-gorev-detay-yukleme");
   await mobile.getByRole("button", { name: "Raporu yükle" }).click();
-  check("mobil: dosya seçilir ve rapor yüklenir", await visible(mobile.getByText("Raporunuz başarıyla AKANA MISSION CONTROL sistemine yüklendi."), 20000));
+  check("mobil: dosya seçilir ve rapor yüklenir", await visible(mobile.getByText("Raporunuz başarıyla AKANA Yönetim Paneli'ne yüklendi."), 20000));
   check("mobil: yatay taşma yok (Görev detayı)", await noOverflow());
   await mobile.goto(`${BASE}/arsiv`);
   check("mobil: arşiv okunabilir kart düzeninde", await visible(mobile.locator("ul li[data-testid='archive-row']").filter({ hasText: "Burun konisi kalıp raporu" })) && await noOverflow());

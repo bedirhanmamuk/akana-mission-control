@@ -25,7 +25,7 @@ export default function Departments() {
   return (
     <>
       <PageHeader title="Departmanlar"
-        description={isAdmin ? "Tüm departmanların görev ve rapor durumu." : "Takım departmanları. Ayrıntılı sayılar yalnızca kendi departmanınız için gösterilir."}
+        description={isAdmin ? "Tüm departmanların görev ve rapor durumu." : "Ayrıntılı sayılar yalnızca kendi departmanınız için görünür."}
         actions={isAdmin && <Link to="/yonetim" className="btn-secondary"><Settings2 className="size-4" /> Departmanları yönet</Link>} />
 
       {loading ? <LoadingState /> : error || !data ? <ErrorState message={error ?? ""} onRetry={reload} /> : data.departments.length === 0 ? (
@@ -60,7 +60,7 @@ export default function Departments() {
                     <Metric label="Tamamlama" value={s.total_tasks > 0 ? `%${Math.round((s.completed_tasks / s.total_tasks) * 100)}` : "—"} />
                   </div>
                 ) : (
-                  <p className="mt-4 rounded-lg bg-surface px-3 py-2 text-xs text-muted">Bu departmanın sayıları yalnızca kendi üyelerine ve yöneticilere açıktır.</p>
+                  <p className="mt-4 rounded-lg bg-surface px-3 py-2 text-xs text-muted">Sayıları yalnızca departman üyeleri ve yöneticiler görür.</p>
                 )}
               </article>
             );

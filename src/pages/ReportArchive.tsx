@@ -69,7 +69,7 @@ export default function ReportArchive() {
 
   return (
     <>
-      <PageHeader title="Rapor Arşivi" description={canSeeAll ? "Tüm departmanların raporları." : isManager ? "Sorumlu olduğunuz departmanların raporları ve kendi raporlarınız." : "Yüklediğiniz raporlar ve inceleme durumları."} />
+      <PageHeader title="Rapor Arşivi" description={canSeeAll ? "Tüm departmanların raporları." : isManager ? "Departmanlarınızın ve kendi raporlarınız." : "Yüklediğiniz raporlar ve inceleme durumları."} />
 
       <div className="card mb-4 grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="relative sm:col-span-2">

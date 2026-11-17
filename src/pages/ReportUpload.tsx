@@ -40,10 +40,10 @@ export default function ReportUpload() {
 
   return (
     <>
-      <PageHeader title="Rapor Yükle" description="Size atanan bir görevi seçin ve raporunuzu yükleyin. Yüklenen raporlar yönetici incelemesine gönderilir." />
+      <PageHeader title="Rapor Yükle" description="Görevi seçin, raporunuzu yükleyin." />
       {data.tasks.length === 0 ? (
         <EmptyState icon={<ClipboardList className="size-6" />} title="Rapor yükleyebileceğiniz bir görev yok"
-          description="Rapor yüklemek için size atanmış, tamamlanmamış bir görev olmalıdır."
+          description="Size atanmış açık görev yok."
           action={<Link to="/gorevler" className="btn-secondary">Görevlerime git</Link>} />
       ) : (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -65,7 +65,7 @@ export default function ReportUpload() {
               <div className="rounded-lg bg-surface px-4 py-5 text-sm">
                 <p className="mb-2 flex items-center gap-2">Bu görev için raporunuz: <ReportStatusBadge status={report!.status} /></p>
                 <p className="text-muted">
-                  {report!.status === "APPROVED" ? "Rapor onaylandığı için yeni sürüm yüklenemez." : "Rapor şu anda inceleniyor; inceleme sonuçlanana kadar yeni sürüm yüklenemez."}
+                  {report!.status === "APPROVED" ? "Rapor onaylandığı için yeni sürüm yüklenemez." : "Rapor inceleniyor. Sonuçlanınca yeni sürüm yükleyebilirsiniz."}
                 </p>
                 <Link to={`/raporlar/${report!.id}`} className="btn-secondary mt-3">Raporu görüntüle</Link>
               </div>
@@ -95,7 +95,7 @@ export default function ReportUpload() {
                 )}
                 <Link to={`/gorevler/${task.id}`} className="inline-block text-xs text-accent-2 hover:underline">Görev detayına git →</Link>
               </dl>
-            ) : <p className="text-sm text-muted">Görev seçildiğinde departman ve teslim bilgileri burada görünür.</p>}
+            ) : <p className="text-sm text-muted">Bir görev seçin.</p>}
           </Card>
         </div>
       )}

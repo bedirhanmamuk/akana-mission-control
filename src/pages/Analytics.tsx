@@ -45,7 +45,7 @@ function Kpi({ label, value, hint, tone }: { label: string; value: string; hint:
   );
 }
 
-/** Kural tabanlı rapor + isteğe bağlı YZ özeti. YZ hiçbir kaydı değiştirmez. */
+/** Kural tabanlı rapor ve isteğe bağlı YZ özeti. */
 function WeeklyPanel() {
   const report = useAsync(fetchWeeklyReport, []);
   const [kind, setKind] = useState<AiKind>("weekly");
@@ -74,7 +74,7 @@ function WeeklyPanel() {
         <SectionTitle aside={<button className="inline-flex items-center gap-1 text-xs text-accent-2 hover:underline" onClick={report.reload}><RefreshCw className="size-3.5" /> Yenile</button>}>Haftalık operasyon raporu</SectionTitle>
         {report.loading && !r ? <LoadingState variant="compact" /> : report.error || !r ? <ErrorState message={report.error ?? ""} onRetry={report.reload} /> : (
           <div className="space-y-4 text-sm" data-testid="weekly-report">
-            <p className="text-muted">{formatDate(r.period.from)} – {formatDate(r.period.to)} · {r.scope === "all" ? "tüm takım" : "sorumlu olduğunuz departmanlar"}. Tamamen sistem verisinden üretilir.</p>
+            <p className="text-muted">{formatDate(r.period.from)} – {formatDate(r.period.to)} · {r.scope === "all" ? "tüm takım" : "sorumlu olduğunuz departmanlar"}. </p>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {[["Yeni görev", r.created], ["Kapanan", r.completed.length], ["Geciken", r.overdue.length], ["Bloke", r.blocked.length]].map(([k, v]) => (
                 <div key={k as string} className="rounded-lg bg-surface px-3 py-2"><p className="text-[11px] text-muted">{k}</p><p className={`num text-xl font-semibold ${(k === "Geciken" || k === "Bloke") && Number(v) > 0 ? "text-danger" : ""}`}>{v}</p></div>
@@ -91,7 +91,7 @@ function WeeklyPanel() {
       </Card>
       <Card className="p-5">
         <SectionTitle><span className="flex items-center gap-2"><Sparkles className="size-4 text-accent-2" /> Yapay zekâ analizi <span className="rounded bg-ink/8 px-1.5 text-[10px] font-medium text-muted">isteğe bağlı</span></span></SectionTitle>
-        <p className="mb-3 flex items-start gap-2 text-xs text-muted"><Info className="mt-0.5 size-3.5 shrink-0" /> Yalnızca yetkinizdeki gerçek veriyi okur; hiçbir görevi değiştirmez, silmez veya onaylamaz. Veri olmayan konuda tahmin üretmemesi istenir — yine de kararları kayıtlarla doğrulayın.</p>
+        <p className="mb-3 flex items-start gap-2 text-xs text-muted"><Info className="mt-0.5 size-3.5 shrink-0" /> Yalnızca sistem verisini okur, hiçbir kaydı değiştirmez. Sonuçları kayıtlarla doğrulayın.</p>
         <div className="flex flex-col gap-2 sm:flex-row">
           <select className="input sm:flex-1" value={kind} onChange={(e) => setKind(e.target.value as AiKind)} aria-label="Analiz türü">
             <option value="weekly">Haftalık operasyon özeti</option>
@@ -151,7 +151,7 @@ export default function Analytics() {
 
   return (
     <>
-      <PageHeader title="Performans ve Analitik" description={isAdmin ? "Tüm takımın gerçek görev verisi. Kapsam: teslim tarihi seçilen aralıkta olan görevler." : "Sorumlu olduğunuz departmanların gerçek görev verisi."} />
+      <PageHeader title="Performans ve Analitik" description={isAdmin ? "Teslim tarihi seçilen aralıkta olan görevler." : "Departmanlarınızın gerçek görev verisi."} />
 
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
         <Segmented label="Tarih aralığı" value={preset} onChange={setPreset}
@@ -185,7 +185,7 @@ export default function Analytics() {
           </section>
 
           {s.total === 0 ? (
-            <div className="mt-4"><EmptyState title="Bu aralıkta görev yok" description="Tarih aralığını genişletin veya filtreleri kaldırın. Metrikler teslim tarihi aralıkta olan görevlerden hesaplanır." /></div>
+            <div className="mt-4"><EmptyState title="Bu aralıkta görev yok" description="Tarih aralığını genişletin." /></div>
           ) : (
             <>
               <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">

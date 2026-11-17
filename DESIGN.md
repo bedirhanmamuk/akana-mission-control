@@ -31,8 +31,8 @@ Palet ürünün kimliğinden gelir: gece mavisi / antrasit zemin, **kontrollü a
 
 | Rol | Yazı tipi | Not |
 |---|---|---|
-| Başlık ve rakam | Archivo (değişken; genişletilmiş) | `.display`, `.num` |
-| Metin | IBM Plex Sans | 15 px gövde |
+| Başlık ve rakam | Inter (değişken) | `.display`, `.num`: sıkı harf aralığı, tablo rakamları |
+| Metin | Inter (değişken) | 15 px gövde |
 | Kod ve sayaç | IBM Plex Mono | Yalnızca görev kodu, sürüm, T- sayacı gibi veriler |
 
 - Yazı tipleri projeye gömülüdür (`@fontsource`); dış sunucudan yüklenmez.

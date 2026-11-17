@@ -141,7 +141,7 @@ export default function ReportDetail() {
                 </div>
               ) : (
                 <p className="text-sm text-muted">
-                  {report.status === "APPROVED" ? "Bu rapor onaylandı." : "Karar verildi. Üye yeni sürüm yüklediğinde rapor tekrar incelemeye düşer."}
+                  {report.status === "APPROVED" ? "Bu rapor onaylandı." : "Karar verildi. Yeni sürüm gelince tekrar incelenir."}
                 </p>
               )}
             </Card>

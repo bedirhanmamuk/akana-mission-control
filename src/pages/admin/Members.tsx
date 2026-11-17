@@ -21,7 +21,7 @@ function generatePassword(): string {
 function PasswordField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const toast = useToast();
   return (
-    <Field label="Geçici şifre" required hint="En az 8 karakter. Üyeye güvenli bir kanaldan iletin; üye ilk girişte Profil ekranından değiştirmelidir.">
+    <Field label="Geçici şifre" required hint="En az 8 karakter. Üye ilk girişte değiştirmeli.">
       <div className="flex gap-2">
         <input className="input font-mono" value={value} onChange={(e) => onChange(e.target.value)} name="password" autoComplete="off" />
         <button type="button" className="btn-secondary px-3" onClick={() => onChange(generatePassword())} aria-label="Şifre üret" title="Şifre üret"><RefreshCw className="size-4" /></button>
@@ -130,7 +130,7 @@ function EditMemberModal({ member, departments, isSelf, onClose, onSaved }: {
     setBusy(true);
     try {
       await adminUsers({ action: "reset_password", user_id: member.id, password: newPassword });
-      toast.success("Şifre sıfırlandı. Yeni şifreyi üyeye güvenli bir kanaldan iletin.");
+      toast.success("Şifre sıfırlandı.");
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -163,7 +163,7 @@ function EditMemberModal({ member, departments, isSelf, onClose, onSaved }: {
           </Field>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Takım pozisyonu" hint="Organizasyon şemasında kullanılır. Kaptan ve yardımcısına yönetici rolü verilmesi önerilir; departman sorumlusu Yönetim Paneli'nden atanır.">
+          <Field label="Takım pozisyonu" hint="Organizasyon şemasında görünür.">
             <select className="input" value={form.team_position} name="team_position" onChange={(e) => setForm({ ...form, team_position: e.target.value as TeamPosition })}>
               {POSITIONS.map((x) => <option key={x} value={x}>{POSITION_META[x].label}</option>)}
             </select>
@@ -217,7 +217,7 @@ export default function Members() {
 
   return (
     <>
-      <PageHeader title="Üye Yönetimi" description="Ekip üyelerini ekleyin, departmanlarını ve yetkilerini yönetin."
+      <PageHeader title="Üye Yönetimi" description="Üye ekleyin, departman ve yetkileri yönetin."
         actions={<button className="btn-primary" onClick={() => setCreating(true)}><UserPlus className="size-4" /> Üye ekle</button>} />
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row">

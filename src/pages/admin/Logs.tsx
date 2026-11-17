@@ -33,7 +33,7 @@ export default function Logs() {
 
   return (
     <>
-      <PageHeader title="Sistem Kayıtları" description="Sistemde gerçekleştirilen önemli işlemlerin değiştirilemez denetim kaydı."
+      <PageHeader title="Sistem Kayıtları" description="Değiştirilemez işlem kaydı."
         actions={
           <select className="input sm:w-60" value={action} onChange={(e) => { setAction(e.target.value); setPage(0); }} aria-label="İşlem türüne göre filtrele">
             <option value="">Tüm işlemler</option>

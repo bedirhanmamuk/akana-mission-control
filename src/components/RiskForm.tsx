@@ -34,8 +34,8 @@ export default function RiskForm({ risk, departments, projects, people, onClose,
       : await supabase.from("risks").insert(payload).select("id");
     setBusy(false);
     if (res.error) return setError(errorMessage(res.error));
-    if (!res.data?.length) return setError("Bu riski güncelleme yetkiniz yok. Riski yalnızca oluşturan, sorumlusu, departman sorumlusu veya yönetici değiştirebilir.");
-    toast.success(risk ? "Risk güncellendi." : "Risk kaydedildi; ilgili kişiler bilgilendirildi.");
+    if (!res.data?.length) return setError("Bu riski değiştirme yetkiniz yok.");
+    toast.success(risk ? "Risk güncellendi." : "Risk kaydedildi.");
     onSaved(res.data[0].id as string);
   }
 
@@ -56,7 +56,7 @@ export default function RiskForm({ risk, departments, projects, people, onClose,
         <button className="btn-primary" type="submit" form="risk-form" disabled={busy}>{busy && <Spinner className="size-4 text-current" />} {risk ? "Kaydet" : "Riski kaydet"}</button></>}>
       <form id="risk-form" onSubmit={save} className="space-y-4">
         <Field label="Risk başlığı" required><input className="input" name="risk-title" value={form.title} maxLength={160} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Örn. Ana paraşüt açılmama riski" /></Field>
-        <Field label="Açıklama"><textarea className="input min-h-20" value={form.description} maxLength={5000} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Neden oluşur, hangi alt sistemi etkiler, belirtileri nelerdir?" /></Field>
+        <Field label="Açıklama"><textarea className="input min-h-20" value={form.description} maxLength={5000} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Nedeni ve etkilediği alt sistem" /></Field>
         <div>
           <span className="label">Olasılık <span className="text-danger">*</span></span>
           {scale(form.probability, (n) => setForm({ ...form, probability: n }), PROBABILITY_LABEL, "Olasılık")}
@@ -79,7 +79,7 @@ export default function RiskForm({ risk, departments, projects, people, onClose,
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Durum"><select className="input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as RiskStatus })}>
             {RISK_STATUSES.map((s) => <option key={s} value={s}>{RISK_STATUS_META[s].label}</option>)}</select></Field>
-          <Field label="Son değerlendirme" hint="Olasılık, etki veya durum değişince otomatik bugüne alınır."><input type="date" className="input" value={form.last_reviewed_at} max={todayISO()} onChange={(e) => setForm({ ...form, last_reviewed_at: e.target.value })} /></Field>
+          <Field label="Son değerlendirme" hint="Değerlendirme değişince otomatik güncellenir."><input type="date" className="input" value={form.last_reviewed_at} max={todayISO()} onChange={(e) => setForm({ ...form, last_reviewed_at: e.target.value })} /></Field>
         </div>
         <FormError>{error}</FormError>
       </form>

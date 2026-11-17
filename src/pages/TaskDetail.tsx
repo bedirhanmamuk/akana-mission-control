@@ -73,7 +73,7 @@ function EditTaskModal({ task, projects, onClose, onSaved }: {
           <Field label="Proje"><select className="input" value={form.project_id} onChange={(e) => setForm({ ...form, project_id: e.target.value })}>
             <option value="">Projesiz</option>
             {projects.map((p) => <option key={p.id} value={p.id}>{p.code} — {p.name}</option>)}</select></Field>
-          <Field label="Zorluk (1–5)" hint="Performans puanında iş yükü ağırlığı olarak kullanılır.">
+          <Field label="Zorluk (1–5)" hint="Performans puanını etkiler.">
             <select className="input" value={form.difficulty} onChange={(e) => setForm({ ...form, difficulty: Number(e.target.value) })}>
               {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} — {["", "Çok kolay", "Kolay", "Orta", "Zor", "Çok zor"][n]}</option>)}</select></Field>
         </div>
@@ -144,19 +144,19 @@ function BlockModal({ task, onClose, onSaved }: { task: TaskWithRelations; onClo
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   async function save() {
-    if (reason.trim().length < 3) return setError("Engelin ne olduğunu kısaca yazın (en az 3 karakter).");
+    if (reason.trim().length < 3) return setError("Nedeni yazın.");
     setBusy(true);
     const { error: err } = await supabase.rpc("set_task_blocked", { p_task_id: task.id, p_blocked: true, p_reason: reason });
     setBusy(false);
     if (err) return setError(errorMessage(err));
-    toast.success("Görev bloke olarak işaretlendi; yöneticiler bilgilendirildi.");
+    toast.success("Görev bloke edildi.");
     onSaved();
   }
   return (
     <Modal open onClose={onClose} title="Görevi bloke et"
       footer={<><button className="btn-secondary" onClick={onClose} disabled={busy}>Vazgeç</button>
         <button className="btn-danger" onClick={() => void save()} disabled={busy}>{busy ? <Spinner className="size-4" /> : <Ban className="size-4" />} Bloke et</button></>}>
-      <Field label="Bloke nedeni" required hint="Örn. malzeme tedariki, bekleyen tasarım onayı, arızalı test düzeneği. Yöneticiye ve departman sorumlusuna iletilir.">
+      <Field label="Bloke nedeni" required hint="Yöneticiye ve departman sorumlusuna iletilir.">
         <textarea className="input min-h-24" value={reason} maxLength={1000} onChange={(e) => setReason(e.target.value)} autoFocus />
       </Field>
       <div className="mt-3"><FormError>{error}</FormError></div>
@@ -186,7 +186,7 @@ function ProgressCard({ task, editable, onSaved }: { task: TaskWithRelations; ed
           <input type="range" min={0} max={100} step={5} value={value} onChange={(e) => setValue(Number(e.target.value))}
             className="w-full accent-[var(--color-accent)]" aria-label="İlerleme yüzdesi" />
           <div className="flex items-center justify-between gap-3">
-            <p className="text-xs text-muted">Sorumlular ve departman sorumlusu güncelleyebilir. %0 üstü değer yeni görevi “Devam ediyor” yapar.</p>
+            <p className="text-xs text-muted">Sorumlular güncelleyebilir.</p>
             <button className="btn-secondary shrink-0" disabled={busy || value === task.progress} onClick={() => void save()}>
               {busy && <Spinner className="size-4" />} İlerlemeyi güncelle
             </button>
@@ -315,7 +315,7 @@ function Comments({ taskId, names, uid, canModerate }: { taskId: string; names: 
         <span className="flex items-center gap-2"><MessageSquare className="size-4 text-muted" /> Yorumlar</span>
       </SectionTitle>
       {loading && !data ? <LoadingState variant="compact" /> : (data ?? []).length === 0 ? (
-        <p className="pb-3 text-sm text-muted">Henüz yorum yok. Görevle ilgili soru, karar veya durum notu yazabilirsiniz; sorumlulara bildirim gider.</p>
+        <p className="pb-3 text-sm text-muted">Henüz yorum yok.</p>
       ) : (
         <ul className="mb-4 space-y-4" data-testid="comment-list">
           {data!.map((c) => {
@@ -358,7 +358,7 @@ function HistoryCard({ taskId }: { taskId: string }) {
       <SectionTitle aside={<button className="text-xs text-accent-2 hover:underline" onClick={() => setOpen((o) => !o)} aria-expanded={open}>{open ? "Gizle" : "Göster"}</button>}>
         <span className="flex items-center gap-2"><History className="size-4 text-muted" /> Görev geçmişi</span>
       </SectionTitle>
-      {!open ? <p className="text-sm text-muted">Oluşturma, atama, durum, ilerleme, rapor ve yorum kayıtlarının zaman çizelgesi.</p>
+      {!open ? <p className="text-sm text-muted">Görevdeki tüm işlemler.</p>
         : loading ? <LoadingState variant="compact" /> : (data ?? []).length === 0 ? <p className="text-sm text-muted">Kayıt yok.</p> : (
           <ol className="relative space-y-3 before:absolute before:top-1 before:bottom-1 before:left-[3px] before:w-px before:bg-line" data-testid="task-history">
             {data!.map((h) => (
@@ -439,7 +439,7 @@ export default function TaskDetail() {
     if (err) {
       setModal(null);
       return toast.error((err as { code?: string }).code === "23503"
-        ? "Bu göreve rapor yüklendiği için silinemez. Rapor geçmişi korunur; görevi 'Tamamlandı' veya 'İptal edildi' olarak işaretleyebilirsiniz."
+        ? "Bu göreve rapor yüklendiği için silinemez. Görevi tamamlayın veya iptal edin."
         : errorMessage(err));
     }
     toast.success("Görev silindi.");
@@ -467,12 +467,12 @@ export default function TaskDetail() {
         </div>
         <div className="flex flex-wrap gap-2 [&>*]:flex-1 sm:[&>*]:flex-none">
           {isAssignee && task.status === "NEW" && (
-            <button className="btn-secondary" disabled={busy} onClick={() => void run(() => supabase.rpc("start_task", { p_task_id: task.id }), "Görev 'Devam ediyor' olarak işaretlendi.")}>
+            <button className="btn-secondary" disabled={busy} onClick={() => void run(() => supabase.rpc("start_task", { p_task_id: task.id }), "Göreve başlandı.")}>
               <Play className="size-4" /> Göreve başla
             </button>
           )}
           {(isAssignee || canManage) && !closed && (task.status === "BLOCKED" ? (
-            <button className="btn-secondary" disabled={busy} onClick={() => void run(() => supabase.rpc("set_task_blocked", { p_task_id: task.id, p_blocked: false }), "Blokaj kaldırıldı; görev 'Devam ediyor'.")}>
+            <button className="btn-secondary" disabled={busy} onClick={() => void run(() => supabase.rpc("set_task_blocked", { p_task_id: task.id, p_blocked: false }), "Blokaj kaldırıldı.")}>
               <Unlock className="size-4" /> Blokajı kaldır
             </button>
           ) : (
@@ -521,7 +521,7 @@ export default function TaskDetail() {
               <SectionTitle aside={canManage && <Link to={`/yonetim/gorev-olustur?ust=${task.id}`} className="inline-flex items-center gap-1 text-xs text-accent-2 hover:underline"><Plus className="size-3.5" /> Alt görev ekle</Link>}>
                 <span className="flex items-center gap-2"><GitBranch className="size-4 text-muted" /> Alt görevler</span>
               </SectionTitle>
-              {subtasks.length === 0 ? <p className="text-sm text-muted">Alt görev yok. Büyük işleri sorumlusu ve teslim tarihi ayrı parçalara bölebilirsiniz.</p> : (
+              {subtasks.length === 0 ? <p className="text-sm text-muted">Alt görev yok.</p> : (
                 <>
                   <ProgressBar className="mb-3" value={(subtasks.filter((s) => ["COMPLETED", "APPROVED"].includes(s.status)).length / subtasks.length) * 100} tone="success"
                     label="Tamamlanan alt görev oranı" />
@@ -566,7 +566,7 @@ export default function TaskDetail() {
                   {task.status === "COMPLETED" ? "Görev tamamlandı; yeni rapor yüklenemez."
                     : task.status === "CANCELLED" ? "Görev iptal edildi."
                     : mine?.status === "APPROVED" ? "Raporunuz onaylandı."
-                    : "Raporunuz inceleniyor; sonuçlanana kadar yeni sürüm yüklenemez."}
+                    : "Raporunuz inceleniyor."}
                 </p>
               )}
               {versions.length > 0 && (
@@ -603,7 +603,7 @@ export default function TaskDetail() {
             <SectionTitle aside={<Link to={`/dokumanlar?gorev=${task.id}&yeni=1`} className="inline-flex items-center gap-1 text-xs text-accent-2 hover:underline"><Plus className="size-3.5" /> Dosya ekle</Link>}>
               <span className="flex items-center gap-2"><FileText className="size-4 text-muted" /> Ek dosyalar ve dokümanlar</span>
             </SectionTitle>
-            {docs.length === 0 ? <p className="text-sm text-muted">Bu göreve bağlı doküman yok. CAD modelleri, analiz dosyaları ve test verileri Doküman Merkezi'nden göreve bağlanır.</p> : (
+            {docs.length === 0 ? <p className="text-sm text-muted">Bağlı doküman yok.</p> : (
               <ul className="divide-y divide-line-soft">
                 {docs.map((d) => (
                   <li key={d.id}>
@@ -660,7 +660,7 @@ export default function TaskDetail() {
           {canManage && (
             <Card className="p-5">
               <SectionTitle><span className="flex items-center gap-2"><ShieldCheck className="size-4 text-muted" /> Durum yönetimi</span></SectionTitle>
-              <Field label="Görev durumu" hint="Durum rapor yükleme ve inceleme adımlarında otomatik de güncellenir. Bloke için nedenli “Bloke et” düğmesini kullanın.">
+              <Field label="Görev durumu" hint="Rapor yüklenince ve incelenince otomatik güncellenir.">
                 <select className="input" value={task.status} disabled={busy} name="task-status"
                   onChange={(e) => void run(() => supabase.from("tasks").update({ status: e.target.value as TaskStatus }).eq("id", task.id), "Görev durumu güncellendi.")}>
                   {TASK_STATUSES.map((s) => <option key={s} value={s}>{TASK_STATUS_META[s].label}</option>)}

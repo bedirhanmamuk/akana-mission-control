@@ -73,7 +73,7 @@ export default function DocumentDetail() {
     const { error: err } = await supabase.rpc("review_document", { p_document_id: doc.id, p_action: action, p_note: note });
     setBusy(null);
     if (err) return setFormError(errorMessage(err));
-    toast.success(action === "APPROVE" ? "Doküman onaylandı." : "Revizyon istendi; yükleyen bilgilendirildi.");
+    toast.success(action === "APPROVE" ? "Doküman onaylandı." : "Revizyon istendi.");
     setModal(null); setNote(""); reload();
   }
 
@@ -97,7 +97,7 @@ export default function DocumentDetail() {
     if (err) { setBusy(null); setModal(null); return toast.error(errorMessage(err)); }
     await removeOrphans((paths as string[]) ?? [], DOCUMENTS_BUCKET);
     setBusy(null);
-    toast.success("Doküman ve tüm sürümleri silindi.");
+    toast.success("Doküman silindi.");
     navigate("/dokumanlar");
   }
 
@@ -163,7 +163,7 @@ export default function DocumentDetail() {
           {canEdit && (
             <Card className="p-5">
               <SectionTitle>Yeni sürüm yükle</SectionTitle>
-              <NewVersionForm documentId={doc.id} maxBytes={data.maxMb * 1048576} onDone={() => { toast.success("Yeni sürüm yüklendi ve onaya gönderildi."); reload(); }} />
+              <NewVersionForm documentId={doc.id} maxBytes={data.maxMb * 1048576} onDone={() => { toast.success("Yeni sürüm onaya gönderildi."); reload(); }} />
             </Card>
           )}
         </div>

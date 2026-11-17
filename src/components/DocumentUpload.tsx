@@ -106,7 +106,7 @@ export function NewVersionForm({ documentId, maxBytes, onDone }: { documentId: s
   return (
     <form onSubmit={submit} className="space-y-3">
       <FileDrop file={file} onFile={(f, err) => { setFile(f); setError(err); }} maxBytes={maxBytes} disabled={busy} progress={progress} />
-      <Field label="Sürüm notu" hint="Bu sürümde neyin değiştiğini kısaca yazın (revizyon geçmişinde görünür)."><input className="input" value={note} maxLength={2000} onChange={(e) => setNote(e.target.value)} disabled={busy} placeholder="Örn. Kanatçık kök kalınlığı 3 mm'ye çıkarıldı" /></Field>
+      <Field label="Sürüm notu" hint="Bu sürümde ne değişti?"><input className="input" value={note} maxLength={2000} onChange={(e) => setNote(e.target.value)} disabled={busy} placeholder="Örn. Kanatçık kök kalınlığı 3 mm'ye çıkarıldı" /></Field>
       <FormError>{error}</FormError>
       <button className="btn-primary w-full" disabled={busy || !file}>{busy ? <Spinner className="size-4 text-current" /> : <UploadCloud className="size-4" />} Yeni sürümü yükle ve onaya gönder</button>
     </form>
@@ -176,7 +176,7 @@ export function NewDocumentModal({ departments, projects, tasks, presetTaskId, p
         <Field label="Sürüm notu"><input className="input" value={note} maxLength={2000} onChange={(e) => setNote(e.target.value)} disabled={busy} placeholder="İlk sürüm" /></Field>
         <label className="flex items-start gap-3 rounded-lg bg-surface px-3 py-2.5">
           <input type="checkbox" className="mt-0.5 size-4" checked={form.is_restricted} onChange={(e) => setForm({ ...form, is_restricted: e.target.checked })} disabled={busy} />
-          <span className="text-sm">Erişimi kısıtla<span className="block text-xs text-muted">Yalnızca seçilen departmanın üyeleri, sorumlusu, yöneticiler ve siz görebilirsiniz (ör. sponsor sözleşmeleri).</span></span>
+          <span className="text-sm">Erişimi kısıtla<span className="block text-xs text-muted">Yalnızca departman üyeleri ve yöneticiler görür.</span></span>
         </label>
         <FormError>{error}</FormError>
       </form>
