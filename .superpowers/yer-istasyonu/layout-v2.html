@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uçuş Sahnesi Taslağı</title>
+<style>
+:root{--bg:#e9edf2;--ink:#0d1320;--mute:#5b6473;--panel:#fff;--line:#d5dbe3}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#070a10;--ink:#e7ebf1;--mute:#9aa4b4;--panel:#10151f;--line:#232c3b}}
+:root[data-theme="dark"]{--bg:#070a10;--ink:#e7ebf1;--mute:#9aa4b4;--panel:#10151f;--line:#232c3b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,"Segoe UI",Inter,sans-serif;padding:24px 16px 56px}
+main{max-width:1240px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--mute);margin:0 0 18px}
+.scroll{overflow-x:auto;border-radius:10px}
+.scene{min-width:980px;aspect-ratio:16/9;border-radius:10px;overflow:hidden}
+.scene svg{display:block;width:100%;height:100%}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:16px}
+.legend div{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px}
+.legend b{display:block;margin-bottom:2px}
+.n{display:inline-block;width:20px;height:20px;border-radius:50%;background:#d9a441;color:#161004;font-weight:700;text-align:center;line-height:20px;font-size:12px;margin-right:6px}
+</style>
+</head>
+<body>
+<main>
+<h1>A, klasik olmayan sürüm: “uçuş sahnesi”</h1>
+<p class="sub">Kutulu panel yok. Ekran tek bir sahne: roketin gerçek ölçekli yan kesit yörüngesi merkezde, uçuş fazları listede değil yörüngenin üzerinde. Gece modu gösteriliyor; sahada gündüz modu (açık, yüksek kontrast) tek tuşla gelir. Değerler örnek, T+38 s.</p>
+
+<div class="scroll"><div class="scene">
+<svg viewBox="0 0 1600 900" font-family="Segoe UI, Inter, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#04070d"/><stop offset="1" stop-color="#0d1524"/></linearGradient>
+    <linearGradient id="trail" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#d9a441" stop-opacity=".15"/><stop offset="1" stop-color="#ffc857"/></linearGradient>
+    <radialGradient id="glow"><stop offset="0" stop-color="#ffc857" stop-opacity=".55"/><stop offset="1" stop-color="#ffc857" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+
+  <!-- ===== nabız çizgileri (kaynak sağlığı) ===== -->
+  <g font-size="15" fill="#93a0b4">
+    <text x="40" y="38" fill="#e6ebf2" font-weight="700" letter-spacing="1">AKANA</text>
+    <text x="112" y="38">yer istasyonu</text>
+    <text x="40" y="70" fill="#e6ebf2">Roket</text>
+    <g stroke="#22a06b" stroke-width="2">
+      <line x1="120" x2="620" y1="64" y2="64" stroke-opacity=".25"/>
+      <path d="M140 64v-10M160 64v-10M180 64v-10M200 64v-10M220 64v-10M240 64v-10M260 64v-10M280 64v-10M300 64v-10M320 64v-10M340 64v-10M360 64v-10M380 64v-10M400 64v-10M420 64v-10M440 64v-10M460 64v-10M480 64v-10M500 64v-10M520 64v-10M540 64v-10M560 64v-10M580 64v-10M600 64v-14"/>
+    </g>
+    <text x="635" y="70">5.0 Hz · −71 dBm · kayıp 3</text>
+    <text x="40" y="100" fill="#e6ebf2">Görev yükü</text>
+    <g stroke="#e08a00" stroke-width="2">
+      <line x1="120" x2="620" y1="94" y2="94" stroke-opacity=".25"/>
+      <path d="M140 94v-10M165 94v-10M190 94v-10M215 94v-10M240 94v-10M265 94v-10M290 94v-10M315 94v-10M340 94v-10M365 94v-10M390 94v-10M415 94v-10M440 94v-10M465 94v-10M490 94v-10M515 94v-10"/>
+      <line x1="520" x2="620" y1="94" y2="94" stroke="#d64545" stroke-width="3"/>
+    </g>
+    <text x="635" y="100" fill="#e08a00">3.8 Hz · son paket 0.6 s önce</text>
+  </g>
+  <g font-size="15" fill="#93a0b4" text-anchor="end">
+    <text x="1560" y="38" fill="#e6ebf2" font-family="IBM Plex Mono, Consolas, monospace" font-size="34" font-weight="600">T+ 00:38.4</text>
+    <text x="1560" y="70"><tspan fill="#d64545">●</tspan> kayıt 12:51 · HYİ ●</text>
+    <text x="1560" y="100">gece ◐ gündüz</text>
+  </g>
+
+  <!-- ===== irtifa şeridi (sol kenar) ===== -->
+  <g>
+    <line x1="150" x2="150" y1="150" y2="760" stroke="#2a3446"/>
+    <g font-size="13" fill="#5f6b80" text-anchor="end">
+      <text x="140" y="764">0</text><text x="140" y="612">5 000 ft</text><text x="140" y="459">10 000</text><text x="140" y="307">15 000</text><text x="140" y="155">20 000</text>
+    </g>
+    <g stroke="#2a3446"><line x1="144" x2="150" y1="608" y2="608"/><line x1="144" x2="150" y1="455" y2="455"/><line x1="144" x2="150" y1="303" y2="303"/></g>
+    <!-- mevcut irtifa okuyucu -->
+    <path d="M152 162 l16 -14 h176 v28 h-176z" fill="#d9a441"/>
+    <text x="176" y="170" font-size="22" font-weight="800" fill="#161004">6 041 m</text>
+    <text x="176" y="200" font-size="15" fill="#93a0b4">19 819 ft · max 6 088 m</text>
+  </g>
+
+  <!-- ===== tavan ===== -->
+  <line x1="150" x2="1180" y1="150" y2="150" stroke="#d64545" stroke-dasharray="6 6" stroke-opacity=".7"/>
+  <text x="1180" y="142" text-anchor="end" font-size="13" fill="#d64545">eşik 20 000 ft · 6 096 m</text>
+
+  <!-- ===== yörünge sahnesi (yan kesit: menzil × irtifa) ===== -->
+  <g>
+    <line x1="150" x2="1180" y1="760" y2="760" stroke="#2a3446"/>
+    <g font-size="13" fill="#5f6b80"><text x="150" y="784">rampa</text><text x="560" y="784">1 km</text><text x="960" y="784">2 km menzil</text></g>
+    <!-- yükseliş -->
+    <path d="M170 760 C 190 600, 230 420, 300 300 S 420 166, 470 162" fill="none" stroke="url(#trail)" stroke-width="4" stroke-linecap="round"/>
+    <!-- öngörülen iniş -->
+    <path d="M470 162 C 520 300, 560 520, 640 760" fill="none" stroke="#d9a441" stroke-opacity=".35" stroke-width="2" stroke-dasharray="4 8"/>
+    <path d="M478 168 C 560 330, 640 560, 760 760" fill="none" stroke="#e08a00" stroke-opacity=".45" stroke-width="2" stroke-dasharray="2 6"/>
+    <!-- olay işaretleri yörünge üzerinde -->
+    <g font-size="14" fill="#cfd6e2">
+      <circle cx="210" cy="560" r="5" fill="#0d1524" stroke="#cfd6e2" stroke-width="2"/>
+      <text x="224" y="565">yanma sonu · T+4.0 · 654 m</text>
+      <circle cx="470" cy="162" r="34" fill="url(#glow)"/>
+      <path d="M470 150 l7 18 h-14z" fill="#ffc857"/>
+      <text x="500" y="186" fill="#ffc857" font-weight="700">apogee · ayrılma</text>
+      <text x="500" y="206" fill="#93a0b4">T+37.3 · görev yükü ayrıldı</text>
+      <circle cx="488" cy="176" r="6" fill="#e08a00"/>
+      <circle cx="611" cy="680" r="5" fill="#0d1524" stroke="#5f6b80" stroke-width="2" stroke-dasharray="2 2"/>
+      <text x="626" y="684" fill="#5f6b80">main · 500 m (bekleniyor)</text>
+    </g>
+  </g>
+
+  <!-- ===== gökyüzü kubbesi (anten yönü) ===== -->
+  <g transform="translate(1390 420)">
+    <circle r="170" fill="#0a111c" stroke="#2a3446"/>
+    <circle r="113" fill="none" stroke="#1f2a3b"/><circle r="57" fill="none" stroke="#1f2a3b"/>
+    <line x1="-170" x2="170" stroke="#1f2a3b"/><line y1="-170" y2="170" stroke="#1f2a3b"/>
+    <g font-size="14" fill="#5f6b80" text-anchor="middle"><text y="-178">K</text><text x="184" y="5">D</text><text y="192">G</text><text x="-184" y="5">B</text><text x="66" y="-4" font-size="11">30°</text><text x="122" y="-4" font-size="11">0°</text></g>
+    <!-- roket izi: el 71, az 48 -> r=170*(90-71)/90=35.9 ; x=r sin48=26.7 y=-r cos48=-24 -->
+    <path d="M0 0 C 8 -8, 18 -18, 26.7 -24" fill="none" stroke="#d9a441" stroke-width="3" stroke-opacity=".6"/>
+    <circle cx="26.7" cy="-24" r="9" fill="#ffc857"/>
+    <circle cx="36" cy="-27" r="7" fill="#e08a00"/>
+    <text x="0" y="230" text-anchor="middle" font-size="15" fill="#93a0b4">Yagi'yi buraya çevir · roket</text>
+  </g>
+  <g font-weight="800" fill="#ffc857" text-anchor="middle">
+    <text x="1310" y="700" font-size="64">48°</text><text x="1475" y="700" font-size="64">71°</text>
+  </g>
+  <g font-size="15" fill="#93a0b4" text-anchor="middle"><text x="1310" y="724">azimut · KD</text><text x="1475" y="724">elevasyon</text></g>
+  <text x="1392" y="756" text-anchor="middle" font-size="15" fill="#cfd6e2">eğik mesafe 6.4 km</text>
+
+  <!-- ===== zaman şeridi + şeritler ===== -->
+  <g transform="translate(150 810)">
+    <rect width="1410" height="6" rx="3" fill="#1a2232"/>
+    <rect width="60" height="6" rx="3" fill="#3b4c6b"/>
+    <rect x="60" width="500" height="6" fill="#2f3f5c"/>
+    <rect x="560" width="14" height="6" fill="#ffc857"/>
+    <g font-size="13" fill="#5f6b80"><text y="26">T0</text><text x="52" y="26">yanma</text><text x="300" y="26">süzülme</text><text x="560" y="26" fill="#ffc857">apogee ▲</text><text x="760" y="26">drogue</text><text x="1180" y="26">main</text><text x="1360" y="26">yerde</text></g>
+    <!-- ivme ve açı ince şeritleri -->
+    <polyline transform="translate(0 -38)" fill="none" stroke="#22a06b" stroke-width="1.5" points="0,22 6,2 60,0 64,22 200,20 400,21 574,20"/>
+    <polyline transform="translate(0 -38)" fill="none" stroke="#3b82f6" stroke-width="1.2" stroke-opacity=".8" points="0,14 100,13 300,12 500,10 560,4 574,16"/>
+    <g font-size="12" fill="#5f6b80" transform="translate(-10 -24)" text-anchor="end"><text>ivme</text><text y="-12">açı</text></g>
+  </g>
+
+  <!-- ===== dikey hız iğnesi ===== -->
+  <g transform="translate(1000 300)">
+    <path d="M0 -110 A 110 110 0 0 1 0 110" fill="none" stroke="#2a3446" stroke-width="2"/>
+    <g font-size="12" fill="#5f6b80"><text x="8" y="-102">+300</text><text x="114" y="4">0</text><text x="8" y="112">−300</text></g>
+    <line x1="0" y1="0" x2="109.9" y2="3.6" stroke="#3b82f6" stroke-width="4" stroke-linecap="round"/>
+    <text x="-6" y="-130" font-size="15" fill="#93a0b4" text-anchor="middle">dikey hız</text>
+    <text x="-6" y="8" font-size="30" font-weight="800" fill="#e6ebf2" text-anchor="end">−3.2</text>
+    <text x="-6" y="30" font-size="13" fill="#93a0b4" text-anchor="end">m/s</text>
+  </g>
+</svg>
+</div></div>
+
+<div class="legend">
+  <div><b><span class="n">1</span>Nabız çizgileri</b>Bağlantı durumu rozet olarak değil, her gelen pakette bir çentikle gösterilir. Sık çentik iyi bağlantı, kırmızı boşluk paket kaybı demek. Ritim de bilgi taşır.</div>
+  <div><b><span class="n">2</span>Uçuş sahnesi</b>Menzil × irtifa yan kesiti gerçek ölçekte. 20.000 ft eşiği tavan çizgisi. Fazlar yörüngenin üzerinde işaretli; bekleyen olaylar (ör. main 500 m) soluk görünür.</div>
+  <div><b><span class="n">3</span>İrtifa şeridi</b>Uçak göstergelerindeki gibi sol kenar boyunca dikey ölçek. İrtifa okuyucu roketle birlikte yükselir; m birincil, ft ikincil.</div>
+  <div><b><span class="n">4</span>Gökyüzü kubbesi</b>Anten yönü pusula yerine gökyüzü haritası olarak: merkez tam tepe (90°), kenar ufuk. Roket ve görev yükü aynı kubbede. Ayrı pencereye alınıp tam ekran açılabilir.</div>
+  <div><b><span class="n">5</span>Zaman şeridi</b>T0'dan inişe faz bölümleri ve ince ivme/açı şeritleri. Tekrar oynatmada sürüklenerek ileri/geri gidilir.</div>
+  <div><b>Harita</b>Üstten görünüm kubbe ile yer değiştirir (tek tuş ya da iniş fazında otomatik öneri, kendiliğinden değişmez).</div>
+</div>
+</main>
+</body>
+</html>
