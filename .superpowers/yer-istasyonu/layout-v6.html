@@ -1,0 +1,592 @@
+<title>AKANA Yer İstasyonu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Operasyon ekranı: sim şeridi → üst operasyon barı → 9 faz → [telemetri + uçuş durumu | harita + grafikler | UKB/sensör + haberleşme + olay kaydı]. Koyu, veri önde. */
+:root{
+  color-scheme:dark;
+  --bg:#0a0f17; --panel:#0f1621; --raised:#151e2b; --well:#0c121b;
+  --line:#1d2735; --line2:#253246; --rule:#151d29;
+  --text:#e4e9f0; --muted:#93a0b3; --faint:#7b889c;
+  --gold:#d9a441;            /* Mission Control vurgu: "şu an", seçili */
+  --rk:#5aa9ff;              /* roket */
+  --pl:#f29a3f;              /* görev yükü */
+  --ok:#3fb37f; --warn:#e3b341; --bad:#ef5350; --crit:#ff3b3b;
+  --sim:#b39dfa;             /* simülasyon: hiçbir durum rengiyle karışmaz */
+  --ui:"Inter","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:#05080d;color:var(--text);font-family:var(--ui);overflow-x:hidden}
+#wrap{position:relative;width:100%;overflow:hidden}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:top left;background:var(--bg);font-size:13px;line-height:18px;
+  display:grid;grid-template-rows:22px 52px 58px 1fr;font-variant-numeric:tabular-nums}
+.mono{font-family:var(--mono)}
+
+/* simülasyon şeridi */
+.simbar{background:repeating-linear-gradient(135deg,#2a2148 0 10px,#241c3e 10px 20px);color:#d9cdff;display:flex;align-items:center;justify-content:center;gap:18px;font-size:12px;font-weight:600;letter-spacing:.06em}
+.simbar span{font-weight:400;letter-spacing:0;color:#c4b5fd}
+.simbar .ctl{display:flex;gap:4px;margin-left:24px}
+.simbar button{all:unset;cursor:pointer;padding:0 8px;border:1px solid #5b4a9a;border-radius:3px;font:500 11px/16px var(--mono);color:#d9cdff}
+.simbar button.on{background:#5b4a9a;color:#fff}
+.simbar button:focus-visible{outline:2px solid #fff}
+
+/* üst operasyon barı */
+.top{display:flex;align-items:stretch;border-bottom:1px solid var(--line);background:var(--panel)}
+.logo{display:flex;align-items:center;gap:10px;padding:0 18px;border-right:1px solid var(--line);min-width:248px}
+.logo b{font-size:14px;font-weight:700;letter-spacing:.04em}
+.logo small{display:block;font-size:11px;color:var(--muted);font-weight:500;letter-spacing:0;line-height:14px}
+.meta{display:flex;align-items:stretch}
+.m{display:flex;flex-direction:column;justify-content:center;padding:0 16px;border-right:1px solid var(--rule)}
+.m label{font-size:11px;color:var(--faint);line-height:14px}
+.m b{font:500 13px/18px var(--mono);color:var(--text);white-space:nowrap}
+.m b.na{color:var(--faint)}
+.sp{flex:1}
+.pill{display:inline-flex;align-items:center;gap:6px;height:20px;padding:0 8px;border-radius:3px;font:600 11px/20px var(--mono);letter-spacing:.04em;border:1px solid}
+.p-sim{color:var(--sim);border-color:#4b3f80;background:#1c1733}
+.p-ok{color:var(--ok);border-color:#1f5a40;background:#0f2219}
+.p-warn{color:var(--warn);border-color:#5e4a17;background:#221c0c}
+.p-bad{color:var(--bad);border-color:#5e2223;background:#221012}
+.p-na{color:var(--faint);border-color:var(--line2);background:var(--well)}
+.p-rec{color:#ff8a8a;border-color:#5e2223;background:#221012}
+.p-rec i{width:7px;height:7px;border-radius:50%;background:var(--bad);animation:blink 1.6s steps(2) infinite}
+@keyframes blink{50%{opacity:.25}}
+.clock{display:flex;flex-direction:column;justify-content:center;padding:0 18px;border-left:1px solid var(--line);text-align:right}
+.clock b{font:500 15px/18px var(--mono)}
+.clock span{font:400 11px/14px var(--mono);color:var(--muted)}
+
+/* faz şeridi */
+.phases{display:flex;align-items:center;gap:16px;padding:0 18px;border-bottom:1px solid var(--line)}
+.tplus{font:600 26px/30px var(--mono);min-width:184px;letter-spacing:-.01em}
+.tplus small{display:block;font:400 11px/14px var(--ui);color:var(--muted);letter-spacing:0}
+.rail{flex:1;display:grid;grid-template-columns:repeat(8,1fr);position:relative}
+.rail::before{content:"";position:absolute;left:6px;right:calc(12.5% - 6px);top:8px;height:2px;background:var(--line2)}
+.rail .fill{position:absolute;left:6px;top:8px;height:2px;background:var(--gold);transition:width .6s}
+.ph{position:relative;padding-top:20px;color:var(--faint);font-size:12px;line-height:15px}
+.ph::before{content:"";position:absolute;left:0;top:3px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--line2)}
+.ph.done{color:var(--text)} .ph.done::before{background:var(--muted);border-color:var(--muted)}
+.ph.now{color:var(--gold);font-weight:600} .ph.now::before{background:var(--gold);border-color:var(--gold);box-shadow:0 0 0 4px rgba(217,164,65,.18)}
+.ph small{display:block;font:400 11px/14px var(--mono);color:var(--faint)}
+.safe{border-left:1px solid var(--line);padding-left:16px;display:flex;flex-direction:column;gap:2px;min-width:170px}
+.safe label{font-size:11px;color:var(--faint)}
+
+/* gövde */
+.body{display:grid;grid-template-columns:432px 1fr 548px;gap:10px;padding:10px;min-height:0}
+.col{display:grid;gap:10px;min-height:0}
+.pn{background:var(--panel);border:1px solid var(--line);border-radius:4px;display:flex;flex-direction:column;min-height:0;overflow:hidden;position:relative}
+.ph2{display:flex;align-items:center;gap:10px;height:34px;padding:0 12px;border-bottom:1px solid var(--rule);flex:none}
+.ph2 h2{font-size:12.5px;font-weight:600;letter-spacing:.01em}
+.ph2 .meta2{color:var(--faint);font-size:11px}
+.ph2 .r{margin-left:auto;display:flex;gap:6px;align-items:center}
+.simtag{font:600 10px/16px var(--mono);color:var(--sim);border:1px solid #4b3f80;padding:0 5px;border-radius:2px;letter-spacing:.06em}
+.ib{all:unset;cursor:pointer;height:22px;padding:0 8px;border:1px solid var(--line2);border-radius:3px;color:var(--muted);font-size:11px;line-height:20px;display:inline-flex;align-items:center;gap:5px}
+.ib:hover{color:var(--text);border-color:#33435c}
+.ib.on{color:var(--text);background:var(--raised);border-color:#33435c}
+.ib:focus-visible{outline:2px solid var(--gold)}
+.cnt{flex:1;min-height:0;position:relative}
+
+/* telemetri tablosu */
+.tt{width:100%;border-collapse:collapse}
+.tt td{padding:0 12px;height:30.5px;vertical-align:middle;border-bottom:1px solid var(--rule);white-space:nowrap}
+.tt tr:last-child td{border-bottom:0}
+.tt .k{color:var(--muted);font-size:12px;width:116px}
+.tt .v{font:500 17px/20px var(--mono);text-align:right;width:112px}
+.tt .un{color:var(--faint);font:400 11px var(--mono);width:40px}
+.tt .s{color:var(--faint);font-size:11px}
+.tt .a{font:400 11px var(--mono);color:var(--faint);text-align:right;width:52px}
+.vd{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
+.vd.g{background:var(--ok)} .vd.y{background:var(--warn)} .vd.n{background:transparent;border:1px solid var(--faint)} .vd.r{background:var(--bad)}
+.na{color:var(--faint)!important}
+.flash{animation:fl .5s ease-out}
+@keyframes fl{from{color:#fff}}
+
+/* uçuş durumu zaman çizelgesi */
+.tl{padding:6px 12px 0;overflow:hidden}
+.ev{display:grid;grid-template-columns:16px 1fr auto;column-gap:10px;padding:5px 0 6px;position:relative}
+.ev::before{content:"";position:absolute;left:7px;top:18px;bottom:-6px;width:1px;background:var(--line2)}
+.ev:last-child::before{display:none}
+.ev i{width:11px;height:11px;border-radius:50%;border:2px solid var(--line2);background:var(--panel);margin-top:3px;position:relative;z-index:1}
+.ev.ok i{border-color:var(--ok);background:var(--ok)}
+.ev.one i{border-color:var(--warn);background:var(--panel)}
+.ev.now i{border-color:var(--gold);background:var(--gold)}
+.ev .n{font:600 12px/17px var(--mono);letter-spacing:.03em}
+.ev.pend .n{color:var(--faint);font-weight:500}
+.ev .d{grid-column:2/4;color:var(--muted);font-size:11px;line-height:15px}
+.ev .t{font:400 11px/17px var(--mono);color:var(--muted);text-align:right}
+.vb{font:500 10.5px/15px var(--ui);padding:0 6px;border-radius:2px;margin-left:8px}
+.vb.ok{color:var(--ok);background:#0f2219}.vb.one{color:var(--warn);background:#221c0c}.vb.pend{color:var(--faint);background:var(--well)}.vb.man{color:var(--muted);background:var(--well);border:1px dashed var(--line2)}
+
+/* harita */
+.mapbox{flex:1;min-height:0;position:relative;background:#0b121c}
+.mapbox svg{position:absolute;inset:0;width:100%;height:100%}
+.mtools{position:absolute;left:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+.mtools .grp{display:flex;flex-direction:column;background:rgba(10,15,23,.9);border:1px solid var(--line2);border-radius:3px}
+.mtools button{all:unset;cursor:pointer;width:28px;height:26px;text-align:center;color:var(--muted);font:500 15px/26px var(--mono)}
+.mtools button+button{border-top:1px solid var(--line2)}
+.mlayer{position:absolute;left:50px;top:10px;display:flex;background:rgba(10,15,23,.9);border:1px solid var(--line2);border-radius:3px;overflow:hidden}
+.mlayer button{all:unset;cursor:pointer;padding:0 10px;height:26px;font-size:11px;line-height:26px;color:var(--muted)}
+.mlayer button.on{background:var(--raised);color:var(--text)}
+.minfo{position:absolute;right:10px;top:10px;width:248px;background:rgba(10,15,23,.94);border:1px solid var(--line2);border-radius:4px}
+.minfo .sw{display:flex;border-bottom:1px solid var(--line2)}
+.minfo .sw button{all:unset;cursor:pointer;flex:1;text-align:center;height:28px;line-height:28px;font-size:11.5px;color:var(--muted);border-bottom:2px solid transparent}
+.minfo .sw button.on{color:var(--text);border-bottom-color:var(--gold)}
+.minfo dl{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;padding:9px 12px 10px;font-size:11.5px}
+.minfo dt{color:var(--faint)}
+.minfo dd{font-family:var(--mono);text-align:right}
+.stale{margin:0 12px 10px;padding:6px 8px;border:1px solid #5e4a17;background:#221c0c;color:var(--warn);font-size:11px;line-height:15px;border-radius:3px}
+.mfoot{position:absolute;left:10px;right:10px;bottom:8px;display:flex;justify-content:space-between;align-items:flex-end;font:400 11px/14px var(--mono);color:var(--muted);pointer-events:none}
+.mfoot .box{background:rgba(10,15,23,.88);border:1px solid var(--line2);padding:4px 8px;border-radius:3px}
+.mwm{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-12deg);font:700 54px/1 var(--ui);color:rgba(179,157,250,.06);letter-spacing:.1em;pointer-events:none;white-space:nowrap}
+
+/* grafikler */
+.charts{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:1fr 1fr;flex:1;min-height:0}
+.ch{border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);display:flex;flex-direction:column;min-height:0;position:relative}
+.ch:nth-child(3n){border-right:0}.ch:nth-child(n+4){border-bottom:0}
+.chh{display:flex;align-items:center;gap:8px;padding:6px 10px 0;flex:none}
+.chh b{font-size:11.5px;font-weight:600;white-space:nowrap}
+.chh .lg{flex-wrap:nowrap}.chip{white-space:nowrap}
+.chh .lg{margin-left:auto;display:flex;gap:4px}
+.chip{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-size:10.5px;color:var(--muted);padding:0 5px;height:16px;border-radius:2px}
+.chip i{width:10px;height:0;border-top:2px solid}
+.chip.off{color:#4c596c;text-decoration:line-through}
+.chip:focus-visible{outline:1px solid var(--gold)}
+.ch svg{flex:1;width:100%;min-height:0;display:block}
+
+/* sağ sütun */
+.ukb{display:grid;grid-template-columns:repeat(3,1fr);flex:1;min-height:0}
+.u{padding:8px 12px;border-right:1px solid var(--rule);display:flex;flex-direction:column;gap:3px;min-width:0}
+.u:last-child{border-right:0}
+.u h3{font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px}
+.u h3 em{font-style:normal;font:500 10px/14px var(--mono);color:var(--faint);margin-left:auto}
+.u .row{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);line-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.u .row b{font:500 11px/16px var(--mono);color:var(--text)}
+.u .sen{margin-top:4px;border-top:1px solid var(--rule);padding-top:5px;display:grid;grid-template-columns:1fr auto;row-gap:2px;font-size:11px;line-height:15px}
+.u .sen span{color:var(--muted)}
+.u .sen b{font:500 10.5px/15px var(--mono);text-align:right}
+.ok-t{color:var(--ok)}.warn-t{color:var(--warn)}.bad-t{color:var(--bad)}.na-t{color:var(--faint)}
+
+.cm{width:100%;border-collapse:collapse;font-size:11.5px}
+.cm th{font-weight:400;color:var(--faint);text-align:right;padding:6px 8px 4px;font-size:11px;white-space:nowrap}
+.cm th:first-child,.cm td:first-child{text-align:left}
+.cm td{padding:0 8px;height:27px;border-top:1px solid var(--rule);text-align:right;font-family:var(--mono);white-space:nowrap}
+.cm td:first-child{font-family:var(--ui);color:var(--text)}
+
+.log{flex:1;min-height:0;overflow:hidden}
+.lr{display:grid;grid-template-columns:88px 60px 1fr;gap:8px;padding:4px 12px;border-bottom:1px solid var(--rule);font-size:11.5px;line-height:16px;align-items:start}
+.lr .tm{font:400 11px/16px var(--mono);color:var(--faint)}
+.lr .sv{font:600 10px/16px var(--mono);letter-spacing:.04em}
+.lr .tx small{display:block;color:var(--faint);font-size:10.5px;line-height:14px}
+.sv.info{color:#8fb4e6}.sv.warn{color:var(--warn)}.sv.err{color:var(--bad)}.sv.crit{color:#fff;background:var(--crit);padding:0 4px;border-radius:2px;width:max-content}
+.lr.new{animation:nw 1.2s ease-out}
+@keyframes nw{from{background:rgba(217,164,65,.12)}}
+.filters{display:flex;gap:4px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="wrap"><div id="stage">
+
+<div class="simbar">SİMÜLASYON MODU <span>Ekrandaki tüm veriler dahili simülatörden gelir, gerçek uçuş verisi değildir. Donanım bağlantısı yok.</span>
+  <div class="ctl" role="group" aria-label="Simülasyon hızı"><button data-sp="1" class="on">1×</button><button data-sp="5">5×</button><button data-sp="20">20×</button><button id="restart">Baştan</button></div>
+</div>
+
+<header class="top">
+  <div class="logo">
+    <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><path d="M13 2 L17.5 10.5 L17.5 18.5 L21.5 23 L15.8 21.3 L13 23.6 L10.2 21.3 L4.5 23 L8.5 18.5 L8.5 10.5Z" fill="#d9a441"/><circle cx="13" cy="11.5" r="2" fill="#0f1621"/></svg>
+    <div><b>AKANA</b><small>Mission Control · Yer İstasyonu</small></div>
+  </div>
+  <div class="meta">
+    <div class="m"><label>Mission ID</label><b>AKN-A3-26-001</b></div>
+    <div class="m"><label>Roket</label><b class="na">ad girilmedi</b></div>
+    <div class="m"><label>Kategori</label><b>A3 Yüksek İrtifa</b></div>
+    <div class="m"><label>Uçuş tarihi</label><b>19.11.2026</b></div>
+    <div class="m"><label>Oturum</label><b>#0007</b></div>
+    <div class="m"><label>Telemetri</label><b><span class="pill p-sim">SIM</span></b></div>
+    <div class="m"><label>Yer istasyonu</label><b><span class="pill p-ok">ÇALIŞIYOR</span></b></div>
+    <div class="m"><label>Veri kaydı</label><b><span class="pill p-rec"><i></i>KAYITTA <span id="recT">12:51</span></span></b></div>
+    <div class="m"><label>Son veri</label><b id="lastRx">0,2 s önce</b></div>
+  </div>
+  <div class="sp"></div>
+  <div class="clock"><b id="utc">10:43:22.418 UTC</b><span id="loc">13:43:22 TRT (UTC+3)</span></div>
+</header>
+
+<section class="phases">
+  <div class="tplus" id="tplus">T+ 000:00.0<small>Kalkıştan bu yana</small></div>
+  <div class="rail" id="rail"><div class="fill" id="fill"></div></div>
+  <div class="safe"><label>Güvenli mod</label><span class="pill p-na" id="safe">PASİF</span></div>
+</section>
+
+<main class="body">
+  <!-- SOL -->
+  <div class="col" style="grid-template-rows:auto 1fr">
+    <section class="pn">
+      <div class="ph2"><h2>Ana telemetri</h2><span class="meta2">değer · birim · kaynak · yaş</span><div class="r"><span class="simtag">SIM</span></div></div>
+      <table class="tt" id="tele"></table>
+    </section>
+    <section class="pn">
+      <div class="ph2"><h2>Uçuş durumu</h2><span class="meta2">yapılandırılmış olay tanımlarına göre</span><div class="r"><span class="simtag">SIM</span></div></div>
+      <div class="tl" id="tl"></div>
+    </section>
+  </div>
+
+  <!-- ORTA -->
+  <div class="col" style="grid-template-rows:520px 1fr">
+    <section class="pn">
+      <div class="ph2"><h2>Konum takibi</h2><span class="meta2" id="mapmeta">roket ↔ görev yükü</span><div class="r"><span class="simtag">SIM</span><button class="ib" id="fsMap">Tam ekran</button></div></div>
+      <div class="mapbox" id="mapbox">
+        <svg id="map" viewBox="0 0 866 484" preserveAspectRatio="xMidYMid slice"></svg>
+        <div class="mwm">SİMÜLASYON</div>
+        <div class="mtools"><div class="grp"><button id="zin" aria-label="Yakınlaştır">+</button><button id="zout" aria-label="Uzaklaştır">−</button></div><div class="grp"><button id="zfit" aria-label="Sığdır" style="font-size:11px">⤢</button></div></div>
+        <div class="mlayer"><button class="on" data-layer="std">Standart</button><button data-layer="sat">Uydu</button></div>
+        <div class="minfo">
+          <div class="sw"><button class="on" data-sel="rk">● Roket</button><button data-sel="pl">■ Görev yükü</button></div>
+          <dl id="sel"></dl>
+          <div class="stale" id="stale" hidden></div>
+        </div>
+        <div class="mfoot"><span class="box" id="scale">0 ─── 500 m</span><span class="box" id="cursor">Çevrimdışı karo · Standart</span></div>
+      </div>
+    </section>
+    <section class="pn">
+      <div class="ph2"><h2>Canlı telemetri grafikleri</h2>
+        <div class="r">
+          <span class="simtag">SIM</span>
+          <div class="filters" role="group" aria-label="Zaman aralığı"><button class="ib" data-rng="60">60 s</button><button class="ib" data-rng="300">5 dk</button><button class="ib on" data-rng="0">Tüm uçuş</button></div>
+          <button class="ib">Yakınlaştır</button><button class="ib">CSV dışa aktar</button><button class="ib">Tam ekran</button>
+        </div>
+      </div>
+      <div class="charts" id="charts"></div>
+    </section>
+  </div>
+
+  <!-- SAĞ -->
+  <div class="col" style="grid-template-rows:auto auto 1fr">
+    <section class="pn">
+      <div class="ph2"><h2>UKB ve sensör sağlığı</h2><span class="meta2">kaynaklar ayrı tutulur</span><div class="r"><span class="simtag">SIM</span><button class="ib">Karşılaştır</button></div></div>
+      <div class="ukb" id="ukb"></div>
+    </section>
+    <section class="pn">
+      <div class="ph2"><h2>Haberleşme</h2><span class="meta2">son 2 s penceresi</span><div class="r"><span class="simtag">SIM</span></div></div>
+      <table class="cm" id="comm"></table>
+    </section>
+    <section class="pn">
+      <div class="ph2"><h2>Uçuş olay kaydı</h2>
+        <div class="r"><span class="simtag">SIM</span><div class="filters" role="group" aria-label="Önem filtresi"><button class="ib on" data-f="all">Tümü</button><button class="ib" data-f="crit">Kritik</button><button class="ib" data-f="err">Hata</button><button class="ib" data-f="warn">Uyarı</button><button class="ib" data-f="info">Bilgi</button></div></div>
+      </div>
+      <div class="log" id="log"></div>
+    </section>
+  </div>
+</main>
+</div></div>
+
+<script>
+// ================= SİMÜLASYON MODELİ (20 000 ft profili) =================
+const g=9.80665,tb=4,vb=326.8,a=vb/tb,tap=tb+vb/g,PAD=900,tYak=tb+(vb-50)/g;
+const tDrogue=tap+1,tSep=tap+2,vD=25,vMain=6,vPl=13,mainAlt=500;
+const tMain=tDrogue+(6096-.5*g*1-mainAlt)/vD; // yaklaşık
+function hash(x){x=Math.sin(x*12.9898)*43758.5453;return x-Math.floor(x)}
+const nz=(t,k,s)=> (hash(t*7.13+k*91.7)-.5)*2*s;
+function rocket(t){
+  let h,vz,ax;
+  if(t<=0){h=0;vz=0;ax=0}
+  else if(t<tb){h=.5*a*t*t;vz=a*t;ax=a/g+1}
+  else if(t<=tap){const u=t-tb;h=.5*a*tb*tb+vb*u-.5*g*u*u;vz=vb-g*u;ax=-.08}
+  else if(t<tDrogue){const u=t-tap;h=6096-.5*g*u*u;vz=-g*u;ax=0}
+  else{const hd=6096-.5*g; h=hd-vD*(t-tDrogue); vz=-vD;
+       if(h<mainAlt){const tm=tDrogue+(hd-mainAlt)/vD; h=mainAlt-vMain*(t-tm); vz=-vMain}
+       ax=1.0; if(h<=0){h=0;vz=0}}
+  // yatay: yükselişte hafif doğu-kuzey, apogee sonrası rüzgâr
+  const asc=Math.min(t,tap)>0?Math.min(t,tap):0;
+  let e=.012*h*(t<=tap?1:0)+ (t>tap? .012*6096 : 0), n=.006*h*(t<=tap?1:0)+(t>tap?.006*6096:0);
+  if(t>tap){const u=Math.min(t,landT('rk'))-tap; e+=5*u; n+=1.6*u}
+  const vh=t<=tap&&t>0? Math.abs(vz)*.02 : 5.2;
+  return {h,vz,v:Math.hypot(vz,vh),ax:ax,e,n};
+}
+function payload(t){
+  if(t<tSep) return Object.assign(rocket(t),{sep:false});
+  const r0=rocket(tSep); let h=r0.h-vPl*(t-tSep), vz=-vPl; if(h<=0){h=0;vz=0}
+  const u=Math.min(t,landT('pl'))-tSep;
+  return {h,vz,v:Math.hypot(vz,6.4),ax:1,e:r0.e+6.2*u,n:r0.n+2.4*u,sep:true};
+}
+function landT(w){const hd=6096-.5*g;if(w==='rk'){const tm=tDrogue+(hd-mainAlt)/vD;return tm+mainAlt/vMain}return tSep+(6096-.5*g*4-0)/vPl}
+const pres=h=>1013.25*Math.pow(1-2.25577e-5*(h+PAD),5.25588), tempC=h=>15-.0065*(h+PAD);
+const mach=(v,h)=>v/(20.05*Math.sqrt(tempC(h)+273.15));
+// beklenen (OpenRocket tahmini) yörünge: aynı profil, %3 yüksek tepe
+const expAlt=t=>t<=tap?rocket(t).h*1.03:Math.max(0,6279-27*(t-tap));
+// kesintiler (örnek haberleşme kesintileri)
+const plGpsLost=t=>t>126&&t<141;            // görev yükü GPS kaybı
+const bkDrop=t=>(t>158&&t<161.5);          // yedek UKB paket kesintisi
+const PHASES=[["Rampa",-600],["Kalkış",0],["Apogee yaklaşma",tYak],["Apogee",tap],["Drogue açılış",tDrogue],["Payload açılış",tSep],["Main açılış",tMain],["Finiş",landT('rk')]];
+
+// ================= DURUM =================
+let T=118, speed=1, last=performance.now(), range=0, sel='rk', layer='std', zoom=1;
+const hist=[]; // {t, rk, pl, ...}
+const log=[]; let logF='all';
+const evState={};
+function addLog(t,sv,src,msg,ver){log.unshift({t,sv,src,msg,ver,fresh:true}); if(log.length>80) log.pop()}
+function fmt(v,d=1){if(v==null||!isFinite(v))return'N/A';const r=Math.abs(v).toFixed(d),neg=v<0&&Number(r)!==0,[i,f]=r.split('.');return(neg?'−':'')+i.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+(f?','+f:'')}
+function tstr(t){const s=t<0?'−':'+';const x=Math.abs(t);const m=Math.floor(x/60),ss=(x%60);return `T${s} ${String(m).padStart(3,'0')}:${ss.toFixed(1).padStart(4,'0').replace('.',',')}`}
+function ts(t){return 'T'+(t<0?'−':'+')+fmt(Math.abs(t),1)}
+
+function sample(t){
+  const r=rocket(t),p=payload(t);
+  return {t,
+    alt:r.h+nz(t,1,2), altB:r.h+nz(t,2,4), vz:r.vz+nz(t,3,.6), v:r.v+nz(t,4,.6),
+    ax:nz(t,5,.15)+(t<tb&&t>0?.3:0), ay:nz(t,6,.15), az:r.ax+nz(t,7,.12),
+    p:pres(r.h)+nz(t,8,.3), temp:tempC(r.h)+nz(t,9,.2)+2.5,
+    pAlt:p.h+nz(t,10,2), pT:tempC(p.h)+nz(t,11,.2)+4, pP:pres(p.h)+nz(t,12,.3),
+    rssiM:-68-r.h/900+nz(Math.round(t),13,.8), rssiB:bkDrop(t)?null:-71-r.h/850+nz(Math.round(t),14,.8), rssiP:-73-p.h/800+nz(Math.round(t),15,.8),
+    exp:expAlt(t), e:r.e,n:r.n, pe:p.e,pn:p.n, sep:p.sep, pv:p.v, pvz:p.vz
+  };
+}
+for(let t=-20;t<=T;t+=.5) hist.push(sample(t));
+
+// seed geçmiş olay kayıtları
+[[-900,'info','Yer istasyonu','Yer istasyonu oturumu başlatıldı (#0007).','—'],
+ [-880,'info','Alıcı 1 · SIM','Telemetri bağlantısı kuruldu (simülasyon kaynağı).','—'],
+ [-860,'info','Yedek UKB','İlk GPS verisi alındı, 14 uydu.','doğrulandı'],
+ [-840,'info','Ana UKB','Ana UKB verisi alınmaya başlandı.','—'],
+ [-835,'info','Yedek UKB','Yedek UKB verisi alındı.','—'],
+ [-600,'info','Operatör','PRE-LAUNCH: rampa hazır olarak işaretlendi.','elle'],
+ [0,'info','Ana + Yedek UKB','BOOST: kalkış bildirildi.','2/2 kaynak'],
+ [tb,'info','Yedek UKB','ASCENT: yanma sonu, ivme < 0 g.','2/2 kaynak'],
+ [tap,'warn','Ana + Yedek UKB','APOGEE olayı bildirildi, 6 096 m.','2/2 kaynak'],
+ [tDrogue,'info','Ana UKB','Drogue paraşüt açılma olayı bildirildi.','2/2 kaynak'],
+ [tSep,'info','Görev yükü UKB','Görev yükü ayrılma olayı bildirildi.','tek kaynak'],
+ [tSep+8,'info','Konum','Ayrılma doğrulandı: iki GPS izi 50 m üzerinde ayrıştı.','doğrulandı'],
+ [64.2,'err','Ana UKB','CRC hatası, paket 412 atıldı (68 bayt).','—'],
+].forEach(x=>addLog(...x)); log.forEach(l=>l.fresh=false);
+
+// ================= ÇİZİM: 9 FAZ =================
+const rail=document.getElementById('rail');
+PHASES.forEach((p,i)=>{const d=document.createElement('div');d.className='ph';d.id='ph'+i;d.innerHTML=`${p[0]}<small>${i===0?'T− 10:00':'—'}</small>`;rail.appendChild(d)});
+function drawPhases(){let cur=0;PHASES.forEach((p,i)=>{if(T>=p[1])cur=i});
+  PHASES.forEach((p,i)=>{const d=document.getElementById('ph'+i);d.className='ph'+(i<cur?' done':i===cur?' now':'');
+    d.querySelector('small').textContent=i===0?'T− 10:00':(T>=p[1]?ts(p[1]):(i===6?'500 m\'de':'bekleniyor'))});
+  document.getElementById('fill').style.width=`calc(${cur*12.5}% - ${cur?0:0}px)`;}
+
+// ================= TELEMETRİ =================
+const TELE=[
+ ['İrtifa','alt','m',0,'Ana UKB · BMP390'],
+ ['Dikey hız','vz','m/s',1,'Ana UKB · türetilen'],
+ ['Toplam hız','v','m/s',1,'Hesap · GPS + baro'],
+ ['İvme (toplam)','acc','g',2,'Yedek UKB · LSM6DSOX'],
+ ['Mach','mach','',3,'Hesap · ISA ses hızı'],
+ ['Basınç','p','hPa',1,'Ana UKB · BMP390'],
+ ['Sıcaklık','temp','°C',1,'Ana UKB · BMP390'],
+ ['GPS yüksekliği','gpsAlt','m',0,'Yedek UKB · NEO-M9N'],
+ ['Enlem','lat','°',7,'Yedek UKB · NEO-M9N'],
+ ['Boylam','lon','°',7,'Yedek UKB · NEO-M9N'],
+ ['Batarya','bat','V',2,'Yedek UKB · 7,4 V Li-Po'],
+ ['Sinyal (RSSI)','rssi','dBm',0,'Alıcı 1 · E22'],
+ ['SNR','snr','dB',1,'E22 SNR sağlamıyor'],
+];
+const LAT0=38.7104,LON0=33.4512;
+const toLat=n=>LAT0+n/111320, toLon=e=>LON0+e/(111320*Math.cos(LAT0*Math.PI/180));
+function teleVals(s){return{alt:s.alt,vz:s.vz,v:s.v,acc:Math.hypot(s.ax,s.ay,s.az),mach:mach(s.v,s.alt),p:s.p,temp:s.temp,gpsAlt:s.alt+PAD+nz(s.t,20,3),
+  lat:toLat(s.n),lon:toLon(s.e),bat:7.92-.0012*(s.t+900)/10+nz(s.t,21,.01),rssi:s.rssiM,snr:null}}
+function drawTele(){const s=hist[hist.length-1],v=teleVals(s);
+  document.getElementById('tele').innerHTML=TELE.map(([k,key,u,d,src])=>{const x=v[key];const na=x==null;
+    const age=na?'—':(key==='rssi'?'0,2 s':key==='bat'?'1,0 s':'0,2 s');
+    return `<tr><td class="k"><span class="vd ${na?'n':'g'}"></span>${k}</td><td class="v ${na?'na':''}">${na?'N/A':fmt(x,d)}</td><td class="un">${na?'':u}</td><td class="s">${src}</td><td class="a">${age}</td></tr>`}).join('')}
+
+// ================= UÇUŞ DURUMU (olay zaman çizelgesi) =================
+const EV=[
+ ['PRE-LAUNCH',-600,'Operatör','Rampa hazır işaretlendi','man'],
+ ['BOOST',0,'Ana + Yedek UKB','İvme > 3 g ve basınç düşüşü, 2 kaynak','ok'],
+ ['ASCENT',tb,'Ana + Yedek UKB','Yanma sonu, eksenel ivme < 0','ok'],
+ ['APOGEE',tap,'Ana + Yedek UKB','Dikey hız ≤ 0 ve pitch dönüşü, 2 kaynak','ok'],
+ ['DESCENT',tDrogue,'Ana UKB · drogue','Dikey hız −25 m/s, baro ile doğrulandı','ok'],
+ ['PAYLOAD SEPARATION',tSep,'Görev yükü UKB','Bildirildi; GPS izlerinin ayrışmasıyla doğrulandı','ok'],
+ ['RECOVERY',tMain,'Ana UKB · main','Main paraşüt 500 m\'de, bekleniyor','pend'],
+ ['LANDED',landT('rk'),'Ana + Yedek UKB','Dikey hız ≈ 0 ve irtifa sabit, bekleniyor','pend'],
+ ['RECOVERED',null,'Kurtarma ekibi','Telemetriyle bildirilemez, elle işaretlenir','man'],
+];
+function drawTL(){document.getElementById('tl').innerHTML=EV.map(([n,t,src,desc,kind])=>{
+  const happened=t!=null&&T>=t, isNow=happened&&EV.find(e=>e[1]!=null&&e[1]>t&&T>=e[1])==null&&n!=='PRE-LAUNCH';
+  let cls='pend',badge='<span class="vb pend">bekleniyor</span>';
+  if(kind==='man'&&n==='RECOVERED'){cls='pend';badge='<span class="vb man">elle işaretlenecek</span>'}
+  else if(happened){ if(n==='PAYLOAD SEPARATION'&&T<t+8){cls='one';badge='<span class="vb one">tek kaynak · doğrulanıyor</span>'} else {cls=isNow?'now':'ok';badge=kind==='man'?'<span class="vb man">elle</span>':'<span class="vb ok">doğrulandı</span>'} }
+  const tt=t==null?'—':(happened?ts(t):'—');
+  return `<div class="ev ${cls}"><i></i><span class="n">${n}${badge}</span><span class="t">${tt}</span><span class="d">${src} · ${happened||kind==='man'?desc:desc.replace(', bekleniyor','')}${happened&&t!==-600&&t!=null?` · paket #${Math.round((t+20)*5)+412}`:''}</span></div>`}).join('')}
+
+// ================= HARİTA =================
+const map=document.getElementById('map'),MW=866,MH=484;
+function mapDraw(){
+  const last=hist[hist.length-1];
+  const pts=hist.filter(s=>s.t>=0);
+  const xs=pts.flatMap(s=>[s.e,s.pe,0,-420]),ys=pts.flatMap(s=>[s.n,s.pn,0,-260]);
+  const minx=Math.min(...xs)-250,maxx=Math.max(...xs)+250,miny=Math.min(...ys)-200,maxy=Math.max(...ys)+200;
+  let k=Math.min((MW-300)/(maxx-minx),(MH-60)/(maxy-miny))*zoom;
+  const cx=(minx+maxx)/2,cy=(miny+maxy)/2;
+  const X=e=>MW/2-120+(e-cx)*k, Y=n=>MH/2-(n-cy)*k;
+  let c='';
+  if(layer==='std'){
+    c+=`<rect width="${MW}" height="${MH}" fill="#0b121c"/>`;
+    for(let i=0;i<9;i++)c+=`<ellipse cx="${X(1400)}" cy="${Y(-300)}" rx="${(60+i*55)*k*2.2}" ry="${(36+i*32)*k*2.2}" fill="none" stroke="#14202f"/>`;
+    for(let i=0;i<6;i++)c+=`<ellipse cx="${X(-900)}" cy="${Y(900)}" rx="${(50+i*50)*k*2}" ry="${(30+i*28)*k*2}" fill="none" stroke="#14202f"/>`;
+    c+=`<path d="M0 ${Y(-120)} C ${MW*.3} ${Y(-60)}, ${MW*.55} ${Y(-260)}, ${MW} ${Y(-180)}" fill="none" stroke="#1d2a3c" stroke-width="7"/><path d="M0 ${Y(-120)} C ${MW*.3} ${Y(-60)}, ${MW*.55} ${Y(-260)}, ${MW} ${Y(-180)}" fill="none" stroke="#2a3a52" stroke-width="2"/>`;
+    c+=`<path d="M${X(-150)} ${MH} C ${X(-120)} ${Y(-200)}, ${X(-60)} ${Y(400)}, ${X(40)} 0" fill="none" stroke="#1a2637" stroke-width="3"/>`;
+    c+=`<path d="M${X(1700)} 0 C ${X(1500)} ${Y(800)}, ${X(2200)} ${Y(600)}, ${MW} ${Y(700)}" fill="none" stroke="#173049" stroke-width="2.5"/>`;
+  } else {
+    c+=`<rect width="${MW}" height="${MH}" fill="#151a14"/>`;
+    for(let i=0;i<140;i++){const x=hash(i)*MW,y=hash(i+500)*MH,r=10+hash(i+900)*60;c+=`<circle cx="${x}" cy="${y}" r="${r}" fill="${['#1b2218','#20271b','#181e15','#232a1e'][i%4]}" opacity=".8"/>`}
+    c+=`<path d="M0 ${Y(-120)} C ${MW*.3} ${Y(-60)}, ${MW*.55} ${Y(-260)}, ${MW} ${Y(-180)}" fill="none" stroke="#3a3d33" stroke-width="3"/>`;
+  }
+  // ızgara koordinat çizgileri
+  for(let gx=Math.ceil(minx/500)*500;gx<maxx;gx+=500)c+=`<line x1="${X(gx)}" x2="${X(gx)}" y1="0" y2="${MH}" stroke="#ffffff" stroke-opacity=".03"/>`;
+  for(let gy=Math.ceil(miny/500)*500;gy<maxy;gy+=500)c+=`<line y1="${Y(gy)}" y2="${Y(gy)}" x1="0" x2="${MW}" stroke="#ffffff" stroke-opacity=".03"/>`;
+  // istasyon ve rampa
+  const st=[-420,-260];
+  c+=`<rect x="${X(0)-5}" y="${Y(0)-5}" width="10" height="10" fill="none" stroke="#e4e9f0" stroke-width="1.5"/><text x="${X(0)+10}" y="${Y(0)+16}" fill="#93a0b3" font-size="11" font-family="Inter">Rampa</text>`;
+  c+=`<path d="M${X(st[0])} ${Y(st[1])-7} l6 11 h-12z" fill="none" stroke="#e4e9f0" stroke-width="1.5"/><text x="${X(st[0])-10}" y="${Y(st[1])+18}" fill="#93a0b3" font-size="11" font-family="Inter" text-anchor="end">Yer istasyonu</text>`;
+  // rotalar
+  const rp=pts.map((s,i)=>`${i?'L':'M'}${X(s.e).toFixed(1)},${Y(s.n).toFixed(1)}`).join('');
+  const pp=pts.filter(s=>s.sep&&!plGpsLost(s.t)).map((s,i)=>`${i?'L':'M'}${X(s.pe).toFixed(1)},${Y(s.pn).toFixed(1)}`).join('');
+  // kayıp segmenti ayrı göster
+  c+=`<path d="${rp}" fill="none" stroke="#5aa9ff" stroke-width="2.2" stroke-linejoin="round"/>`;
+  const plSeg=[];let seg=[];pts.filter(s=>s.sep).forEach(s=>{if(plGpsLost(s.t)){if(seg.length){plSeg.push(seg);seg=[]}}else seg.push(s)});if(seg.length)plSeg.push(seg);
+  plSeg.forEach(sg=>c+=`<path d="${sg.map((s,i)=>`${i?'L':'M'}${X(s.pe).toFixed(1)},${Y(s.pn).toFixed(1)}`).join('')}" fill="none" stroke="#f29a3f" stroke-width="2" stroke-dasharray="6 4"/>`);
+  // anten yön çizgisi
+  c+=`<line x1="${X(st[0])}" y1="${Y(st[1])}" x2="${X(last.e)}" y2="${Y(last.n)}" stroke="#d9a441" stroke-opacity=".5" stroke-dasharray="2 4"/>`;
+  // mesafe çizgisi
+  const pl=lastPl();
+  if(last.sep){c+=`<line x1="${X(last.e)}" y1="${Y(last.n)}" x2="${X(pl.pe)}" y2="${Y(pl.pn)}" stroke="#e4e9f0" stroke-opacity=".35" stroke-dasharray="3 3"/>`;
+    const d=Math.hypot(last.e-pl.pe,last.n-pl.pn,last.alt-pl.pAlt);
+    c+=`<g font-family="IBM Plex Mono" font-size="11"><rect x="${(X(last.e)+X(pl.pe))/2-46}" y="${(Y(last.n)+Y(pl.pn))/2+26}" width="92" height="18" rx="2" fill="#0a0f17" stroke="#253246"/><text x="${(X(last.e)+X(pl.pe))/2}" y="${(Y(last.n)+Y(pl.pn))/2+39}" fill="#e4e9f0" text-anchor="middle">${fmt(d,0)} m</text></g>`;
+    document.getElementById('mapmeta').textContent=`roket ↔ görev yükü ${fmt(d,0)} m (3B)`;}
+  // semboller: roket = daire + yön, görev yükü = kare
+  c+=`<circle cx="${X(last.e)}" cy="${Y(last.n)}" r="13" fill="#5aa9ff" fill-opacity=".13"/><circle cx="${X(last.e)}" cy="${Y(last.n)}" r="6" fill="#5aa9ff" stroke="#0a0f17" stroke-width="2"/>`;
+  c+=`<text x="${X(last.e)+16}" y="${Y(last.n)+4}" fill="#5aa9ff" font-size="11.5" font-family="IBM Plex Mono">ROKET ${fmt(last.alt,0)} m</text>`;
+  if(last.sep){const stale=plGpsLost(T);const px=X(pl.pe),py=Y(pl.pn);
+    c+=stale?`<rect x="${px-6}" y="${py-6}" width="12" height="12" fill="none" stroke="#f29a3f" stroke-width="1.5" stroke-dasharray="2 2"/><text x="${px-12}" y="${py-24}" fill="#e3b341" font-size="11" font-family="IBM Plex Mono" text-anchor="end">SON BİLİNEN · ${fmt(T-126,1)} s önce</text>`
+          :`<rect x="${px-6}" y="${py-6}" width="12" height="12" fill="#f29a3f" stroke="#0a0f17" stroke-width="2"/>`;
+    c+=`<text x="${px-12}" y="${py-10}" fill="#f29a3f" font-size="11.5" font-family="IBM Plex Mono" text-anchor="end">GÖREV YÜKÜ ${fmt(pl.pAlt,0)} m</text>`}
+  // kuzey
+  c+=`<g transform="translate(${MW-284} 34)"><path d="M0 -12 L6 6 L0 2 L-6 6Z" fill="#e4e9f0"/><text y="20" fill="#93a0b3" font-size="10" text-anchor="middle" font-family="Inter">K</text></g>`;
+  map.innerHTML=c;
+  const scaleM=[100,200,500,1000,2000].find(m=>m*k>70)||2000;
+  document.getElementById('scale').innerHTML=`<svg width="${scaleM*k}" height="8" style="vertical-align:middle;margin-right:6px"><path d="M0 0v8M${scaleM*k} 0v8M0 4h${scaleM*k}" stroke="#93a0b3"/></svg>${scaleM} m`;
+  document.getElementById('cursor').textContent=`Çevrimdışı karo · ${layer==='std'?'Standart':'Uydu'} · ${toLat(last.n).toFixed(5)}° K ${toLon(last.e).toFixed(5)}° D`;
+}
+function lastPl(){for(let i=hist.length-1;i>=0;i--){if(!plGpsLost(hist[i].t))return hist[i]}return hist[hist.length-1]}
+function drawSel(){const s=hist[hist.length-1];let rows,stale=null;
+  if(sel==='rk'){rows=[['Koordinat',`${toLat(s.n).toFixed(6)}° K<br>${toLon(s.e).toFixed(6)}° D`],['İrtifa',fmt(s.alt,0)+' m'],['Hız',fmt(s.v,1)+' m/s'],['Dikey hız',fmt(s.vz,1)+' m/s'],['Son sinyal','0,2 s önce'],['GPS','14 uydu · ±2,1 m'],['Kaynak','Yedek UKB · NEO-M9N']]}
+  else{const p=plGpsLost(T)?lastPl():s;const age=plGpsLost(T)?T-126:.2;
+    rows=[['Koordinat',`${toLat(p.pn).toFixed(6)}° K<br>${toLon(p.pe).toFixed(6)}° D`],['İrtifa',fmt(s.pAlt,0)+' m (baro)'],['Hız',fmt(s.pv,1)+' m/s'],['Dikey hız',fmt(s.pvz,1)+' m/s'],['Son sinyal','0,3 s önce'],['GPS',plGpsLost(T)?'<span class="warn-t">fix yok · 0 uydu</span>':'11 uydu · ±3,4 m'],['Kaynak','Görev yükü UKB · NEO-M9N']];
+    if(plGpsLost(T))stale=`Konum ${fmt(age,1)} s önceki son bilinen koordinattır. Görev yükü telemetrisi geliyor, GPS fix yok.`}
+  document.getElementById('sel').innerHTML=rows.map(r=>`<dt>${r[0]}</dt><dd>${r[1]}</dd>`).join('');
+  const st=document.getElementById('stale'); if(stale){st.hidden=false;st.textContent=stale}else st.hidden=true;}
+
+// ================= GRAFİKLER =================
+const CH=[
+ {id:'alt',title:'İrtifa · m',ser:[['Roket','alt','#5aa9ff',2],['Görev y.','pAlt','#f29a3f',1.6],['Tahmin','exp','#7b889c',1.2,'4 3']],ref:6096,refL:'20 000 ft'},
+ {id:'vel',title:'Hız · m/s',ser:[['Dikey','vz','#5aa9ff',2],['Toplam','v','#e4e9f0',1.4]]},
+ {id:'acc',title:'İvme · g',ser:[['X','ax','#ef8e8e',1.1],['Y','ay','#7fd1a8',1.1],['Z','az','#8fb4e6',1.1],['Toplam','acc','#e4e9f0',1.6]]},
+ {id:'p',title:'Basınç · hPa',ser:[['Roket','p','#5aa9ff',2],['Görev y.','pP','#f29a3f',1.6]]},
+ {id:'tmp',title:'Sıcaklık · °C',ser:[['Roket','temp','#5aa9ff',2],['Görev y.','pT','#f29a3f',1.6]]},
+ {id:'rf',title:'RSSI · dBm',ser:[['Ana','rssiM','#5aa9ff',1.6],['Yedek','rssiB','#e4e9f0',1.4],['Görev y.','rssiP','#f29a3f',1.4]]},
+];
+const hidden={};
+const chartsEl=document.getElementById('charts');
+chartsEl.innerHTML=CH.map(c=>`<div class="ch"><div class="chh"><b>${c.title}</b><span class="lg">${c.ser.map((s,i)=>`<button class="chip" data-c="${c.id}" data-i="${i}"><i style="border-color:${s[2]};${s[4]?'border-top-style:dashed':''}"></i>${s[0]}</button>`).join('')}</span></div><svg id="c-${c.id}"></svg></div>`).join('');
+chartsEl.addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;const k=b.dataset.c+b.dataset.i;hidden[k]=!hidden[k];b.classList.toggle('off',hidden[k]);drawCharts()});
+function nice(lo,hi,n=4){if(hi-lo<1e-9){hi=lo+1}const raw=(hi-lo)/n,m=10**Math.floor(Math.log10(raw)),st=[1,2,2.5,5,10].map(x=>x*m).find(x=>raw<=x);return{lo:Math.floor(lo/st)*st,hi:Math.ceil(hi/st)*st,st}}
+function drawCharts(){
+  const t1=T,t0=range?Math.max(-20,T-range):-20;
+  const H=hist.filter(s=>s.t>=t0);
+  const step=Math.max(1,Math.floor(H.length/260));
+  CH.forEach(c=>{const svg=document.getElementById('c-'+c.id);const W=svg.clientWidth||280,Hh=svg.clientHeight||150;svg.setAttribute('viewBox',`0 0 ${W} ${Hh}`);
+    const ml=42,mr=10,mt=8,mb=18,pw=W-ml-mr,ph=Hh-mt-mb;
+    const val=(s,key)=>key==='acc'?Math.hypot(s.ax,s.ay,s.az):s[key];
+    let lo=Infinity,hi=-Infinity;c.ser.forEach((se,i)=>{if(hidden[c.id+i])return;H.forEach(s=>{const v=val(s,se[1]);if(v==null)return;if(se[1]==='pAlt'&&!s.sep)return;lo=Math.min(lo,v);hi=Math.max(hi,v)})});
+    if(c.ref&&range===0)hi=Math.max(hi,c.ref);
+    if(!isFinite(lo)){svg.innerHTML='';return}
+    const n=nice(lo,hi),X=t=>ml+pw*(t-t0)/(t1-t0||1),Y=v=>mt+ph*(1-(v-n.lo)/(n.hi-n.lo));
+    let o='';
+    // faz bantları
+    PHASES.slice(1).forEach((p,i)=>{const nx=PHASES[i+2]?PHASES[i+2][1]:Infinity;if(p[1]>t1||nx<t0)return;const a=Math.max(p[1],t0),b=Math.min(nx,t1);if(i%2===1)o+=`<rect x="${X(a)}" y="${mt}" width="${X(b)-X(a)}" height="${ph}" fill="#ffffff" fill-opacity=".018"/>`;o+=`<line x1="${X(a)}" x2="${X(a)}" y1="${mt}" y2="${mt+ph}" stroke="#253246" stroke-dasharray="2 3"/>`});
+    for(let v=n.lo;v<=n.hi+1e-9;v+=n.st){const y=Y(v);o+=`<line x1="${ml}" x2="${ml+pw}" y1="${y}" y2="${y}" stroke="#ffffff" stroke-opacity="${v===n.lo?.12:.04}"/><text x="${ml-6}" y="${y+3.5}" fill="#7b889c" font-size="10" font-family="IBM Plex Mono" text-anchor="end">${fmt(v,n.st<1?1:0)}</text>`}
+    const xs=nice(t0,t1,4);for(let t=Math.ceil(t0/xs.st)*xs.st;t<=t1;t+=xs.st)o+=`<text x="${Math.min(Math.max(X(t),ml+12),ml+pw-12)}" y="${Hh-4}" fill="#7b889c" font-size="10" font-family="IBM Plex Mono" text-anchor="middle">${t<0?'−':''}${Math.abs(Math.round(t))}s</text>`;
+    if(c.ref&&c.ref<=n.hi){o+=`<line x1="${ml}" x2="${ml+pw}" y1="${Y(c.ref)}" y2="${Y(c.ref)}" stroke="#ef5350" stroke-opacity=".7" stroke-dasharray="4 3"/><text x="${ml+pw-2}" y="${Y(c.ref)-4}" fill="#ef5350" font-size="10" text-anchor="end" font-family="IBM Plex Mono">${c.refL}</text>`}
+    c.ser.forEach((se,i)=>{if(hidden[c.id+i])return;let d='',pen=false;for(let j=0;j<H.length;j+=step){const s=H[j];let v=val(s,se[1]);if(se[1]==='pAlt'&&!s.sep)v=null;if(se[1]==='exp'&&s.t<0)v=null;
+        if(v==null){pen=false;continue}d+=`${pen?'L':'M'}${X(s.t).toFixed(1)},${Y(v).toFixed(1)}`;pen=true}
+      o+=`<path d="${d}" fill="none" stroke="${se[2]}" stroke-width="${se[3]}" ${se[4]?`stroke-dasharray="${se[4]}"`:''} stroke-linejoin="round"/>`;
+      const ls=H[H.length-1],lv=val(ls,se[1]);if(lv!=null&&!(se[1]==='pAlt'&&!ls.sep)&&se[1]!=='exp')o+=`<circle cx="${X(ls.t)}" cy="${Y(lv)}" r="2.6" fill="${se[2]}"/>`});
+    if(c.id==='alt'){const mx=H.reduce((m,s)=>s.alt>m.alt?s:m,H[0]);o+=`<circle cx="${X(mx.t)}" cy="${Y(mx.alt)}" r="3.5" fill="none" stroke="#d9a441"/><text x="${X(mx.t)+6}" y="${Y(mx.alt)+13}" fill="#d9a441" font-size="10" font-family="IBM Plex Mono">apogee ${fmt(mx.alt,0)} m</text>`}
+    if(c.id==='vel'){const mx=H.reduce((m,s)=>s.v>m.v?s:m,H[0]);if(mx.v>50)o+=`<text x="${X(mx.t)+5}" y="${Y(mx.v)+4}" fill="#d9a441" font-size="10" font-family="IBM Plex Mono">max ${fmt(mx.v,0)} m/s · M ${fmt(mach(mx.v,mx.alt),2)}</text>`}
+    if(c.id==='rf'){const gaps=H.filter(s=>s.rssiB==null);if(gaps.length){o+=`<rect x="${X(gaps[0].t)}" y="${mt}" width="${Math.max(2,X(gaps[gaps.length-1].t)-X(gaps[0].t))}" height="${ph}" fill="#ef5350" fill-opacity=".12"/>`}}
+    svg.innerHTML=o});
+}
+
+// ================= UKB / SENSÖR =================
+function drawUKB(){const bk=bkDrop(T);
+  const U=[
+    ['Ana UKB','SkyLogic V2 · BMP390, BNO055','fw 2.4.1',[['Bağlantı','<span class="ok-t">SIM VERİ</span>'],['Son veri','0,2 s'],['Batarya','8,06 V'],['Paket',fmt(Math.round((T+900)*5-4),0)],['Hata','1 CRC']],
+      [['Barometre','geçerli','ok'],['IMU','geçerli','ok'],['GPS','geçerli','ok'],['İvmeölçer','geçerli','ok'],['Jiroskop','geçerli','ok'],['Manyetometre','geçerli','ok']]],
+    ['Yedek UKB','AKANA · MS5611, LSM6DSOX','fw 1.3.0',[['Bağlantı',bk?'<span class="bad-t">VERİ YOK</span>':'<span class="ok-t">SIM VERİ</span>'],['Son veri',bk?fmt(T-158,1)+' s':'0,2 s'],['Batarya','7,81 V'],['Paket',fmt(Math.round((T+900)*5-19),0)],['Hata','0']],
+      [['Barometre','geçerli','ok'],['IMU','geçerli','ok'],['GPS','14 uydu','ok'],['İvmeölçer','geçerli','ok'],['Jiroskop','geçerli','ok'],['Manyetometre','sistemde yok','na']]],
+    ['Görev yükü','STM32F103 · MS5611','fw 0.9.2',[['Bağlantı','<span class="ok-t">SIM VERİ</span>'],['Son veri','0,3 s'],['Batarya','7,64 V'],['Paket',fmt(Math.round((T+900)*5-31),0)],['Hata','0']],
+      [['Barometre','geçerli','ok'],['IMU','geçerli','ok'],['GPS',plGpsLost(T)?'fix yok':'11 uydu',plGpsLost(T)?'warn':'ok'],['Sıcaklık','geçerli','ok'],['Nem','geçerli','ok'],['Manyetometre','sistemde yok','na']]],
+  ];
+  document.getElementById('ukb').innerHTML=U.map(([n,hw,fw,rows,sens])=>`<div class="u"><h3>${n}<em>${fw}</em></h3><div class="row"><span>${hw}</span></div>${rows.map(r=>`<div class="row">${r[0]}<b>${r[1]}</b></div>`).join('')}
+    <div class="sen">${sens.map(s=>`<span>${s[0]}</span><b class="${s[2]}-t">${s[1]}</b>`).join('')}</div></div>`).join('');}
+
+// ================= HABERLEŞME =================
+function drawComm(){const s=hist[hist.length-1],bk=bkDrop(T);
+  const rows=[['Ana UKB','868,1',5.0,Math.round((T+900)*5),3,s.rssiM,'2 160','≈115'],
+              ['Yedek UKB','869,5',bk?0:5.0,Math.round((T+900)*5-19),bk?24:9,s.rssiB,bk?'0':'2 160','≈115'],
+              ['Görev yükü','867,3',4.9,Math.round((T+900)*5-31),11,s.rssiP,'1 150','≈62']];
+  document.getElementById('comm').innerHTML=`<thead><tr><th>Kaynak</th><th>MHz</th><th>Hz</th><th>Paket</th><th>Kayıp</th><th>Oran</th><th>RSSI</th><th>SNR</th><th>bit/s</th><th>Gecikme</th></tr></thead><tbody>`+
+    rows.map(r=>`<tr><td>${r[0]}</td><td style="font-family:var(--ui);color:var(--muted)">${r[1]}</td><td class="${r[2]<4.5?'bad-t':''}">${fmt(r[2],1)}</td><td>${fmt(r[3],0)}</td><td>${r[4]}</td><td>%${fmt(r[4]/r[3]*100,2)}</td><td class="${r[5]==null?'na-t':''}">${r[5]==null?'N/A':fmt(r[5],0)}</td><td class="na-t">N/A</td><td>${r[6]}</td><td>${r[7]} ms</td></tr>`).join('')+'</tbody>';}
+
+// ================= OLAY KAYDI =================
+function drawLog(){log.sort((x,y)=>y.t-x.t);const L=log.filter(l=>logF==='all'||l.sv===logF).slice(0,22);
+  const lab={info:'BİLGİ',warn:'UYARI',err:'HATA',crit:'KRİTİK'};
+  document.getElementById('log').innerHTML=L.map(l=>`<div class="lr ${l.fresh?'new':''}"><span class="tm">${ts(l.t)}</span><span class="sv ${l.sv}">${lab[l.sv]}</span><span class="tx">${l.msg}<small>${l.src} · doğrulama: ${l.ver}</small></span></div>`).join('');log.forEach(l=>l.fresh=false)}
+
+// ================= SAAT =================
+function drawClock(){const base=Date.UTC(2026,10,19,10,41,0)+ (T+0)*1000; const d=new Date(base);
+  const p=n=>String(n).padStart(2,'0');document.getElementById('utc').textContent=`${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())}.${String(d.getUTCMilliseconds()).padStart(3,'0')} UTC`;
+  document.getElementById('loc').textContent=`${p((d.getUTCHours()+3)%24)}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())} TRT (UTC+3)`;
+  document.getElementById('tplus').firstChild.textContent=tstr(T);
+  const rec=T+900;document.getElementById('recT').textContent=`${p(Math.floor(rec/60)%60)}:${p(Math.floor(rec%60))}`;
+  const lr=document.getElementById('lastRx');lr.textContent='0,2 s önce';}
+
+// ================= DÖNGÜ =================
+let lastLogged={};
+function events(){
+  if(plGpsLost(T)&&!lastLogged.gl){lastLogged.gl=1;addLog(126,'warn','Görev yükü UKB','Görev yükü konum verisi kayboldu, GPS fix yok. Telemetri sürüyor.','tek kaynak')}
+  if(!plGpsLost(T)&&T>141&&!lastLogged.gr){lastLogged.gr=1;addLog(141,'info','Görev yükü UKB','Görev yükü konum verisi yeniden alındı, 9 uydu.','doğrulandı')}
+  if(bkDrop(T)&&!lastLogged.bd){lastLogged.bd=1;addLog(158,'err','Alıcı 2','Yedek UKB paketleri kesildi, 1 s üzerinde veri yok.','—')}
+  if(!bkDrop(T)&&T>161.5&&!lastLogged.br){lastLogged.br=1;addLog(161.5,'info','Alıcı 2','Yedek UKB paketleri yeniden geliyor, 17 paket kayıp.','—')}
+  if(T>=tMain&&!lastLogged.mn){lastLogged.mn=1;addLog(tMain,'info','Ana UKB','Ana paraşüt açılma olayı bildirildi, 500 m.','2/2 kaynak')}
+  if(T>=landT('rk')&&!lastLogged.ld){lastLogged.ld=1;addLog(landT('rk'),'warn','Ana + Yedek UKB','İniş olayı bildirildi.','2/2 kaynak')}
+}
+let acc=0,accC=0;
+function tick(now){const dt=Math.min(.25,(now-last)/1000);last=now;T+=dt*speed;
+  const lastT=hist[hist.length-1].t;for(let t=lastT+.5;t<=T;t+=.5)hist.push(sample(t));
+  if(T>landT('rk')+40){T=118;rebuild()}
+  acc+=dt;accC+=dt;
+  drawClock();
+  if(acc>.2){acc=0;drawTele();drawPhases();drawSel();drawUKB();drawComm();events();drawLog();drawTL()}
+  if(accC>.5){accC=0;drawCharts();mapDraw()}
+  requestAnimationFrame(tick)}
+function rebuild(){hist.length=0;for(let t=-20;t<=T;t+=.5)hist.push(sample(t));lastLogged={}}
+
+// ================= ETKİLEŞİM =================
+document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{speed=+b.dataset.sp;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x===b))});
+document.getElementById('restart').onclick=()=>{T=-15;rebuild();log.splice(0,log.length-6)};
+document.querySelectorAll('[data-rng]').forEach(b=>b.onclick=()=>{range=+b.dataset.rng;document.querySelectorAll('[data-rng]').forEach(x=>x.classList.toggle('on',x===b));drawCharts()});
+document.querySelectorAll('[data-sel]').forEach(b=>b.onclick=()=>{sel=b.dataset.sel;document.querySelectorAll('[data-sel]').forEach(x=>x.classList.toggle('on',x===b));drawSel()});
+document.querySelectorAll('[data-layer]').forEach(b=>b.onclick=()=>{layer=b.dataset.layer;document.querySelectorAll('[data-layer]').forEach(x=>x.classList.toggle('on',x===b));mapDraw()});
+document.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{logF=b.dataset.f;document.querySelectorAll('[data-f]').forEach(x=>x.classList.toggle('on',x===b));drawLog()});
+document.getElementById('zin').onclick=()=>{zoom*=1.3;mapDraw()};document.getElementById('zout').onclick=()=>{zoom/=1.3;mapDraw()};document.getElementById('zfit').onclick=()=>{zoom=1;mapDraw()};
+document.getElementById('fsMap').onclick=()=>{const m=document.getElementById('mapbox');(m.requestFullscreen?m.requestFullscreen():Promise.reject()).catch(()=>{})};
+
+function fit(){const w=document.documentElement.clientWidth,s=Math.min(1,w/1920,Math.max(window.innerHeight,420)/1080),st=document.getElementById('stage');
+  st.style.transform=`scale(${s})`;st.style.left=Math.max(0,(w-1920*s)/2)+'px';document.getElementById('wrap').style.height=(1080*s)+'px'}
+addEventListener('resize',fit);fit();
+drawTele();drawPhases();drawSel();drawUKB();drawComm();drawLog();drawTL();drawClock();
+requestAnimationFrame(()=>{drawCharts();mapDraw();requestAnimationFrame(tick)});
+</script>
