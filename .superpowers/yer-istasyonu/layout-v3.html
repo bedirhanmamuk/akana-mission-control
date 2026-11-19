@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uçuş Sahnesi v3</title>
+<style>
+:root{--bg:#e9edf2;--ink:#0d1320;--mute:#5b6473;--panel:#fff;--line:#d5dbe3}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#070a10;--ink:#e7ebf1;--mute:#9aa4b4;--panel:#10151f;--line:#232c3b}}
+:root[data-theme="dark"]{--bg:#070a10;--ink:#e7ebf1;--mute:#9aa4b4;--panel:#10151f;--line:#232c3b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,"Segoe UI",Inter,sans-serif;padding:24px 16px 56px}
+main{max-width:1280px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--mute);margin:0 0 18px}
+.scroll{overflow-x:auto;border-radius:10px}
+.scene{min-width:1040px;aspect-ratio:16/9}
+.scene svg{display:block;width:100%;height:100%;border-radius:10px}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:10px;margin-top:16px}
+.legend div{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px}
+.legend b{display:block;margin-bottom:2px}
+</style>
+</head>
+<body>
+<main>
+<h1>Uçuş sahnesi v3: 9 faz, 3D roket, grafikler, görev yükü, seri panel</h1>
+<p class="sub">1920×1080 gece modu. Örnek an: T+38 s, APOGEE fazı. Alttaki seri panel açık gösteriliyor (S tuşu ya da tutamaçla açılır/kapanır).</p>
+<div class="scroll"><div class="scene">
+<svg viewBox="0 0 1920 1080" font-family="Segoe UI, Inter, system-ui, sans-serif">
+<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#04070d"/><stop offset="1" stop-color="#0c1422"/></linearGradient>
+  <linearGradient id="trail" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#d9a441" stop-opacity=".15"/><stop offset="1" stop-color="#ffc857"/></linearGradient>
+  <linearGradient id="body" x1="0" x2="1"><stop offset="0" stop-color="#8a96a8"/><stop offset=".45" stop-color="#e9edf3"/><stop offset="1" stop-color="#6b7688"/></linearGradient>
+  <radialGradient id="glow"><stop offset="0" stop-color="#ffc857" stop-opacity=".5"/><stop offset="1" stop-color="#ffc857" stop-opacity="0"/></radialGradient>
+</defs>
+<rect width="1920" height="1080" fill="url(#sky)"/>
+
+<!-- ÜST: marka, nabız, saat -->
+<g font-size="15" fill="#93a0b4">
+  <text x="36" y="40" fill="#e6ebf2" font-weight="700" letter-spacing="1">AKANA</text><text x="106" y="40">yer istasyonu</text>
+  <text x="300" y="34" fill="#e6ebf2">Roket</text>
+  <g stroke="#22a06b" stroke-width="2"><line x1="400" x2="760" y1="30" y2="30" stroke-opacity=".25"/><path d="M410 30v-9M424 30v-9M438 30v-9M452 30v-9M466 30v-9M480 30v-9M494 30v-9M508 30v-9M522 30v-9M536 30v-9M550 30v-9M564 30v-9M578 30v-9M592 30v-9M606 30v-9M620 30v-9M634 30v-9M648 30v-9M662 30v-9M676 30v-9M690 30v-9M704 30v-9M718 30v-9M732 30v-9M746 30v-12"/></g>
+  <text x="772" y="34">COM5 · 5.0 Hz · −71 dBm · kayıp 3</text>
+  <text x="300" y="60" fill="#e6ebf2">Görev yükü</text>
+  <g stroke="#e08a00" stroke-width="2"><line x1="400" x2="760" y1="56" y2="56" stroke-opacity=".25"/><path d="M410 56v-9M428 56v-9M446 56v-9M464 56v-9M482 56v-9M500 56v-9M518 56v-9M536 56v-9M554 56v-9M572 56v-9M590 56v-9M608 56v-9M626 56v-9M644 56v-9M662 56v-9M680 56v-9"/><line x1="690" x2="760" y1="56" y2="56" stroke="#d64545" stroke-width="3"/></g>
+  <text x="772" y="60" fill="#e08a00">COM6 · 3.8 Hz · son paket 0.6 s önce</text>
+</g>
+<g text-anchor="end" fill="#93a0b4" font-size="15">
+  <text x="1884" y="44" fill="#e6ebf2" font-family="IBM Plex Mono, Consolas, monospace" font-size="36" font-weight="600">T+ 00:38.4</text>
+  <text x="1884" y="68"><tspan fill="#d64545">●</tspan> kayıt 12:51 · HYİ gönderiyor · gece ◐</text>
+</g>
+
+<!-- 9 FAZ YOLU -->
+<g transform="translate(36 96)" font-size="14">
+  <line x1="0" x2="1560" y1="14" y2="14" stroke="#1d2738" stroke-width="4" stroke-linecap="round"/>
+  <line x1="0" x2="585" y1="14" y2="14" stroke="#3a4c6e" stroke-width="4" stroke-linecap="round"/>
+  <g fill="#cfd6e2">
+    <circle cx="0" cy="14" r="7" fill="#3a4c6e"/><text x="0" y="44">Rampa</text>
+    <circle cx="195" cy="14" r="7" fill="#3a4c6e"/><text x="172" y="44">Kalkış</text>
+    <circle cx="390" cy="14" r="7" fill="#3a4c6e"/><text x="340" y="44">Apogee yaklaşma</text>
+    <circle cx="585" cy="14" r="22" fill="url(#glow)"/><circle cx="585" cy="14" r="9" fill="#ffc857"/><text x="560" y="44" fill="#ffc857" font-weight="700">Apogee</text>
+  </g>
+  <g fill="#5f6b80">
+    <circle cx="780" cy="14" r="6" fill="#0c1422" stroke="#5f6b80" stroke-width="2"/><text x="734" y="44">Drogue açılış</text>
+    <circle cx="975" cy="14" r="6" fill="#0c1422" stroke="#5f6b80" stroke-width="2"/><text x="926" y="44">Payload açılış</text>
+    <circle cx="1170" cy="14" r="6" fill="#0c1422" stroke="#5f6b80" stroke-width="2"/><text x="1128" y="44">Main açılış</text>
+    <circle cx="1365" cy="14" r="6" fill="#0c1422" stroke="#5f6b80" stroke-width="2"/><text x="1345" y="44">Finiş</text>
+  </g>
+  <g transform="translate(1640 0)"><rect x="0" y="0" width="208" height="28" rx="14" fill="none" stroke="#3a2a2a"/><circle cx="18" cy="14" r="5" fill="#3a2a2a"/><text x="32" y="19" fill="#6b5a5a">Güvenli mod · pasif</text></g>
+</g>
+
+<!-- SOL: irtifa şeridi + sayılar -->
+<g>
+  <line x1="120" x2="120" y1="180" y2="620" stroke="#2a3446"/>
+  <g font-size="12" fill="#5f6b80" text-anchor="end"><text x="112" y="624">0</text><text x="112" y="514">5k ft</text><text x="112" y="404">10k</text><text x="112" y="294">15k</text><text x="112" y="184">20k</text></g>
+  <path d="M122 190 l14 -12 h150 v24 h-150z" fill="#d9a441"/><text x="142" y="197" font-size="19" font-weight="800" fill="#161004">6 041 m</text>
+  <text x="142" y="224" font-size="14" fill="#93a0b4">19 819 ft · max 6 088</text>
+  <g font-size="14" fill="#93a0b4">
+    <text x="150" y="300">basınç</text><text x="150" y="330" font-size="28" font-weight="800" fill="#e6ebf2">470.6 <tspan font-size="14" fill="#93a0b4" font-weight="400">hPa</tspan></text>
+    <text x="150" y="380">pitch</text><text x="150" y="410" font-size="28" font-weight="800" fill="#e6ebf2">12.4°</text>
+    <text x="150" y="460">yaw</text><text x="150" y="490" font-size="28" font-weight="800" fill="#e6ebf2">231.0°</text>
+    <text x="150" y="540">roll</text><text x="150" y="570" font-size="28" font-weight="800" fill="#e6ebf2">−4.8°</text>
+    <text x="150" y="610">dikey hız <tspan fill="#e6ebf2" font-weight="700">−3.2 m/s</tspan></text>
+  </g>
+</g>
+
+<!-- MERKEZ ÜST: yörünge sahnesi -->
+<g>
+  <line x1="340" x2="1300" y1="180" y2="180" stroke="#d64545" stroke-dasharray="6 6" stroke-opacity=".7"/>
+  <text x="1300" y="172" text-anchor="end" font-size="12" fill="#d64545">eşik 20 000 ft · 6 096 m</text>
+  <line x1="340" x2="1300" y1="430" y2="430" stroke="#2a3446"/>
+  <text x="340" y="450" font-size="12" fill="#5f6b80">rampa</text><text x="1300" y="450" text-anchor="end" font-size="12" fill="#5f6b80">2 km menzil</text>
+  <path d="M360 430 C 380 340, 420 250, 480 205 S 560 184, 600 184" fill="none" stroke="url(#trail)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M600 184 C 640 260, 680 360, 740 430" fill="none" stroke="#d9a441" stroke-opacity=".35" stroke-width="2" stroke-dasharray="4 8"/>
+  <path d="M606 188 C 680 270, 760 370, 860 430" fill="none" stroke="#e08a00" stroke-opacity=".45" stroke-width="2" stroke-dasharray="2 6"/>
+  <circle cx="600" cy="184" r="26" fill="url(#glow)"/><path d="M600 174 l6 15 h-12z" fill="#ffc857"/>
+  <text x="624" y="206" font-size="14" fill="#ffc857" font-weight="700">apogee · T+37.3 · 6 096 m</text>
+  <circle cx="440" cy="250" r="4" fill="#0c1422" stroke="#cfd6e2" stroke-width="2"/><text x="452" y="254" font-size="13" fill="#cfd6e2">apogee yaklaşma · T+31.0</text>
+  <circle cx="732" cy="420" r="4" fill="#0c1422" stroke="#5f6b80" stroke-width="2" stroke-dasharray="2 2"/><text x="744" y="414" font-size="13" fill="#5f6b80">main 500 m (bekleniyor)</text>
+</g>
+
+<!-- MERKEZ ALT: canlı grafikler -->
+<g font-size="12" fill="#5f6b80">
+  <g transform="translate(340 480)">
+    <text y="0" fill="#93a0b4">irtifa (m) · ham / filtreli</text>
+    <polyline transform="translate(0 8)" fill="none" stroke="#5f6b80" stroke-width="1" points="0,70 40,66 80,52 120,36 160,22 200,12 240,6 280,4 300,5"/>
+    <polyline transform="translate(0 8)" fill="none" stroke="#d9a441" stroke-width="2" points="0,70 40,67 80,53 120,37 160,23 200,13 240,7 280,5 300,6"/>
+  </g>
+  <g transform="translate(670 480)">
+    <text y="0" fill="#93a0b4">basınç (hPa)</text>
+    <polyline transform="translate(0 8)" fill="none" stroke="#3b82f6" stroke-width="2" points="0,4 40,8 80,22 120,38 160,52 200,62 240,68 280,70 300,69"/>
+  </g>
+  <g transform="translate(1000 480)">
+    <text y="0" fill="#93a0b4">açı (°) · <tspan fill="#d9a441">pitch</tspan> <tspan fill="#a78bfa">yaw</tspan> <tspan fill="#22a06b">roll</tspan></text>
+    <polyline transform="translate(0 8)" fill="none" stroke="#d9a441" stroke-width="1.8" points="0,10 60,12 120,16 180,24 240,36 280,60 300,64"/>
+    <polyline transform="translate(0 8)" fill="none" stroke="#a78bfa" stroke-width="1.4" points="0,30 60,31 120,28 180,33 240,30 280,26 300,34"/>
+    <polyline transform="translate(0 8)" fill="none" stroke="#22a06b" stroke-width="1.4" points="0,44 60,42 120,46 180,43 240,45 280,48 300,47"/>
+  </g>
+  <g transform="translate(340 600)">
+    <text y="0" fill="#93a0b4">görev yükü · <tspan fill="#e08a00">sıcaklık °C</tspan> <tspan fill="#38bdf8">nem %</tspan> <tspan fill="#3b82f6">basınç hPa</tspan></text>
+    <polyline transform="translate(0 8)" fill="none" stroke="#e08a00" stroke-width="1.8" points="0,10 120,18 240,30 360,40 480,46 600,48 660,47"/>
+    <polyline transform="translate(0 8)" fill="none" stroke="#38bdf8" stroke-width="1.6" points="0,44 120,40 240,34 360,30 480,26 600,22 660,23"/>
+    <polyline transform="translate(0 8)" fill="none" stroke="#3b82f6" stroke-width="1.2" stroke-opacity=".7" points="0,6 120,14 240,28 360,40 480,50 600,56 660,57"/>
+  </g>
+  <text x="1300" y="610" text-anchor="end" fill="#5f6b80">son 60 s · sürükle: geçmiş</text>
+</g>
+
+<!-- SAĞ ÜST: 3D roket -->
+<g transform="translate(1440 170)">
+  <text x="0" y="12" font-size="14" fill="#93a0b4">3D yönelim</text>
+  <ellipse cx="200" cy="300" rx="150" ry="26" fill="none" stroke="#1f2a3b"/>
+  <line x1="200" x2="200" y1="40" y2="320" stroke="#1f2a3b" stroke-dasharray="3 5"/>
+  <g transform="translate(200 175) rotate(-12)">
+    <path d="M0 -130 C 14 -100, 18 -80, 18 -64 L18 96 L-18 96 L-18 -64 C -18 -80, -14 -100, 0 -130z" fill="url(#body)"/>
+    <rect x="-18" y="-30" width="36" height="10" fill="#d9a441"/>
+    <path d="M18 60 L46 112 L18 100z M-18 60 L-46 112 L-18 100z" fill="#c4ccd8"/>
+    <path d="M-6 96 h12 l4 12 h-20z" fill="#4b5566"/>
+  </g>
+  <g font-size="13" fill="#93a0b4"><text x="0" y="350">P 12.4°</text><text x="120" y="350">Y 231.0°</text><text x="250" y="350">R −4.8°</text></g>
+</g>
+
+<!-- SAĞ ORTA: harita (kubbe ile H tuşuyla yer değiştirir) -->
+<g transform="translate(1440 540)">
+  <text x="0" y="0" font-size="14" fill="#93a0b4">harita · <tspan fill="#5f6b80">H: anten kubbesi</tspan></text>
+  <rect x="0" y="12" width="444" height="170" rx="6" fill="#16202f"/>
+  <path d="M0 80 C 80 60, 160 110, 260 90 S 400 60, 444 70" fill="none" stroke="#24324a" stroke-width="10"/>
+  <circle cx="80" cy="130" r="5" fill="#fff"/><text x="90" y="134" font-size="12" fill="#cfd6e2">rampa</text>
+  <circle cx="54" cy="160" r="5" fill="#3b82f6"/><text x="64" y="164" font-size="12" fill="#93a0b4">istasyon</text>
+  <polyline fill="none" stroke="#d9a441" stroke-width="2" points="80,130 120,110 170,96 200,90"/><circle cx="200" cy="90" r="6" fill="#ffc857"/>
+  <polyline fill="none" stroke="#e08a00" stroke-width="2" stroke-dasharray="3 3" points="200,90 228,82"/><circle cx="228" cy="82" r="5" fill="#e08a00"/>
+  <text x="300" y="170" font-size="12" fill="#93a0b4">anten 48° · 71° · 6.4 km</text>
+</g>
+
+<!-- SAĞ ALT: görev yükü bilgisi -->
+<g transform="translate(1440 760)" font-size="14" fill="#93a0b4">
+  <text y="0" fill="#e08a00" font-weight="700">Görev yükü</text><text x="110" y="0" fill="#5f6b80">ayrıldı · T+38.1</text>
+  <text y="30">enlem</text><text x="120" y="30" fill="#e6ebf2" font-family="IBM Plex Mono, Consolas, monospace">38.7121345° K</text>
+  <text y="54">boylam</text><text x="120" y="54" fill="#e6ebf2" font-family="IBM Plex Mono, Consolas, monospace">33.4598812° D</text>
+  <text y="78">sapma</text><text x="120" y="78" fill="#e6ebf2">D 1 214 m · K 388 m</text>
+  <text x="0" y="114">basınç</text><text x="150" y="114">sıcaklık</text><text x="300" y="114">nem</text>
+  <text x="0" y="146" font-size="26" font-weight="800" fill="#e6ebf2">471.2</text>
+  <text x="150" y="146" font-size="26" font-weight="800" fill="#e6ebf2">−18.6</text>
+  <text x="300" y="146" font-size="26" font-weight="800" fill="#e6ebf2">34</text>
+  <text x="0" y="166" font-size="12">hPa</text><text x="150" y="166" font-size="12">°C</text><text x="300" y="166" font-size="12">%</text>
+</g>
+
+<!-- ALT: SERİ PANEL (açık) -->
+<g transform="translate(0 760)">
+  <rect x="0" y="0" width="1410" height="320" fill="#0a0f18"/>
+  <rect x="660" y="8" width="90" height="4" rx="2" fill="#3a465e"/>
+  <g font-size="14">
+    <text x="36" y="44" fill="#e6ebf2" font-weight="700">Gelen veri</text>
+    <text x="170" y="44" fill="#93a0b4">Portlar</text>
+    <text x="270" y="44" fill="#93a0b4">HYİ'ye giden</text>
+    <line x1="36" x2="130" y1="54" y2="54" stroke="#d9a441" stroke-width="2"/>
+    <text x="900" y="44" fill="#93a0b4">kaynak: <tspan fill="#e6ebf2">roket ▾</tspan>   görünüm: <tspan fill="#e6ebf2">çözülmüş</tspan> | hex   ⏸ duraklat   ⌫ temizle</text>
+  </g>
+  <g font-family="IBM Plex Mono, Consolas, monospace" font-size="13" fill="#9fb0c8">
+    <text x="36" y="86"><tspan fill="#5f6b80">23:41:07.812</tspan>  roket  #1342  APOGEE  alt=6041.2  p=470.6  pitch=12.4  yaw=231.0  roll=-4.8  lat=38.7120411  lon=33.4561203  sats=14</text>
+    <text x="36" y="110"><tspan fill="#5f6b80">23:41:07.612</tspan>  roket  #1341  APOGEE  alt=6042.9  p=470.5  pitch=11.0  yaw=230.6  roll=-4.1  lat=38.7120399  lon=33.4561180  sats=14</text>
+    <text x="36" y="134"><tspan fill="#5f6b80">23:41:07.411</tspan>  <tspan fill="#d64545">roket  CRC HATASI  68 bayt  AA 55 3F 3C 05 …</tspan></text>
+    <text x="36" y="158"><tspan fill="#5f6b80">23:41:07.211</tspan>  roket  #1339  APOGEE  alt=6046.0  p=470.3  pitch=8.7   yaw=229.9  roll=-3.6  lat=38.7120371  lon=33.4561150  sats=14</text>
+    <text x="36" y="182"><tspan fill="#5f6b80">23:41:07.010</tspan>  roket  #1338  APOGEE YAKL.  alt=6047.1  p=470.2  pitch=6.1  yaw=229.5  roll=-3.2  …</text>
+    <text x="36" y="206" fill="#5f6b80">— hex görünümü örneği —</text>
+    <text x="36" y="230">AA 55 3F 3E 05 2C 94 00 00 03 05 9A 0C BC 45 33 C3 BC 45 CD CC 4C C0 …  CRC 7A1F ✓  RSSI −71</text>
+  </g>
+  <g transform="translate(36 262)" font-size="13" fill="#93a0b4">
+    <text>Portlar sekmesi: kaynak → port ▾ (COM3, COM5, COM6, COM7 …) · baud ▾ 9600 · [Bağlan] [Kes] · durum</text>
+    <text y="22">HYİ sekmesi: port ▾ · baud ▾ · gönderilen paketler hex olarak · gönderim sayacı · format: tanımsız</text>
+  </g>
+</g>
+</svg>
+</div></div>
+
+<div class="legend">
+  <div><b>9 faz yolu</b>Üstte, ekran genişliğinde. Geçilen fazlar dolu, şu anki faz altın renkte, gelecek fazlar boş halka. Güvenli mod yolun dışında ayrı bir rozet: aktifleşirse rozet ve ekran kenarı kırmızı yanar.</div>
+  <div><b>Sol sütun</b>İrtifa şeridi (0–20 000 ft) ve büyük rakamlarla basınç, pitch, yaw, roll ve dikey hız.</div>
+  <div><b>Merkez</b>Üstte yan kesit yörünge sahnesi. Altta her zaman açık canlı grafikler: irtifa, basınç, açılar ve görev yükünün sıcaklık / nem / basınç değerleri.</div>
+  <div><b>Sağ sütun</b>3D roket yönelimi, harita (H tuşuyla anten kubbesine geçer) ve görev yükü kartı: konum, sapma, basınç, sıcaklık, nem.</div>
+  <div><b>Alttan açılan seri panel</b>Üç sekme. <i>Gelen veri</i>: çözülmüş ya da hex. <i>Portlar</i>: COM ve baud seçimi, bağlan / kes. <i>HYİ'ye giden</i>: hakeme gönderilen paketler. Panel açıkken grafikler ve sahne yukarı sıkışır, hiçbiri kapanmaz.</div>
+</div>
+</main>
+</body>
+</html>
