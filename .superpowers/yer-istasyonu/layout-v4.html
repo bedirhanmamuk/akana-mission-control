@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AKANA Yer İstasyonu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#eef1ee; --panel:#ffffff; --ink:#17211b; --ink2:#3d4a42; --mute:#6b776f; --rule:#dde3de; --rule2:#eaeeea;
+  --brand:#1f6b45; --brand-ink:#ffffff; --brand-soft:#e3efe7;
+  --rkt:#1f5fbf; --pay:#c2620a; --alarm:#c62828; --ok:#2e7d32; --warn:#b26a00;
+  --ui:"Barlow","Segoe UI",system-ui,sans-serif; --cond:"Barlow Semi Condensed","Barlow","Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",Consolas,ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#c9cfca;height:100%}
+body{font-family:var(--ui);color:var(--ink);display:flex;justify-content:center;align-items:flex-start;overflow:hidden}
+#stage{width:1920px;height:1080px;transform-origin:top left;background:var(--paper);display:grid;
+  grid-template-rows:56px 84px 1fr 236px;position:absolute;left:0;top:0;font-variant-numeric:tabular-nums}
+
+/* üst bar */
+.top{background:var(--brand);color:var(--brand-ink);display:flex;align-items:center;padding:0 20px;gap:28px}
+.brand{display:flex;align-items:baseline;gap:10px;min-width:260px}
+.brand b{font-weight:700;font-size:21px;letter-spacing:.5px}
+.brand span{font-size:15px;opacity:.8}
+.link{display:flex;align-items:center;gap:10px;font-size:15px;padding-left:22px;border-left:1px solid rgba(255,255,255,.18);height:32px}
+.link .d{width:9px;height:9px;border-radius:50%}
+.link small{opacity:.75;font-size:14px}
+.link strong{font-weight:600}
+.sp{flex:1}
+.clock{display:flex;align-items:baseline;gap:18px}
+.clock .utc{font-size:14px;opacity:.75}
+.clock .tplus{font-family:var(--cond);font-size:34px;font-weight:600;letter-spacing:.5px}
+.rec{display:flex;align-items:center;gap:8px;font-size:15px;background:rgba(0,0,0,.18);padding:6px 12px;border-radius:4px}
+.rec i{width:9px;height:9px;border-radius:50%;background:#ff6b6b;display:inline-block}
+
+/* faz şeridi */
+.phases{background:var(--panel);border-bottom:1px solid var(--rule);display:flex;align-items:center;padding:0 28px 0 32px;gap:28px}
+.ladder{flex:1;display:grid;grid-template-columns:repeat(8,1fr);position:relative;height:60px}
+.ladder::before{content:"";position:absolute;left:10px;right:calc(12.5% - 10px);top:15px;height:3px;background:var(--rule)}
+.ladder .prog{position:absolute;left:10px;top:15px;height:3px;background:var(--brand)}
+.st{position:relative;padding-top:30px;font-size:15px;color:var(--mute)}
+.st::before{content:"";position:absolute;left:3px;top:9px;width:15px;height:15px;border-radius:50%;background:var(--panel);border:2px solid #b9c3bc}
+.st.done{color:var(--ink2)} .st.done::before{background:var(--brand);border-color:var(--brand)}
+.st.now{color:var(--brand);font-weight:700} .st.now::before{left:-1px;top:5px;width:23px;height:23px;background:var(--brand);border-color:var(--brand);box-shadow:0 0 0 5px var(--brand-soft)}
+.st em{display:block;font-style:normal;font-size:13px;color:var(--mute);font-weight:400;margin-top:1px}
+.safe{display:flex;align-items:center;gap:10px;border:1px solid var(--rule);border-radius:6px;padding:9px 14px;font-size:15px;color:var(--mute);min-width:210px}
+.safe i{width:10px;height:10px;border-radius:50%;border:2px solid #b9c3bc}
+
+/* ana ızgara */
+.main{display:grid;grid-template-columns:400px 1fr 560px;gap:12px;padding:12px;min-height:0}
+.col{display:grid;gap:12px;min-height:0}
+.p{background:var(--panel);border:1px solid var(--rule);border-radius:6px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px;border-bottom:1px solid var(--rule2)}
+.ph h2{font-size:16px;font-weight:600}
+.ph .meta{font-size:13px;color:var(--mute)}
+.pb{padding:10px 14px;flex:1;min-height:0;position:relative}
+
+/* telemetri tablosu */
+.tele{display:grid;grid-template-columns:1fr auto;row-gap:0}
+.tele div{padding:9px 0;border-bottom:1px solid var(--rule2);display:flex;align-items:baseline}
+.tele div:nth-last-child(-n+2){border-bottom:0}
+.tele .k{color:var(--ink2);font-size:15px}
+.tele .v{justify-content:flex-end;font-family:var(--cond);font-size:26px;font-weight:600}
+.tele .v small{font-family:var(--ui);font-size:13px;color:var(--mute);font-weight:400;margin-left:5px;min-width:30px}
+.tele .sub{font-size:13px;color:var(--mute);margin-left:8px;font-family:var(--ui);font-weight:400}
+
+/* grafikler */
+.charts{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:12px;min-height:0}
+.chart{width:100%;height:100%;display:block}
+.legend{display:flex;gap:14px;font-size:13px;color:var(--ink2)}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend i{width:14px;height:3px;border-radius:2px;display:inline-block}
+
+/* görev yükü */
+.pay{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 14px}
+.pay .row{grid-column:1/-1;display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--rule2);font-size:15px}
+.pay .row span:first-child{color:var(--ink2)}
+.pay .row span:last-child{font-family:var(--cond);font-weight:500;font-size:17px}
+.env{padding-top:10px}
+.env label{display:block;font-size:13px;color:var(--mute)}
+.env b{font-family:var(--cond);font-size:30px;font-weight:600}
+.env small{font-size:13px;color:var(--mute);margin-left:3px}
+.tag{font-size:13px;padding:2px 8px;border-radius:10px;background:#fbefe3;color:var(--pay);font-weight:600}
+
+/* seri panel */
+.serial{background:var(--panel);border-top:1px solid var(--rule);display:grid;grid-template-rows:42px 1fr;min-height:0}
+.tabs{display:flex;align-items:stretch;padding:0 12px;border-bottom:1px solid var(--rule2);gap:4px}
+.tab{display:flex;align-items:center;gap:8px;padding:0 14px;font-size:15px;color:var(--mute);border-bottom:2px solid transparent}
+.tab.on{color:var(--ink);font-weight:600;border-bottom-color:var(--brand)}
+.tab .n{font-size:12px;background:var(--rule2);color:var(--ink2);padding:1px 7px;border-radius:9px;font-weight:500}
+.tools{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:14px;color:var(--ink2)}
+.sel{border:1px solid var(--rule);border-radius:4px;padding:5px 10px;background:#fff}
+.seg{display:flex;border:1px solid var(--rule);border-radius:4px;overflow:hidden}
+.seg span{padding:5px 12px}
+.seg .on{background:var(--brand-soft);color:var(--brand);font-weight:600}
+.btn{border:1px solid var(--rule);border-radius:4px;padding:5px 12px;background:#fff}
+.handle{font-size:13px;color:var(--mute);padding-left:6px}
+.log{font-family:var(--mono);font-size:13px;line-height:21px;padding:8px 16px;overflow:hidden;color:#2b3630;white-space:pre}
+.log .t{color:#8a958e}
+.log .s{color:var(--rkt)} .log .g{color:var(--pay)}
+.log .bad{color:var(--alarm)}
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <header class="top">
+    <div class="brand"><b>AKANA</b><span>Yer istasyonu</span></div>
+    <div class="link"><i class="d" style="background:#7ee2a0"></i><strong>Roket</strong><small>COM5 · 9600</small><span>5,0 Hz</span><small>−71 dBm · kayıp 3</small></div>
+    <div class="link"><i class="d" style="background:#7ee2a0"></i><strong>Görev yükü</strong><small>COM6 · 9600</small><span>4,9 Hz</span><small>−74 dBm · kayıp 1</small></div>
+    <div class="link"><i class="d" style="background:#ffd166"></i><strong>HYİ</strong><small>COM9</small><span>format tanımsız</span></div>
+    <div class="sp"></div>
+    <div class="rec"><i></i>Kayıt 00:12:51</div>
+    <div class="clock"><span class="utc">UTC 10:41:07</span><span class="tplus" id="tplus">T+ 00:37.8</span></div>
+  </header>
+
+  <section class="phases">
+    <div class="ladder" id="ladder"><div class="prog" id="prog"></div></div>
+    <div class="safe"><i></i>Güvenli mod: pasif</div>
+  </section>
+
+  <section class="main">
+    <!-- SOL -->
+    <div class="col" style="grid-template-rows:auto 1fr">
+      <div class="p">
+        <div class="ph"><h2>Roket</h2><span class="meta" id="rk-meta">GPS 14 uydu · paket #1342</span></div>
+        <div class="pb tele" id="tele"></div>
+      </div>
+      <div class="p">
+        <div class="ph"><h2>Yönelim</h2><span class="meta">3D · gövde ekseni</span></div>
+        <div class="pb" style="padding:0"><svg id="att" class="chart" viewBox="0 0 400 300"></svg></div>
+      </div>
+    </div>
+
+    <!-- ORTA -->
+    <div class="charts">
+      <div class="p"><div class="ph"><h2>İrtifa</h2><div class="legend"><span><i style="background:var(--rkt)"></i>Filtreli</span><span><i style="background:#9fb6dc"></i>Barometrik ham</span></div></div><div class="pb" style="padding:4px 6px 4px 4px"><svg class="chart" id="c-alt"></svg></div></div>
+      <div class="p"><div class="ph"><h2>Basınç</h2><div class="legend"><span><i style="background:var(--rkt)"></i>Roket</span><span><i style="background:var(--pay)"></i>Görev yükü</span></div></div><div class="pb" style="padding:4px 6px 4px 4px"><svg class="chart" id="c-p"></svg></div></div>
+      <div class="p"><div class="ph"><h2>Açılar</h2><div class="legend"><span><i style="background:var(--rkt)"></i>Pitch</span><span><i style="background:#7b5cc4"></i>Yaw</span><span><i style="background:#2f8f6b"></i>Roll</span></div></div><div class="pb" style="padding:4px 6px 4px 4px"><svg class="chart" id="c-ang"></svg></div></div>
+      <div class="p"><div class="ph"><h2>Görev yükü ortamı</h2><div class="legend"><span><i style="background:var(--pay)"></i>Sıcaklık</span><span><i style="background:#2a8fc7"></i>Nem</span></div></div><div class="pb" style="padding:4px 6px 4px 4px"><svg class="chart" id="c-env"></svg></div></div>
+    </div>
+
+    <!-- SAĞ -->
+    <div class="col" style="grid-template-rows:1fr auto">
+      <div class="p">
+        <div class="ph"><h2>Harita</h2><span class="meta">Çevrimdışı · anten 45° / 73° · 6,4 km</span></div>
+        <div class="pb" style="padding:0"><svg id="map" class="chart" viewBox="0 0 560 372" preserveAspectRatio="xMidYMid slice"></svg></div>
+      </div>
+      <div class="p">
+        <div class="ph"><h2>Görev yükü</h2><span class="tag">Ayrılmadı</span></div>
+        <div class="pb pay" id="pay"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="serial">
+    <div class="tabs">
+      <div class="tab on">Gelen veri <span class="n">1 342</span></div>
+      <div class="tab">Portlar</div>
+      <div class="tab">HYİ'ye giden <span class="n">0</span></div>
+      <div class="tools">
+        <span class="sel">Kaynak: Tümü ▾</span>
+        <span class="seg"><span class="on">Çözülmüş</span><span>Hex</span></span>
+        <span class="btn">Duraklat</span><span class="btn">Temizle</span>
+        <span class="handle">S ile gizle ▾</span>
+      </div>
+    </div>
+    <div class="log" id="log"></div>
+  </section>
+</div>
+
+<script>
+// ---- model (simülatör ile aynı profil) ----
+const g=9.80665, tb=4, vb=326.8, a=vb/tb, tap=tb+vb/g, NOW=37.8, LAUNCH_ALT=900;
+let seed=7; const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647-.5};
+function alt(t){ if(t<=0) return 0; if(t<tb) return .5*a*t*t; if(t<=tap){const u=t-tb;return .5*a*tb*tb+vb*u-.5*g*u*u} const u=t-tap; return 6096-.5*g*u*u }
+function vz(t){ if(t<tb) return a*t; if(t<=tap) return vb-g*(t-tb); return -g*(t-tap) }
+const pres=h=>1013.25*Math.pow(1-2.25577e-5*(h+LAUNCH_ALT),5.25588);
+const temp=h=>15-.0065*(h+LAUNCH_ALT);
+const hum=h=>Math.max(5,40-.004*h);
+const pitch=t=>t<tap?15*t/tap:Math.min(90,15+75*(t-tap)/2);
+const yaw=t=>230+.2*t, roll=t=>5*Math.sin(t);
+const T=[]; for(let t=0;t<=NOW+1e-9;t+=.2) T.push(+t.toFixed(1));
+const S={
+  alt:T.map(t=>alt(t)+rnd()*3), raw:T.map(t=>alt(t)+rnd()*28),
+  p:T.map(t=>pres(alt(t))+rnd()*.4), pp:T.map(t=>pres(alt(t))+.6+rnd()*.5),
+  pi:T.map(t=>pitch(t)+rnd()*1.2), ya:T.map(t=>yaw(t)+rnd()*1.5), ro:T.map(t=>roll(t)+rnd()*.8),
+  te:T.map(t=>temp(alt(t))+3*Math.exp(-t/25)+rnd()*.3), hu:T.map(t=>hum(alt(t))+rnd()*.6)
+};
+const L=S.alt.length-1;
+function fmt(v,d=1){const r=Math.abs(v).toFixed(d);const neg=v<0&&Number(r)!==0;const [i,f]=r.split('.');return (neg?'−':'')+i.replace(/\B(?=(\d{3})+(?!\d))/g,'\u2009')+(f?','+f:'')}
+
+// ---- faz merdiveni ----
+const PH=[["Rampa","T− 10:00"],["Kalkış","T+ 0,0"],["Apogee yaklaşma","T+ "+fmt(tb+(vb-50)/g)],["Apogee","T+ "+fmt(tap)],["Drogue açılış",""],["Payload açılış",""],["Main açılış","500 m"],["Finiş",""]];
+const lad=document.getElementById('ladder'); const cur=3;
+PH.forEach((p,i)=>{const d=document.createElement('div');d.className='st'+(i<cur?' done':i===cur?' now':'');d.innerHTML=p[0]+'<em>'+(i<=cur?p[1]:(p[1]?'bekleniyor · '+p[1]:'bekleniyor'))+'</em>';lad.appendChild(d)});
+document.getElementById('prog').style.width=`calc(${cur*12.5}% )`;
+
+// ---- telemetri tablosu ----
+const h=alt(NOW);
+const rows=[["İrtifa",fmt(S.alt[L],0),"m",`${fmt(S.alt[L]*3.28084,0)} ft`],["Maks. irtifa",fmt(6096,0),"m",""],["Basınç",fmt(S.p[L]),"hPa",""],["Dikey hız",fmt(vz(NOW)),"m/s",""],["Pitch",fmt(S.pi[L]),"°",""],["Yaw",fmt(S.ya[L]),"°",""],["Roll",fmt(S.ro[L]),"°",""]];
+document.getElementById('tele').innerHTML=rows.map(r=>`<div class="k">${r[0]}${r[3]?`<span class="sub">${r[3]}</span>`:''}</div><div class="v">${r[1]}<small>${r[2]}</small></div>`).join('');
+
+// ---- görev yükü ----
+document.getElementById('pay').innerHTML=`
+ <div class="row"><span>Enlem</span><span>38,7121345° K</span></div>
+ <div class="row"><span>Boylam</span><span>33,4598812° D</span></div>
+ <div class="row"><span>Rampadan sapma</span><span>Doğu 1 012 m · Kuzey 846 m</span></div>
+ <div class="row"><span>GPS</span><span>12 uydu · 0,2 s önce</span></div>
+ <div class="env"><label>Basınç</label><b>${fmt(S.pp[L])}</b><small>hPa</small></div>
+ <div class="env"><label>Sıcaklık</label><b>${fmt(S.te[L])}</b><small>°C</small></div>
+ <div class="env"><label>Nem</label><b>${fmt(S.hu[L],0)}</b><small>%</small></div>`;
+
+// ---- grafik çizici ----
+const NS='http://www.w3.org/2000/svg';
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);parent&&parent.appendChild(e);return e}
+function nice(lo,hi,n=5){const span=hi-lo,raw=span/n,m=Math.pow(10,Math.floor(Math.log10(raw))),st=[1,2,2.5,5,10].map(x=>x*m).find(x=>raw<=x);return {lo:Math.floor(lo/st)*st,hi:Math.ceil(hi/st)*st,st}}
+function chart(id,series,opt){
+  const svg=document.getElementById(id), W=svg.parentNode.clientWidth-10, H=svg.parentNode.clientHeight-8;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const axes=opt.axes; const ml=58, mr=axes.length>1?58:20, mt=10, mb=26, pw=W-ml-mr, ph=H-mt-mb;
+  const xs=t=>ml+pw*(t-0)/(opt.xmax);
+  // zemin ızgara (sol eksen)
+  axes.forEach((ax,ai)=>{
+    const n=nice(ax.min,ax.max,4); ax.n=n; ax.ys=v=>mt+ph*(1-(v-n.lo)/(n.hi-n.lo));
+    for(let v=n.lo;v<=n.hi+1e-9;v+=n.st){const y=ax.ys(v);
+      if(ai===0) el('line',{x1:ml,x2:ml+pw,y1:y,y2:y,stroke:'#edf0ed'},svg);
+      const tx=el('text',{x:ai===0?ml-8:ml+pw+8,y:y+4,'text-anchor':ai===0?'end':'start','font-size':12,fill:ax.color||'#6b776f','font-family':'Barlow, sans-serif'},svg);tx.textContent=fmt(v,n.st<1?1:0)}
+    const u=el('text',{x:ai===0?ml-8:ml+pw+8,y:mt-0+1,'text-anchor':ai===0?'end':'start','font-size':11,fill:'#8a958e','font-family':'Barlow, sans-serif'},svg);u.textContent='';
+  });
+  for(let t=0;t<=opt.xmax+1e-9;t+=10){const x=xs(t);el('line',{x1:x,x2:x,y1:mt,y2:mt+ph,stroke:'#f2f4f2'},svg);const tx=el('text',{x,y:H-8,'text-anchor':'middle','font-size':12,fill:'#6b776f','font-family':'Barlow, sans-serif'},svg);tx.textContent='T+'+t}
+  el('line',{x1:ml,x2:ml+pw,y1:mt+ph,y2:mt+ph,stroke:'#c9d1cb'},svg);
+  // şimdi çizgisi
+  el('line',{x1:xs(NOW),x2:xs(NOW),y1:mt,y2:mt+ph,stroke:'#1f6b45','stroke-dasharray':'3 3','stroke-opacity':.6},svg);
+  if(opt.mark){opt.mark.forEach(m=>{const x=xs(m.t);el('line',{x1:x,x2:x,y1:mt,y2:mt+ph,stroke:'#b9c3bc','stroke-dasharray':'2 4'},svg);const tx=el('text',{x:x+4,y:mt+ph-6,'font-size':11,fill:'#6b776f','font-family':'Barlow, sans-serif'},svg);tx.textContent=m.label})}
+  if(opt.ceiling){const y=axes[0].ys(opt.ceiling);el('line',{x1:ml,x2:ml+pw,y1:y,y2:y,stroke:'#c62828','stroke-dasharray':'6 4','stroke-width':1.2},svg);const tx=el('text',{x:ml+6,y:y-5,'font-size':12,fill:'#c62828','font-family':'Barlow, sans-serif'},svg);tx.textContent='Eşik 20 000 ft (6 096 m)'}
+  series.forEach(s=>{const ax=axes[s.axis||0];const d=s.data.map((v,i)=>`${i?'L':'M'}${xs(T[i]).toFixed(1)},${ax.ys(v).toFixed(1)}`).join('');
+    el('path',{d,fill:'none',stroke:s.color,'stroke-width':s.w||1.8,'stroke-linejoin':'round','stroke-opacity':s.op||1},svg);
+    if(s.tag){const v=s.data[L],y=ax.ys(v),x=xs(T[L]);el('circle',{cx:x,cy:y,r:3.5,fill:s.color},svg);
+      const label=s.tag(v),w=label.length*7.2+12, bx=Math.min(x+8,ml+pw-w);
+      el('rect',{x:bx,y:y-11+(s.dy||0),width:w,height:20,rx:3,fill:s.color},svg);
+      const tx=el('text',{x:bx+6,y:y+4+(s.dy||0),'font-size':12.5,'font-weight':600,fill:'#fff','font-family':'Barlow, sans-serif'},svg);tx.textContent=label}});
+}
+requestAnimationFrame(()=>{
+  const xmax=60, marks=[{t:tb,label:'Yanma sonu'},{t:tap,label:'Apogee'}];
+  chart('c-alt',[{data:S.raw,color:'#9fb6dc',w:1.2},{data:S.alt,color:'#1f5fbf',w:2.2,tag:v=>fmt(v,0)+' m'}],{xmax,axes:[{min:0,max:6500}],ceiling:6096,mark:marks});
+  chart('c-p',[{data:S.p,color:'#1f5fbf',w:2,tag:v=>fmt(v)+' hPa',dy:-14},{data:S.pp,color:'#c2620a',w:1.6,tag:v=>fmt(v)+' hPa',dy:14}],{xmax,axes:[{min:380,max:920}],mark:marks});
+  chart('c-ang',[{data:S.ya,color:'#7b5cc4',axis:1,tag:v=>'Y '+fmt(v)+'°'},{data:S.pi,color:'#1f5fbf',tag:v=>'P '+fmt(v)+'°',dy:-12},{data:S.ro,color:'#2f8f6b',tag:v=>'R '+fmt(v)+'°',dy:12}],{xmax,axes:[{min:-10,max:40},{min:220,max:250,color:'#7b5cc4'}],mark:marks});
+  chart('c-env',[{data:S.te,color:'#c2620a',w:2,tag:v=>fmt(v)+' °C'},{data:S.hu,color:'#2a8fc7',axis:1,w:2,tag:v=>'%'+fmt(v,0)}],{xmax,axes:[{min:-35,max:20,color:'#c2620a'},{min:0,max:50,color:'#2a8fc7'}],mark:marks});
+});
+
+// ---- 3D yönelim (gölgelendirilmiş model) ----
+(function(){
+  const s=document.getElementById('att');
+  s.innerHTML=`
+  <defs>
+    <linearGradient id="gb" x1="0" x2="1"><stop offset="0" stop-color="#9aa6b2"/><stop offset=".38" stop-color="#f7f9fb"/><stop offset=".62" stop-color="#e3e8ee"/><stop offset="1" stop-color="#7d8996"/></linearGradient>
+    <linearGradient id="gn" x1="0" x2="1"><stop offset="0" stop-color="#155636"/><stop offset=".4" stop-color="#2f8a5b"/><stop offset="1" stop-color="#123f29"/></linearGradient>
+    <linearGradient id="gf" x1="0" x2="1"><stop offset="0" stop-color="#1b5a3a"/><stop offset="1" stop-color="#2d7a52"/></linearGradient>
+    <radialGradient id="sh"><stop offset="0" stop-color="#000" stop-opacity=".18"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+  </defs>
+  <g stroke="#e4e9e5" fill="none">
+    <ellipse cx="200" cy="232" rx="170" ry="44"/><ellipse cx="200" cy="232" rx="115" ry="30"/><ellipse cx="200" cy="232" rx="58" ry="15"/>
+    <line x1="30" y1="232" x2="370" y2="232"/><line x1="200" y1="188" x2="200" y2="276"/>
+  </g>
+  <g font-family="Barlow, sans-serif" font-size="12" fill="#8a958e" text-anchor="middle"><text x="200" y="183">K</text><text x="380" y="236">D</text><text x="200" y="290">G</text><text x="20" y="236">B</text></g>
+  <line x1="200" y1="20" x2="200" y2="232" stroke="#cfd7d1" stroke-dasharray="3 4"/>
+  <ellipse cx="214" cy="236" rx="40" ry="9" fill="url(#sh)"/>
+  <g transform="translate(200 128) scale(.78) rotate(${pitch(NOW).toFixed(1)})">
+    <path d="M-14 -38 L-14 82 L14 82 L14 -38 Z" fill="url(#gb)"/>
+    <path d="M0 -104 C 9 -84, 14 -60, 14 -38 L-14 -38 C -14 -60, -9 -84, 0 -104 Z" fill="url(#gn)"/>
+    <rect x="-14" y="10" width="28" height="7" fill="#1f6b45" opacity=".85"/>
+    <path d="M14 48 L34 92 L34 98 L14 86 Z" fill="url(#gf)"/><path d="M-14 48 L-34 92 L-34 98 L-14 86 Z" fill="url(#gf)"/>
+    <path d="M-3 52 L3 52 L3 96 L-3 96 Z" fill="#2d7a52" opacity=".7"/>
+    <path d="M-10 82 L10 82 L8 92 L-8 92 Z" fill="#4b5563"/>
+    <line x1="0" y1="-104" x2="0" y2="-128" stroke="#1f5fbf" stroke-width="2"/><path d="M0 -134 l-4 8 h8z" fill="#1f5fbf"/>
+  </g>
+  <g transform="translate(330 70)" font-family="Barlow, sans-serif" font-size="11">
+    <line x1="0" y1="0" x2="26" y2="0" stroke="#c62828" stroke-width="2"/><text x="30" y="4" fill="#c62828">D</text>
+    <line x1="0" y1="0" x2="0" y2="-26" stroke="#2e7d32" stroke-width="2"/><text x="-4" y="-30" fill="#2e7d32">Yukarı</text>
+    <line x1="0" y1="0" x2="-15" y2="12" stroke="#1f5fbf" stroke-width="2"/><text x="-30" y="22" fill="#1f5fbf">K</text>
+  </g>
+  <g font-family="Barlow Semi Condensed, Barlow, sans-serif" fill="#17211b">
+    <text x="18" y="30" font-size="13" fill="#6b776f" font-family="Barlow, sans-serif">Dikeyden sapma</text>
+    <text x="18" y="56" font-size="28" font-weight="600">${fmt(S.pi[L])}°</text>
+  </g>`;
+})();
+
+// ---- harita (çevrimdışı karo görünümü) ----
+(function(){
+  const m=document.getElementById('map'); let c='';
+  c+=`<rect width="560" height="372" fill="#eef0e6"/>`;
+  // arazi lekeleri ve eş yükselti
+  const blobs=[[120,90,140,70,'#e5e9da'],[430,300,170,90,'#e2e7d6'],[330,120,90,50,'#e8eadf']];
+  blobs.forEach(b=>c+=`<ellipse cx="${b[0]}" cy="${b[1]}" rx="${b[2]}" ry="${b[3]}" fill="${b[4]}"/>`);
+  for(let k=0;k<7;k++){c+=`<ellipse cx="430" cy="300" rx="${40+k*20}" ry="${20+k*11}" fill="none" stroke="#d6dcc8" stroke-width="1"/>`}
+  for(let k=0;k<5;k++){c+=`<ellipse cx="110" cy="95" rx="${30+k*18}" ry="${16+k*9}" fill="none" stroke="#d6dcc8"/>`}
+  c+=`<path d="M0 260 C 90 250, 160 290, 260 270 S 450 210, 560 230" fill="none" stroke="#ffffff" stroke-width="7"/><path d="M0 260 C 90 250, 160 290, 260 270 S 450 210, 560 230" fill="none" stroke="#f1c46b" stroke-width="3.5"/>`;
+  c+=`<path d="M210 420 C 220 340, 200 300, 230 240 S 260 120, 250 0" fill="none" stroke="#fff" stroke-width="4"/><path d="M210 420 C 220 340, 200 300, 230 240 S 260 120, 250 0" fill="none" stroke="#c9cfc0" stroke-width="1.6"/>`;
+  c+=`<path d="M380 0 C 370 60, 420 110, 470 130 S 540 170, 560 160" fill="none" stroke="#9cc3df" stroke-width="2.5"/>`;
+  c+=`<path d="M300 352 q 40 -30 90 -10 q 30 14 10 30 q -60 20 -100 -20z" fill="#cfe2ef"/>`;
+  // izler
+  const pad=[235,262], st=[168,296];
+  c+=`<circle cx="${st[0]}" cy="${st[1]}" r="6" fill="#ffffff" stroke="#3d4a42" stroke-width="2"/><text x="${st[0]-10}" y="${st[1]+20}" font-size="13" fill="#3d4a42" font-family="Barlow, sans-serif" text-anchor="end">Yer istasyonu</text>`;
+  c+=`<line x1="${st[0]}" y1="${st[1]}" x2="330" y2="206" stroke="#1f6b45" stroke-dasharray="4 4" stroke-width="1.4"/>`;
+  c+=`<path d="M${pad[0]} ${pad[1]} C 262 244, 292 228, 322 214" fill="none" stroke="#1f5fbf" stroke-width="3" stroke-linecap="round"/>`;
+  c+=`<path d="M${pad[0]} ${pad[1]} C 262 244, 292 228, 318 217" fill="none" stroke="#c2620a" stroke-width="1.6" stroke-dasharray="1 4" stroke-linecap="round"/>`;
+  c+=`<rect x="${pad[0]-6}" y="${pad[1]-6}" width="12" height="12" fill="#17211b"/><text x="${pad[0]+12}" y="${pad[1]+18}" font-size="13" fill="#17211b" font-family="Barlow, sans-serif">Rampa</text>`;
+  c+=`<circle cx="330" cy="206" r="14" fill="#1f5fbf" fill-opacity=".12"/><circle cx="330" cy="206" r="7" fill="#1f5fbf" stroke="#fff" stroke-width="2"/>`;
+  c+=`<circle cx="320" cy="214" r="5" fill="#c2620a" stroke="#fff" stroke-width="1.5"/>`;
+  c+=`<g font-family="Barlow, sans-serif" font-size="13"><rect x="342" y="186" width="118" height="40" rx="4" fill="#fff" stroke="#dde3de"/><text x="352" y="203" fill="#1f5fbf" font-weight="600">Roket</text><text x="352" y="219" fill="#3d4a42">6 095 m · 1,3 km</text></g>`;
+  // ölçek, kuzey, yakınlaştırma
+  c+=`<g font-family="Barlow, sans-serif" font-size="12" fill="#3d4a42"><rect x="14" y="14" width="34" height="62" rx="4" fill="#fff" stroke="#dde3de"/><text x="31" y="38" text-anchor="middle" font-size="18">+</text><line x1="20" y1="45" x2="42" y2="45" stroke="#dde3de"/><text x="31" y="66" text-anchor="middle" font-size="18">−</text>
+  <g transform="translate(528 34)"><path d="M0 -16 L7 6 L0 2 L-7 6Z" fill="#17211b"/><text y="20" text-anchor="middle">K</text></g>
+  <rect x="14" y="342" width="200" height="18" rx="3" fill="#ffffffcc"/><line x1="22" y1="354" x2="122" y2="354" stroke="#17211b" stroke-width="2"/><line x1="22" y1="349" x2="22" y2="358" stroke="#17211b"/><line x1="122" y1="349" x2="122" y2="358" stroke="#17211b"/><text x="130" y="358">500 m</text>
+  <rect x="356" y="342" width="192" height="18" rx="3" fill="#ffffffcc"/><text x="364" y="355">İmleç 38,7104° K · 33,4512° D</text></g>`;
+  m.innerHTML=c;
+})();
+
+// ---- seri günlük ----
+(function(){
+  const lines=[]; let seq=1342, sq=1330;
+  const ts=(k)=>{const ms=7812-k*100;const s=Math.floor(ms/1000),r=ms%1000;return `10:41:0${s}.${String(r).padStart(3,'0')}`};
+  for(let k=0;k<9;k++){
+    const t=NOW-k*.1, i=Math.max(0,L-Math.round(k/2));
+    if(k%2===0){
+      if(k===4){lines.push(`<span class="t">${ts(k)}</span>  <span class="s">roket     </span> <span class="bad">CRC hatası · 68 bayt · AA 55 3F 3C 05 2B 94 00 …</span>`);seq--;continue}
+      lines.push(`<span class="t">${ts(k)}</span>  <span class="s">roket     </span> #${seq--}  Apogee           alt=${fmt(S.alt[i],1).padStart(7)}  p=${fmt(S.p[i])}  pitch=${fmt(S.pi[i]).padStart(5)}  yaw=${fmt(S.ya[i])}  roll=${fmt(S.ro[i]).padStart(5)}  lat=38,7120411  lon=33,4561203  sat=14`);
+    } else {
+      lines.push(`<span class="t">${ts(k)}</span>  <span class="g">görev yükü</span> #${sq--}  ayrılmadı        alt=${fmt(S.alt[i]-2,1).padStart(7)}  p=${fmt(S.pp[i])}  T=${fmt(S.te[i])}  nem=${fmt(S.hu[i],0)}  lat=38,7121345  lon=33,4598812  sat=12`);
+    }
+  }
+  document.getElementById('log').innerHTML=lines.join('\n');
+})();
+
+// ---- sahneyi pencereye sığdır ----
+function fit(){const s=Math.min(window.innerWidth/1920,window.innerHeight/1080);const st=document.getElementById('stage');st.style.transform=`scale(${s})`;st.style.left=((window.innerWidth-1920*s)/2)+'px'}
+addEventListener('resize',fit);fit();
+</script>
+</body>
+</html>
