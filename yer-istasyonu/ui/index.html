@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AKANA Yer İstasyonu</title>
+<meta name="description" content="AKANA yer istasyonu: sade görev ekranı, Open MCT altyapısı (simülasyon modu)">
+<style>
+/* Sade görev ekranı. Renk anlam taşır: mavi roket, turuncu görev yükü, mor marka/simülasyon, yeşil-sarı-kırmızı durum. */
+:root{
+  color-scheme:light;
+  --bg:#eef2f7; --bg2:#f6f8fb; --card:#ffffff; --card2:#f7f9fc; --edge:#dbe3ee; --edge2:#c8d4e4; --rule:#e8eef5;
+  --text:#0f1b2d; --muted:#4f6079; --faint:#6c7d96; --head:#ffffff;
+  --acc:#1f6feb; --accsoft:rgba(31,111,235,.10); --pl:#c96a0a;
+  --ok:#14915a; --oksoft:rgba(20,145,90,.10); --warn:#b7791f; --bad:#d23c3c;
+  --sim:#5b3fc4; --simedge:#cbbcff; --hatch:repeating-linear-gradient(135deg,#ece6ff 0 8px,#f5f1ff 8px 16px);
+  --r3d:radial-gradient(140% 70% at 50% 120%,#cfe0fb 0%,#e6eefb 40%,transparent 70%),linear-gradient(180deg,#f7f9fd,#eef3fb);
+  --shadow:0 1px 2px rgba(16,24,40,.06);
+  --ui:"Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif; --mono:Consolas,Menlo,"DejaVu Sans Mono",monospace;
+  /* AKANA Open MCT panelleri (harita, yönelim, hakem) bu temaya bağlanır */
+  --a-text:var(--text); --a-muted:var(--muted); --a-faint:var(--faint); --a-edge:var(--edge); --a-rule:var(--rule); --a-bg2:var(--card2);
+  --a-brand:#7c4ddb; --a-ok:var(--ok); --a-warn:var(--warn); --a-bad:var(--bad);
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#1b1d22; --bg2:#202329; --card:#262a31; --card2:#2b3038; --edge:#383e48; --edge2:#4a525e; --rule:#323842;
+  --text:#e6e9ef; --muted:#a7b0bf; --faint:#8a94a5; --head:#22252b;
+  --acc:#4b8dff; --accsoft:rgba(75,141,255,.16); --pl:#ff9b3d;
+  --ok:#3ccf7f; --oksoft:rgba(60,207,127,.13); --warn:#f0b54a; --bad:#ff6363;
+  --sim:#c3b0ff; --simedge:#54468f; --hatch:repeating-linear-gradient(135deg,#2c2546 0 8px,#241e3a 8px 16px);
+  --r3d:radial-gradient(140% 70% at 50% 120%,#2e3f63 0%,#252b3a 40%,transparent 70%),#22252b;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:13px/18px var(--ui);font-variant-numeric:tabular-nums;overflow:hidden}
+button,select{font:inherit;color:inherit}
+.app{position:fixed;inset:0;display:grid;grid-template-rows:22px 58px minmax(0,1fr) 34px;grid-template-columns:300px minmax(0,1fr)}
+
+/* simülasyon şeridi */
+.simbar{grid-column:1/3;background:var(--hatch);border-bottom:1px solid var(--simedge);display:flex;align-items:center;justify-content:center;gap:12px;font-size:11.5px;color:var(--muted)}
+.simbar b{font:600 11px/22px var(--mono);letter-spacing:.16em;color:var(--sim)}
+.simbar button{all:unset;cursor:pointer;padding:0 8px;height:16px;line-height:16px;border:1px solid var(--simedge);border-radius:3px;font-size:11px;color:var(--sim);background:var(--card)}
+
+/* üst bar */
+.top{grid-column:1/3;display:flex;align-items:center;gap:14px;padding:0 14px 0 16px;background:var(--head);border-bottom:1px solid var(--edge)}
+.brand{display:flex;align-items:center;gap:10px;width:270px;flex:none}
+.brand svg{width:30px;height:32px}
+.brand b{display:block;font-size:19px;font-weight:700;letter-spacing:.08em;line-height:21px}
+.brand small{display:block;font-size:10px;letter-spacing:.2em;color:var(--muted);line-height:12px}
+.conn{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--edge);border-radius:10px;padding:4px 6px 4px 14px;min-width:0}
+.conn label{font-weight:600}
+.conn select{appearance:none;width:300px;max-width:30vw;height:32px;border-radius:7px;border:1px solid var(--edge);background:var(--card);padding:0 12px}
+.cbtn{all:unset;height:32px;padding:0 14px;border-radius:7px;font-weight:600;display:flex;align-items:center;gap:8px;white-space:nowrap;background:var(--accsoft);color:var(--acc);opacity:.6;cursor:not-allowed}
+.cstate{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);padding-right:6px;white-space:nowrap}
+.cstate i{width:9px;height:9px;border-radius:50%;background:var(--sim)}
+.sp{flex:1}
+.ib{all:unset;cursor:pointer;height:34px;padding:0 11px;border-radius:8px;display:flex;align-items:center;gap:7px;color:var(--muted);font-size:12.5px;font-weight:600;border:1px solid transparent;white-space:nowrap}
+.ib:hover{background:var(--accsoft);color:var(--text)}
+.ib.on{border-color:var(--acc);color:var(--acc);background:var(--accsoft)}
+.ib svg{width:19px;height:19px;flex:none}
+.ib:focus-visible,.cbtn:focus-visible,.sg button:focus-visible,.tabs button:focus-visible,.mb:focus-visible,.simbar button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+
+/* sol kenar */
+.side{background:var(--bg2);border-right:1px solid var(--edge);padding:12px;display:flex;flex-direction:column;gap:12px;min-height:0}
+.box{background:var(--card);border:1px solid var(--edge);border-radius:10px;box-shadow:var(--shadow)}
+.sess{padding:10px 13px}
+.sess label{font-size:11px;font-weight:600;color:var(--faint);letter-spacing:.04em}
+.sess b{display:block;font-size:14px;font-weight:700;margin-top:3px}
+.sess span{display:block;font-size:12px;color:var(--muted);margin-top:1px}
+.sh{font-size:12.5px;font-weight:600;color:var(--muted);letter-spacing:.03em;padding:0 2px}
+.tl{display:grid;gap:6px}
+.ph{display:grid;grid-template-columns:18px 1fr;align-items:center;gap:9px}
+.ph i{width:15px;height:15px;border-radius:50%;border:2px solid var(--edge2);position:relative}
+.ph .pill{display:flex;align-items:center;justify-content:space-between;height:28px;border-radius:7px;border:1px solid var(--edge);background:var(--card);padding:0 11px;font-weight:600;font-size:12.5px;color:var(--faint)}
+.ph .pill span{font:500 11.5px var(--mono)}
+.ph.done i{border-color:var(--ok);background:var(--ok)}
+.ph.done i::after{content:"";position:absolute;left:3.5px;top:.5px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.ph.done .pill{color:var(--text);border-color:color-mix(in srgb,var(--ok) 35%,var(--edge));background:var(--oksoft)}
+.ph.done .pill span{color:var(--ok)}
+.ph.now i{border-color:var(--acc);box-shadow:0 0 0 4px var(--accsoft)}
+.ph.now i::after{content:"";position:absolute;inset:2.5px;border-radius:50%;background:var(--acc)}
+.ph.now .pill{background:var(--acc);border-color:var(--acc);color:#fff}
+.mapc{flex:1;min-height:150px;display:flex;flex-direction:column;overflow:hidden}
+.mapc.big{position:fixed;left:312px;top:92px;right:12px;bottom:46px;z-index:40;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+.cardh{display:flex;align-items:center;gap:8px;height:38px;padding:0 8px 0 13px;border-bottom:1px solid var(--edge);flex:none}
+.cardh h2{font-size:13px;font-weight:600;margin:0 auto 0 0}
+.mb{all:unset;cursor:pointer;width:28px;height:24px;display:grid;place-items:center;border:1px solid var(--edge);border-radius:6px;color:var(--muted);font:500 13px/1 var(--mono)}
+.host{flex:1;min-height:0;position:relative}
+.host > .akv{position:absolute;inset:0}
+
+/* ana alan */
+.main{display:grid;grid-template-rows:84px 40px minmax(0,1fr) 112px;gap:10px;padding:12px 14px 10px 12px;min-height:0;min-width:0}
+.kpis{display:grid;grid-template-columns:1.3fr repeat(5,1fr);gap:10px}
+.kpi{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0}
+.kpi label{font-size:14px;font-weight:600;color:var(--muted)}
+.kpi b{font:600 26px/30px var(--ui);white-space:nowrap}
+.kpi b small{font-size:13px;font-weight:500;color:var(--muted);margin-left:5px}
+.kpi b.na{color:var(--faint)} .kpi b.st{color:var(--warn)}
+.kpi.ph b{color:var(--acc);font-size:21px}
+.kpi.tm b{font-family:var(--mono)}
+.maxr{display:grid;grid-template-columns:repeat(5,1fr);align-items:center;padding:0 20px}
+.maxr div{display:flex;align-items:center;gap:10px;font-weight:600;color:var(--muted);font-size:13px;white-space:nowrap}
+.maxr b{font:600 13.5px var(--mono);color:var(--text)}
+.mid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:10px;min-height:0}
+.prof{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.phd{display:flex;align-items:center;gap:12px;height:52px;padding:0 14px 0 18px;flex:none}
+.phd h1{font-size:20px;font-weight:700;margin:0;white-space:nowrap}
+.tabs{display:flex;gap:3px;flex-wrap:wrap}
+.tabs button{all:unset;cursor:pointer;padding:0 11px;height:28px;line-height:28px;border-radius:7px;font-size:12.5px;font-weight:500;color:var(--muted)}
+.tabs button.on{background:var(--accsoft);color:var(--acc);font-weight:600}
+.simt{font:600 10px var(--mono);letter-spacing:.14em;color:var(--sim);border:1px solid var(--simedge);border-radius:4px;padding:1px 6px;background:var(--hatch);white-space:nowrap}
+#plot{flex:1;min-height:0;position:relative;margin:0 10px 8px}
+#plot .plot-in{position:absolute;inset:0;display:flex;flex-direction:column}
+.rail{display:grid;grid-template-rows:minmax(200px,44%) minmax(0,1fr);gap:10px;min-height:0}
+.col{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.sg{display:flex;border:1px solid var(--edge);border-radius:6px;overflow:hidden}
+.sg button{all:unset;cursor:pointer;padding:0 9px;height:24px;line-height:24px;font-size:11.5px;color:var(--muted)}
+.sg button.on{background:var(--acc);color:#fff}
+.log{flex:1;min-height:0;overflow:auto;padding:4px 13px}
+.le{display:grid;grid-template-columns:62px 10px 1fr;column-gap:8px;padding:5px 0;border-bottom:1px solid var(--rule);align-items:start}
+.le .tm{font:500 11.5px/17px var(--mono);color:var(--faint)}
+.le i{width:8px;height:8px;border-radius:50%;margin-top:5px;background:var(--ok)}
+.le.warn i{background:var(--warn)} .le.err i{background:var(--bad)}
+.le .tx{font-size:12.5px;line-height:17px}
+.le .tx span{display:block;font:400 11px var(--mono);color:var(--faint)}
+.chk{padding:4px 13px;overflow:auto}
+.ck{display:flex;justify-content:space-between;align-items:center;height:34px;border-bottom:1px solid var(--rule);color:var(--muted)}
+.ck b{font:600 12.5px var(--mono)}
+.ok-t{color:var(--ok)!important}.warn-t{color:var(--warn)!important}.bad-t{color:var(--bad)!important}.na-t{color:var(--faint)!important}
+.det{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(3,1fr);padding:6px 20px;column-gap:26px}
+.det div{display:grid;grid-template-columns:96px 1fr;align-items:center;border-bottom:1px solid var(--rule);min-width:0}
+.det div:nth-last-child(-n+4){border-bottom:0}
+.det label{font-weight:600;color:var(--muted)}
+.det b{font:500 12.5px var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.det b.na{color:var(--faint)}
+.det div.pl label{color:var(--pl)}
+
+/* durum çubuğu */
+.status{grid-column:1/3;display:flex;align-items:center;gap:24px;padding:0 14px;background:var(--head);border-top:1px solid var(--edge);font-size:12.5px;white-space:nowrap;overflow:hidden}
+.status span{color:var(--muted);font-weight:600}
+.status b{font:600 12.5px var(--mono);margin-left:6px}
+.status .warnm{min-width:0;overflow:hidden;text-overflow:ellipsis}
+
+/* yönelim paneli (Open MCT AKANA görünümü) açık temaya uyarlanır */
+
+/* Open MCT çalışma alanı: arka planda çalışır, tek tuşla öne gelir */
+#omct{position:fixed;left:0;right:0;top:80px;bottom:34px;z-index:-1;opacity:0;pointer-events:none;contain:strict}
+body.ws #omct{z-index:30;opacity:1;pointer-events:auto}
+body:not(.ws) #omct *{pointer-events:none!important}
+#omct-mount{position:absolute;inset:0}
+#omct{background:var(--bg)}
+
+/* hakem ekranı */
+.ref{position:fixed;inset:0;z-index:60;background:var(--bg);display:grid;grid-template-rows:auto minmax(0,1fr)}
+.ref .rh{display:flex;align-items:center;gap:14px;padding:10px 22px;border-bottom:1px solid var(--edge);background:var(--head)}
+.ref .rh h2{font-size:19px;margin:0}
+.ref .btn{all:unset;cursor:pointer;height:32px;padding:0 16px;border-radius:8px;border:1px solid var(--edge2);font-weight:600;display:flex;align-items:center}
+#refBody{position:relative}
+#refBody .akv-rc{background:var(--card)}
+#refBody .akv-rc b{font-size:56px}
+#refBody .akv-rc b.sm{font-size:26px}
+#refBody .akv-rc:first-child b{font-size:clamp(28px,3vw,44px);white-space:normal}
+
+/* ---- AKANA görünümleri ---- */
+.akv{height:100%;box-sizing:border-box;color:var(--a-text);font:12px/16px "Helvetica Neue",Helvetica,Arial,sans-serif;overflow:hidden;font-variant-numeric:tabular-nums}
+.akv b{font-weight:600}
+.akv-sub{font-size:11px;font-weight:600;color:var(--a-faint);letter-spacing:.06em;text-transform:uppercase;margin:6px 2px 6px}
+.akv-ph{padding:4px 8px;display:flex;flex-direction:column}
+.akv-tl{display:grid;gap:4px}
+.akv-step{display:grid;grid-template-columns:16px 1fr auto;align-items:center;gap:8px;height:24px;padding:0 8px 0 4px;border-radius:4px;background:var(--a-bg2);border:1px solid var(--a-rule);color:var(--a-faint)}
+.akv-step i{width:10px;height:10px;border-radius:50%;border:2px solid #5e5e5e;box-sizing:border-box}
+.akv-step b{font-weight:500}
+.akv-step span{font:500 11px "Menlo","Consolas",monospace;color:var(--a-faint)}
+.akv-step.done{color:var(--a-text)} .akv-step.done i{background:var(--a-ok);border-color:var(--a-ok)} .akv-step.done span{color:var(--a-ok)}
+.akv-step.now{background:rgba(155,92,255,.22);border-color:var(--a-brand);color:#fff} .akv-step.now i{border-color:var(--a-brand);background:var(--a-brand);box-shadow:0 0 0 3px rgba(155,92,255,.3)} .akv-step.now span{color:#e3d6ff}
+.akv-step.safe{border-style:dashed}
+.akv-chk{display:grid}
+.akv-ck{display:flex;justify-content:space-between;align-items:center;height:22px;border-bottom:1px solid var(--a-rule)}
+.akv-ck span{color:var(--a-muted)}
+.akv-ck b{font:600 11.5px "Menlo","Consolas",monospace}
+.akv-ok{color:var(--a-ok)!important}.akv-warn{color:var(--a-warn)!important}.akv-bad{color:var(--a-bad)!important}.akv-na{color:var(--a-faint)!important}
+.akv-log{padding:2px 6px;overflow:auto}
+.akv-le{display:grid;grid-template-columns:60px 10px 1fr;gap:6px;padding:4px 0;border-bottom:1px solid var(--a-rule);align-items:start}
+.akv-le span{font:500 11px/16px "Menlo","Consolas",monospace;color:var(--a-faint)}
+.akv-le i{width:7px;height:7px;border-radius:50%;margin-top:5px;background:var(--a-ok)}
+.akv-le.akv-warn i{background:var(--a-warn)} .akv-le.akv-err i{background:var(--a-bad)}
+.akv-le.akv-warn,.akv-le.akv-err{color:var(--a-text)!important}
+.akv-le em{display:block;font-style:normal;font:400 10.5px "Menlo","Consolas",monospace;color:var(--a-faint)}
+.akv-tbl{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed}
+.akv-tbl th:first-child{width:34%}
+.akv-tbl th{text-align:right;color:var(--a-muted);font-weight:600;padding:4px 6px;border-bottom:1px solid var(--a-edge)}
+.akv-tbl td{text-align:right;padding:0 4px;height:20px;border-bottom:1px solid var(--a-rule);font:500 10.5px "Menlo","Consolas",monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.akv-tbl td:first-child,.akv-tbl th:first-child{text-align:left;font:400 11.5px "Helvetica Neue",Helvetica,Arial,sans-serif;color:var(--a-muted)}
+.akv-map{position:relative}
+.akm-svg{position:absolute;inset:0;width:100%;height:100%}
+#ov text{paint-order:stroke;stroke:rgba(10,10,10,.85);stroke-width:3px;stroke-linejoin:round}
+.akm-wm{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%) rotate(-10deg);font:700 46px/1 Helvetica,Arial,sans-serif;letter-spacing:.16em;color:rgba(255,255,255,.07);pointer-events:none}
+.akm-leg,.akm-lay,.akm-zoom{position:absolute;display:flex;background:rgba(20,20,20,.86);border:1px solid #555;border-radius:4px;overflow:hidden}
+.akm-leg{left:8px;top:8px;flex-direction:column}
+.akm-lay{right:8px;top:8px}
+.akm-zoom{left:8px;bottom:34px;flex-direction:column}
+.akv-map button{all:unset;cursor:pointer;padding:0 9px;height:22px;line-height:22px;font-size:11.5px;color:#bbb}
+.akv-map button.on{color:#fff;background:#0b7fc7}
+.akm-leg button.on{background:none;color:#fff;font-weight:600}
+.akm-zoom button{width:24px;padding:0;text-align:center;font:500 14px/22px Menlo,monospace}
+.akv-map button:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+.akm-scale{position:absolute;left:40px;bottom:34px;font:400 10.5px Menlo,monospace;color:#eee;background:rgba(20,20,20,.7);padding:2px 6px;border-radius:3px}
+.akm-foot{position:absolute;left:0;right:0;bottom:0;height:26px;display:flex;align-items:center;gap:8px;padding:0 10px;background:rgba(20,20,20,.88);font-size:11px;color:#aaa;white-space:nowrap}
+.akm-foot b{color:#eee;font:500 11px Menlo,monospace}
+.akm-attr{margin-left:auto;font:400 10px Menlo,monospace;color:#888}
+.akv-att{display:flex;flex-direction:column}
+.akv-att .r3d{flex:1;position:relative;min-height:0;background:radial-gradient(140% 70% at 50% 120%,#3b3b4f 0%,#2a2a33 35%,transparent 65%),#232323}
+.akv-att .r3d canvas{position:absolute;inset:0}
+.akv-att .cmp{display:none}
+.akv-att .fb{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--a-faint)}
+.akv-attv{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;padding:4px 0 6px}
+.akv-attv label{display:block;font-size:10.5px;color:var(--a-faint)}
+.akv-attv b{font:600 13px "Menlo","Consolas",monospace}
+.akv-ref{display:flex;flex-direction:column;padding:10px}
+.akv-refh{font:600 12px/30px "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.1em;color:#efe6ff;background:repeating-linear-gradient(135deg,#3a2f63 0 9px,#30274f 9px 18px);text-align:center;border-radius:4px;margin-bottom:10px}
+.akv-rgrid{flex:1;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:10px;min-height:0}
+.akv-rc{background:var(--a-bg2);border:1px solid var(--a-edge);border-radius:6px;padding:16px 22px;display:flex;flex-direction:column;justify-content:center;gap:6px;min-width:0}
+.akv-rc label{font-size:14px;color:var(--a-muted)}
+.akv-rc b{font:600 48px/1.05 "Helvetica Neue",Helvetica,Arial,sans-serif;white-space:nowrap}
+.akv-rc b.sm{font:500 24px/1.3 "Menlo","Consolas",monospace}
+.akv-rc span{font:400 13px "Menlo","Consolas",monospace;color:var(--a-faint)}
+
+/* sade ekran uyarlamaları */
+.conn select{color:var(--text)!important;background-color:var(--card)!important}
+.conn select option{background:var(--card);color:var(--text)}
+.akv{font-family:var(--ui)}
+.akv-att .r3d{background:var(--r3d)}
+.akv-attv{border-top:1px solid var(--rule);padding:6px 0 8px}
+.akv-attv label{color:var(--faint)} .akv-attv b{color:var(--text)}
+.ph.safe .pill{border-style:dashed}
+.akv-step.now{background:var(--a-brand)}
+
+
+/* Analiz modu (PlotJuggler tarzı): sinyal ağacı · bölünebilir grafikler · ortak imleç · oynatma */
+#analiz{position:fixed;left:0;right:0;top:80px;bottom:34px;z-index:25;background:var(--bg);display:none;grid-template-columns:270px minmax(0,1fr);grid-template-rows:minmax(0,1fr) 54px}
+body.an #analiz{display:grid}
+.anside{grid-row:1/3;background:var(--bg2);border-right:1px solid var(--edge);display:flex;flex-direction:column;min-height:0}
+.anside .q{padding:10px 12px 6px}
+.anside input,.anside select{width:100%;height:30px;border:1px solid var(--edge);border-radius:7px;background:var(--card)!important;color:var(--text)!important;padding:0 10px;font:inherit}
+#anTree{flex:1;min-height:0;overflow:auto;padding:0 8px 8px}
+.ang{font-size:11px;font-weight:700;color:var(--faint);letter-spacing:.06em;text-transform:uppercase;padding:10px 6px 4px}
+.ani{display:flex;justify-content:space-between;gap:8px;align-items:center;height:26px;padding:0 8px;border-radius:6px;cursor:grab;font-size:12.5px;user-select:none}
+.ani small{font:400 11px var(--mono);color:var(--faint)}
+.ani:hover{background:var(--accsoft)} .ani.sel{background:var(--acc);color:#fff} .ani.sel small{color:#fff}
+.ani.used span::before{content:"●";color:var(--acc);margin-right:6px;font-size:9px} .ani.sel.used span::before{color:#fff}
+.ani:focus-visible{outline:2px solid var(--acc)}
+.anfx{border-top:1px solid var(--edge);padding:10px 12px 12px;display:grid;gap:7px}
+.anfx h3{margin:0;font-size:12px;font-weight:700;color:var(--muted)}
+.anfx label{font-size:11.5px;color:var(--faint)}
+.anfx .row{display:flex;gap:6px}
+.anbtn{all:unset;cursor:pointer;height:30px;padding:0 12px;border-radius:7px;font-weight:600;font-size:12.5px;display:flex;align-items:center;justify-content:center;border:1px solid var(--edge2);background:var(--card)}
+.anbtn.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.anbtn:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.anbtn.on{border-color:var(--acc);color:var(--acc);background:var(--accsoft)}
+.anmain{display:flex;flex-direction:column;min-height:0;min-width:0;padding:10px 12px 10px}
+.antb{display:flex;align-items:center;gap:10px;height:34px;flex:none;margin-bottom:8px}
+.antb h1{font-size:17px;margin:0 6px 0 2px}
+.antb .hint{font-size:12px;color:var(--faint)}
+#anGrid{flex:1;min-height:0;display:grid;gap:10px;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+#anGrid[data-layout="1"]{grid-template-columns:1fr;grid-template-rows:1fr}
+#anGrid[data-layout="2"]{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
+.anp{background:var(--card);border:1px solid var(--edge);border-radius:10px;display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden}
+.anp.focus{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
+.anp.drop{background:var(--accsoft);border-style:dashed}
+.anph{display:flex;align-items:flex-start;gap:8px;padding:7px 8px 4px 10px;flex:none}
+.anlg{flex:1;display:flex;flex-wrap:wrap;gap:2px 14px;font-size:12px;color:var(--muted);min-width:0;padding-top:3px}
+.anlg em{font-style:normal;color:var(--faint)}
+.anli,.anx{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.anli i{width:12px;height:3px;border-radius:2px}
+.anlg b{font:600 12px var(--mono);color:var(--text)}
+.anlg button{all:unset;cursor:pointer;color:var(--faint);font-size:11px;padding:0 2px}
+.anlg button:hover{color:var(--bad)}
+.anx{color:var(--text);font-weight:600}
+.anc{flex:1;min-height:0;position:relative}
+.anc canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;touch-action:none}
+.antl{grid-column:2;display:flex;align-items:center;gap:12px;padding:0 14px;border-top:1px solid var(--edge);background:var(--head)}
+.antl select{height:30px;border:1px solid var(--edge);border-radius:7px;background:var(--card)!important;color:var(--text)!important;padding:0 6px}
+.anslw{flex:1;position:relative;display:flex;align-items:center}
+.anslw input{width:100%;accent-color:var(--acc)}
+#anMarks{position:absolute;left:8px;right:8px;top:-3px;height:6px;pointer-events:none}
+#anMarks i{position:absolute;width:2px;height:7px;background:var(--faint);transform:translateX(-1px)}
+.antl b{font:600 13px var(--mono);min-width:96px}
+.antl .ph2{font-size:12.5px;color:var(--acc);font-weight:600;min-width:150px}
+
+
+/* veri kaynağı modları: renk ve metin akana-live.js'ten (data-mode) */
+.cbtn.on{opacity:1;cursor:pointer;background:var(--acc);color:#fff}
+.smode{color:var(--sim)}
+:root[data-mode="live"]{--modec:#0f8a4c;--modebg:repeating-linear-gradient(135deg,#dcf5e7 0 8px,#eafaf1 8px 16px);--modeedge:#8fd6ae}
+:root[data-mode="nodata"]{--modec:#9a6200;--modebg:repeating-linear-gradient(135deg,#fdf0d5 0 8px,#fff7e6 8px 16px);--modeedge:#f0c46c}
+:root[data-mode="down"]{--modec:#b42323;--modebg:repeating-linear-gradient(135deg,#fbe1e1 0 8px,#fdeeee 8px 16px);--modeedge:#f0a3a3}
+:root[data-mode="replay"]{--modec:#1d5fc4;--modebg:repeating-linear-gradient(135deg,#dde9fb 0 8px,#ecf3fd 8px 16px);--modeedge:#9dbdf0}
+:root[data-theme="dark"][data-mode="live"]{--modebg:repeating-linear-gradient(135deg,#123a26 0 8px,#0f301f 8px 16px);--modec:#6fe0a2;--modeedge:#2c7a50}
+:root[data-theme="dark"][data-mode="nodata"]{--modebg:repeating-linear-gradient(135deg,#3d2f10 0 8px,#33270c 8px 16px);--modec:#f3c467;--modeedge:#7a5a1c}
+:root[data-theme="dark"][data-mode="down"]{--modebg:repeating-linear-gradient(135deg,#421919 0 8px,#371414 8px 16px);--modec:#ff8f8f;--modeedge:#843232}
+:root[data-theme="dark"][data-mode="replay"]{--modebg:repeating-linear-gradient(135deg,#17305a 0 8px,#13284b 8px 16px);--modec:#9cc2ff;--modeedge:#2f5592}
+:root[data-mode="live"] .simbar,:root[data-mode="nodata"] .simbar,:root[data-mode="down"] .simbar,:root[data-mode="replay"] .simbar{background:var(--modebg);border-color:var(--modeedge)}
+:root[data-mode="live"] .simbar b,:root[data-mode="nodata"] .simbar b,:root[data-mode="down"] .simbar b,:root[data-mode="replay"] .simbar b,
+:root[data-mode="live"] .smode,:root[data-mode="nodata"] .smode,:root[data-mode="down"] .smode,:root[data-mode="replay"] .smode{color:var(--modec)}
+:root[data-mode="live"] .simt,:root[data-mode="nodata"] .simt,:root[data-mode="down"] .simt,:root[data-mode="replay"] .simt{color:var(--modec);background:var(--modebg);border-color:var(--modeedge)}
+:root[data-mode="live"] .cstate i{background:var(--ok)} :root[data-mode="nodata"] .cstate i{background:var(--warn)} :root[data-mode="down"] .cstate i{background:var(--bad)} :root[data-mode="replay"] .cstate i{background:var(--acc)}
+.akv-refh.akv-mode-live{background:#0f6b3d}.akv-refh.akv-mode-replay{background:#1d4f9c}.akv-refh.akv-mode-down,.akv-refh.akv-mode-nodata{background:#8a2a2a}
+.repctl{display:flex;gap:4px;align-items:center}
+.repctl button,.repctl select{all:unset;cursor:pointer;height:16px;line-height:16px;padding:0 7px;border:1px solid var(--modeedge,var(--simedge));border-radius:3px;font-size:11px;color:var(--modec,var(--sim));background:var(--card)}
+.repctl button:focus-visible,.repctl select:focus-visible{outline:2px solid var(--acc)}
+.pdlg{position:fixed;inset:0;z-index:70;background:rgba(10,16,28,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.pdlg .box{width:min(520px,100%);padding:18px 20px;display:grid;gap:12px}
+.pdlg h2{margin:0;font-size:16px}
+.pd-body{display:grid;gap:10px}
+.pd-body label{display:grid;gap:4px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.pd-body select{height:32px;border:1px solid var(--edge);border-radius:7px;background:var(--card)!important;color:var(--text)!important;padding:0 8px;font:inherit}
+.pd-note{margin:0;font-size:12px;color:var(--faint)} .pd-warn{margin:0;color:var(--warn);font-weight:600}
+.pd-ft{display:flex;gap:8px;justify-content:flex-end}
+
+@media (max-width:1100px){
+  #analiz{top:0;bottom:0;grid-template-columns:1fr;grid-template-rows:auto auto auto;overflow:auto;z-index:45}
+  .anside{grid-row:auto} #anTree{max-height:180px} .antb .hint,.antb .simt{display:none} .antb{flex-wrap:wrap;height:auto} .antl .ph2{min-width:0} .antl{grid-column:1;flex-wrap:wrap;padding:8px 12px}
+  #anGrid{grid-template-columns:1fr!important;grid-template-rows:none!important;grid-auto-rows:300px}
+
+  body{overflow:auto}
+  .app{position:static;display:flex;flex-direction:column}
+  .top{flex-wrap:wrap;height:auto;padding:8px 16px;gap:8px}
+  .brand{width:auto}
+  .simbar{height:auto;padding:4px 16px;flex-wrap:wrap;gap:4px 10px} .simbar span{display:none}
+  .conn{flex-wrap:wrap;width:100%;padding:8px} .conn label{flex:none} .conn select{max-width:none;width:auto;flex:1 1 200px}
+  .side{border-right:0}
+  .mapc{min-height:320px}
+  .main{display:flex;flex-direction:column;padding:12px 16px}
+  .kpis{grid-template-columns:repeat(2,1fr)} .kpi{min-height:78px}
+  .maxr{grid-template-columns:1fr;padding:8px 16px;gap:6px}
+  .mid{display:flex;flex-direction:column}
+  .prof{height:420px}
+  .rail{display:flex;flex-direction:column} .rail .col{min-height:300px}
+  .det{grid-template-columns:1fr;grid-template-rows:none} .det div{height:30px} .det div:nth-last-child(-n+4){border-bottom:1px solid var(--rule)}
+  .status{flex-wrap:wrap;height:auto;padding:8px 16px;gap:8px 18px}
+  #omct{top:0;bottom:0}
+  .mapc.big{left:8px;top:8px;right:8px;bottom:8px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="app">
+  <div class="simbar" id="simbar"><b>SİMÜLASYON MODU</b><span>Veriler dahili simülatörden gelir, gerçek uçuş verisi değildir.</span><button id="restart">Baştan başlat</button><span id="repCtl" class="repctl" hidden><button id="repBack" title="Başa sar" aria-label="Başa sar">⏮</button><button id="repPlay" aria-label="Oynat / duraklat">❚❚</button><select id="repSpeed" aria-label="Oynatma hızı"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="5">5×</option><option value="10">10×</option></select></span></div>
+
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="640 468 720 756" aria-hidden="true"><polygon points="985,484 988,686 838,946 663,1067" fill="#a335f5"/><polygon points="1000,478 1000,683 1147,932 1328,1056" fill="#7a1fd8"/><polygon points="655,1097 998,862 998,973 655,1210" fill="#5a1fb8"/><polygon points="998,862 1344,1090 1345,1206 998,973" fill="#3a1284"/></svg>
+      <div><b>AKANA</b><small>YER İSTASYONU</small></div>
+    </div>
+    <div class="conn">
+      <label for="port">Kaynak</label>
+      <select id="port"><option selected>Simülasyon (dahili, 20 000 ft profili)</option><option disabled>Seri port bulunamadı</option></select>
+      <span class="cbtn" id="connBtn" title="Gerçek alıcı bağlantısı için yer istasyonu servisini (yi_core) çalıştırın">▶ Bağlan</span>
+      <span class="cstate" id="cstate"><i></i>Simülasyon çalışıyor</span>
+    </div>
+    <div class="sp"></div>
+    <button class="ib" id="refBtn" title="Hakem ekranı"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>Hakem ekranı</button>
+    <button class="ib" id="anBtn" title="Analiz: sinyalleri sürükleyip karşılaştırın, filtre uygulayın, kaydı oynatın"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 20h18M5 16l4-6 4 3 6-8"/><circle cx="9" cy="10" r="1.2"/><circle cx="13" cy="13" r="1.2"/></svg>Analiz</button>
+    <button class="ib" id="wsBtn" title="Open MCT çalışma alanı: tüm telemetri noktaları, tablolar, düzenler, uçuş defteri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Çalışma alanı</button>
+    <button class="ib" id="themeBtn" title="Açık / koyu tema" aria-label="Açık / koyu tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
+  </header>
+
+  <aside class="side">
+    <div class="box sess"><label>Uçuş oturumu</label><b>AKANA Roket Takımı</b><span>A3 Yüksek İrtifa · Aerotech N3300</span><span>Hedef 20 000 ft · Aksaray</span></div>
+    <div class="sh">Görev zaman çizelgesi</div>
+    <div class="tl" id="tl"></div>
+    <div class="box mapc" id="mapCard"><div class="cardh"><h2>Konum ve iniş haritası</h2><button class="mb" id="mapFs" aria-label="Büyüt">⤢</button></div><div class="host" id="mapHost"></div></div>
+  </aside>
+
+  <main class="main">
+    <section class="kpis" id="kpis"></section>
+    <section class="box maxr" id="maxr"></section>
+    <section class="mid">
+      <div class="box prof">
+        <div class="phd"><h1>Uçuş profili</h1><div class="tabs" id="ctabs" role="tablist"></div><div class="sp"></div><span class="simt">SİMÜLASYON VERİSİ</span></div>
+        <div id="plot" class="js-overlay"><!-- js-overlay: Open MCT görünürlük gözlemcisi bu grafiği kök dışı saymasın --></div>
+      </div>
+      <div class="rail">
+        <div class="box col"><div class="cardh"><h2>Yönelim</h2></div><div class="host" id="attHost"></div></div>
+        <div class="box col"><div class="cardh"><h2>Olaylar</h2><div class="sg" role="tablist"><button data-rt="log" class="on">Olay kaydı</button><button data-rt="chk">Şartname</button></div></div>
+          <div class="log" id="log"></div><div class="chk" id="chk" hidden></div></div>
+      </div>
+    </section>
+    <section class="box det" id="det"></section>
+  </main>
+
+  <footer class="status">
+    <span>Bağlantı:<b id="sMode" class="smode">SİMÜLASYON</b></span>
+    <span>Paket hızı:<b id="sHz">—</b></span>
+    <span>Bozuk paket:<b id="sCrc">0</b></span>
+    <span>Kayıp paket:<b id="sLost">0</b></span>
+    <span class="warnm">Uyarı:<b id="sWarn" class="warn-t">—</b></span>
+    <div class="sp"></div>
+    <span>Birim</span><div class="sg" role="group" aria-label="İrtifa birimi"><button data-unit="m" class="on">m</button><button data-unit="ft">ft</button></div>
+  </footer>
+</div>
+
+<section id="analiz" aria-label="Analiz">
+  <div class="anside">
+    <div class="q"><input id="anQ" type="search" placeholder="Sinyal ara…" aria-label="Sinyal ara"></div>
+    <div id="anTree"></div>
+    <div class="anfx">
+      <div class="row"><button class="anbtn" id="anAdd" style="flex:1">Seçili sinyali grafiğe ekle</button></div>
+      <h3>Türetilmiş sinyal</h3>
+      <label for="anSrc">Kaynak</label><select id="anSrc"></select>
+      <label for="anFn">Filtre</label><select id="anFn"></select>
+      <div id="anParW"><label id="anParL" for="anPar"></label><input id="anPar" inputmode="decimal"></div>
+      <button class="anbtn pri" id="anMake">Oluştur ve grafiğe ekle</button>
+    </div>
+  </div>
+  <div class="anmain">
+    <div class="antb"><h1>Analiz</h1><div class="sg" role="group" aria-label="Grafik düzeni"><button data-lay="1">1</button><button data-lay="2">2</button><button data-lay="2x2" class="on">2×2</button></div>
+      <button class="anbtn" id="anFit">Tümünü göster</button>
+      <span class="hint">Sürükle-bırak · tekerlek: yakınlaştır · sürükle: kaydır · çift tık: sığdır</span><div class="sp"></div><span class="simt">SİMÜLASYON VERİSİ</span><button class="anbtn" id="anClose">Kapat</button></div>
+    <div id="anGrid"></div>
+  </div>
+  <div class="antl">
+    <button class="anbtn" id="anPlay" aria-label="Oynat / duraklat" style="width:40px">▶</button>
+    <select id="anSpeed" aria-label="Oynatma hızı"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="5">5×</option><option value="10">10×</option></select>
+    <b id="anT">—</b><span class="ph2" id="anPh">—</span>
+    <div class="anslw"><div id="anMarks"></div><input type="range" id="anSlider" aria-label="Zaman"></div>
+    <button class="anbtn" id="anLive">● Canlı</button>
+  </div>
+</section>
+
+<div class="pdlg" id="portDlg" hidden><div class="box" role="dialog" aria-modal="true" aria-labelledby="pdT">
+  <h2 id="pdT">Alıcı portları</h2><div class="pd-body"></div>
+  <div class="pd-ft"><button class="anbtn" id="pdRefresh">Portları yenile</button><div class="sp"></div><button class="anbtn" id="pdCancel">Vazgeç</button><button class="anbtn pri" id="pdGo">Bağlan</button></div>
+</div></div>
+
+<div id="omct"><div id="omct-mount"></div></div>
+
+<section class="ref" id="ref" hidden>
+  <div class="rh"><svg viewBox="640 468 720 756" width="28" height="30" aria-hidden="true"><polygon points="985,484 988,686 838,946 663,1067" fill="#a335f5"/><polygon points="1000,478 1000,683 1147,932 1328,1056" fill="#7a1fd8"/><polygon points="655,1097 998,862 998,973 655,1210" fill="#5a1fb8"/><polygon points="998,862 1344,1090 1345,1206 998,973" fill="#3a1284"/></svg><h2>Hakem ekranı</h2><div class="sp"></div><button class="btn" id="refClose">Kapat</button></div>
+  <div id="refBody"></div>
+</section>
+
+<script src="vendor/three.min.js"></script>
+<script src="tiles.js"></script>
+<script src="openmct/openmct.js"></script>
+<script src="akana.js"></script>
+<script src="akana-sky.js"></script>
+<script src="akana-analiz.js"></script>
+<script src="akana-live.js"></script>
+<script>
+  let THEME = 'light'; try { THEME = localStorage.getItem('akana.theme') || 'light'; } catch(e){}
+  if (THEME === 'dark') document.documentElement.dataset.theme = 'dark';
+  const ONE_MIN = 60 * 1000;
+  openmct.setAssetPath('openmct/');
+  openmct.install(openmct.plugins.LocalStorage());
+  openmct.install(openmct.plugins.MyItems());
+  openmct.install(openmct.plugins.UTCTimeSystem());
+  openmct.install(THEME === 'dark' ? openmct.plugins.Espresso() : openmct.plugins.Snow());
+  openmct.install(openmct.plugins.Clock({ enableClockIndicator: true }));
+  openmct.install(openmct.plugins.Notebook());
+  openmct.install(openmct.plugins.LADTable());
+  openmct.install(openmct.plugins.Conductor({ menuOptions: [
+    { name:'Gerçek zaman', timeSystem:'utc', clock:'local', clockOffsets:{ start:-5 * ONE_MIN, end:5 * 1000 } },
+    { name:'Sabit aralık', timeSystem:'utc', bounds:{ start:Date.now() - 12 * ONE_MIN, end:Date.now() + ONE_MIN } }
+  ] }));
+  openmct.install(AkanaPlugin());
+  openmct.time.setTimeSystem('utc');
+
+  // Veri kaynağı: sayfa yi_core sunucusundan açıldıysa WebSocket, değilse dahili simülasyon
+  (async () => {
+    LIVE.on = await liveProbe();
+    if (LIVE.on){
+      await liveConnect();                              // ilk hello + geçmiş gelmeden Open MCT başlamasın
+      setInterval(liveTick, 100);
+    } else {
+      boot();
+      setInterval(() => { UI.T = (Date.now() - EPOCH) / 1000; if (UI.T < Flight.tLand + 60) step(UI.T); }, 100);
+    }
+    location.hash = '#/browse/akana:root';
+    openmct.on('start', () => setTimeout(() => { skySetup(); const b = document.querySelector('.l-shell__pane-inspector .l-pane__collapse-button'); b && b.click(); }, 50));
+    openmct.start(document.getElementById('omct-mount'));
+  })();
+</script>
+
+</html>

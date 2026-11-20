@@ -1,0 +1,7 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pyserial>=3.5
+pytest>=8.0
+httpx>=0.27
+# isteğe bağlı: masaüstü penceresi (--app)
+# pywebview>=5.0

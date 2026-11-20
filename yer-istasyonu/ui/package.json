@@ -1,0 +1,9 @@
+{
+  "name": "akana-yer-istasyonu-ui",
+  "private": true,
+  "description": "AKANA yer istasyonu arayüzü — Open MCT 4.3.1 dosyalarını yerel kopyalar",
+  "scripts": {
+    "kur": "node -e \"require('fs').cpSync('node_modules/openmct/dist','openmct',{recursive:true})\""
+  },
+  "dependencies": { "openmct": "4.3.1" }
+}
