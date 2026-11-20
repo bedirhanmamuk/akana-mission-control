@@ -9,6 +9,9 @@ npm run baslat   # http://localhost:8765 adresini tarayıcıda aç
 
 - `index.html` + `akana-sky.js` — sade görev ekranı (SkyView düzeni). Uçuş profili gömülü Open MCT grafiğidir;
   "Çalışma alanı" tuşu tam Open MCT arayüzünü (ağaç, LAD/tablo, düzenler, defter) açar. Açık/koyu tema.
+- `akana-analiz.js` — Analiz modu (PlotJuggler çalışma biçiminden esinlenildi, kod alınmadı): sinyal ağacından sürükle-bırak,
+  1/2/4 bölmeli grafik alanı, ortak zaman imleci ve X ekseni, XY grafiği, türetilmiş sinyaller (türev, integral,
+  hareketli ortalama/std, ölçek, mutlak, örnekler arası süre, aykırı değer temizleme), olay işaretleri, kayıt oynatma (0,5–10×).
 - `calisma-alani.html` — yalnızca Open MCT arayüzü (önceki sürüm).
 - `akana.js` — simülasyon çekirdeği (uçuş modeli, doğrulama, olay teyidi, şartname kontrolleri) + Open MCT eklentisi
   (nesne sağlayıcı, telemetri sağlayıcı, 6 özel görünüm, esnek düzen "Operasyon ekranı", hakem ekranı).

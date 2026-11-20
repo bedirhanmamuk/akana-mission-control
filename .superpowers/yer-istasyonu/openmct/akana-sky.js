@@ -85,7 +85,10 @@ function skySetup(){
   $$('refBtn').onclick = () => { const r=$$('ref'); r.hidden=false; refApi=mountReferee($$('refBody')); };
   $$('refClose').onclick = () => { $$('ref').hidden=true; refApi&&refApi.destroy(); refApi=null; $$('refBody').innerHTML=''; };
   // Open MCT çalışma alanı
-  $$('wsBtn').onclick = () => { const open=document.body.classList.toggle('ws'); $$('wsBtn').classList.toggle('on',open);
+  anSetup();
+  $$('anClose').onclick = () => $$('anBtn').click();
+  $$('anBtn').onclick = () => { const open=!AN.open; if (open && document.body.classList.contains('ws')) $$('wsBtn').click(); anToggle(open); $$('anBtn').classList.toggle('on',open); };
+  $$('wsBtn').onclick = () => { if (AN.open) $$('anBtn').click(); const open=document.body.classList.toggle('ws'); $$('wsBtn').classList.toggle('on',open);
     location.hash = open ? '#/browse/akana:root/akana:ops' : '#/browse/akana:root'; };
   // tema: Open MCT teması yükleme anında seçilir, değişim sayfayı yeniler
   $$('themeBtn').onclick = () => { try { localStorage.setItem('akana.theme', THEME==='light'?'dark':'light'); } catch(e){} location.reload(); };
