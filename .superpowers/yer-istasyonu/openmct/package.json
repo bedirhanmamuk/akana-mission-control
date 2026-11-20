@@ -1,0 +1,10 @@
+{
+  "name": "akana-yer-istasyonu-openmct",
+  "private": true,
+  "description": "AKANA yer istasyonu — Open MCT 4.3.1 üzerinde simülasyon prototipi",
+  "scripts": {
+    "kur": "npm install && rm -rf openmct && cp -r node_modules/openmct/dist openmct",
+    "baslat": "python3 -m http.server 8765"
+  },
+  "dependencies": { "openmct": "4.3.1" }
+}

@@ -1,0 +1,14 @@
+# AKANA yer istasyonu — Open MCT prototipi
+
+Open MCT 4.3.1 (NASA, Apache 2.0) üzerine kurulu AKANA eklentisi. Şu an **simülasyon modunda**; veriler dahili simülatörden gelir.
+
+```bash
+npm run kur      # openmct paketini indirir, dist/ klasörünü ./openmct altına kopyalar
+npm run baslat   # http://localhost:8765 adresini tarayıcıda aç
+```
+
+- `akana.js` — simülasyon çekirdeği (uçuş modeli, doğrulama, olay teyidi, şartname kontrolleri) + Open MCT eklentisi
+  (nesne sağlayıcı, telemetri sağlayıcı, 6 özel görünüm, esnek düzen "Operasyon ekranı", hakem ekranı).
+- `tiles.js` — Aksaray rampa çevresi çevrimdışı harita karoları (© Esri).
+- Gerçek sisteme geçişte yalnızca telemetri sağlayıcısının `request/subscribe` kaynağı değişir
+  (simülatör yerine yi-core WebSocket akışı); görünümler aynı kalır.
