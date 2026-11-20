@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="640 468 720 756" width="720" height="756">
+  <defs>
+    <linearGradient id="lgL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b16d0"/><stop offset=".72" stop-color="#9a2cf0"/><stop offset=".86" stop-color="#e24dff"/><stop offset="1" stop-color="#7a1fd6"/></linearGradient>
+    <linearGradient id="lgR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b13bff"/><stop offset=".45" stop-color="#6b14c9"/><stop offset="1" stop-color="#3d0a8f"/></linearGradient>
+    <linearGradient id="lgC1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4a1494"/><stop offset="1" stop-color="#2a0a5c"/></linearGradient>
+    <linearGradient id="lgC2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2c0b60"/><stop offset="1" stop-color="#1a0638"/></linearGradient>
+  </defs>
+  <polygon points="985,484 988,686 838,946 663,1067" fill="url(#lgL)"/>
+  <polygon points="1000,478 1000,683 1147,932 1328,1056" fill="url(#lgR)"/>
+  <polygon points="655,1097 998,862 998,973 655,1210" fill="url(#lgC1)"/>
+  <polygon points="998,862 1344,1090 1345,1206 998,973" fill="url(#lgC2)"/>
+</svg>
