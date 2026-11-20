@@ -478,19 +478,23 @@ function buildObjects(){
     keys.forEach(k => { const p = POINT_INDEX[k]; OBJ[k] = { identifier:id(k), name:(PREFIX[g] ? PREFIX[g] + ' · ' : '') + p.name, type:'akana.telemetry', telemetry:metaFor(p), location:`${NS}:f.${g}` }; });
     folder('f.' + g, FOLDERS[g], keys); groups.push('f.' + g);
   }
-  const plot = (key, name, comp) => (OBJ[key] = { identifier:id(key), name, type:'telemetry.plot.overlay', composition:comp.map(id), configuration:{ series:[] }, location:`${NS}:f.plots` });
-  plot('plot.alt', 'İrtifa', ['main.alt','payload.alt','backup.alt']);
-  plot('plot.vel', 'Hız', ['calc.v','main.vz']);
-  plot('plot.acc', 'İvme', ['backup.ax','backup.ay','backup.az','calc.acc']);
-  plot('plot.p',   'Basınç', ['main.p','payload.p']);
-  plot('plot.env', 'Görev yükü ortamı', ['payload.temp','payload.hum']);
-  plot('plot.rf',  'Sinyal (RSSI)', SRC.map(s => `link.${s}.rssi`));
+  // Seri renkleri anlam taşır: mavi roket (ana), mor yedek/hesaplanan, turuncu görev yükü
+  const plot = (key, name, comp, colors) => (OBJ[key] = { identifier:id(key), name, type:'telemetry.plot.overlay', composition:comp.map(id), location:`${NS}:f.plots`,
+    configuration:{ series: comp.map((k,i) => ({ identifier:id(k), color:colors[i], markers:false, interpolate:'linear' })) } });
+  plot('plot.alt', 'İrtifa', ['main.alt','payload.alt','backup.alt'], ['#1f6feb','#e07a12','#8a5cf6']);
+  plot('plot.vel', 'Hız', ['calc.v','main.vz'], ['#8a5cf6','#1f6feb']);
+  plot('plot.acc', 'İvme', ['backup.ax','backup.ay','backup.az','calc.acc'], ['#e5484d','#14915a','#1f6feb','#5b6b82']);
+  plot('plot.p',   'Basınç', ['main.p','payload.p'], ['#1f6feb','#e07a12']);
+  plot('plot.tmp', 'Sıcaklık', ['main.temp','payload.temp'], ['#1f6feb','#e07a12']);
+  plot('plot.hum', 'Nem', ['payload.hum'], ['#e07a12']);
+  plot('plot.env', 'Görev yükü ortamı', ['payload.temp','payload.hum'], ['#e07a12','#14915a']);
+  plot('plot.rf',  'Sinyal (RSSI)', SRC.map(s => `link.${s}.rssi`), ['#1f6feb','#8a5cf6','#e07a12']);
   OBJ['lad.main'] = { identifier:id('lad.main'), name:'Ana telemetri', type:'LadTable', location:`${NS}:f.plots`,
     configuration:{ hiddenColumns:{ timestamp:true, type:true }, isFixedLayout:false, objectStyles:{} },
     composition:['main.phase','main.alt','main.vz','calc.v','calc.mach','calc.acc','main.p','main.temp','backup.gpsAlt','backup.lat','backup.lon','backup.bat','payload.alt','payload.temp','payload.hum','link.main.rssi'].map(id) };
   OBJ['table.pkt'] = { identifier:id('table.pkt'), name:'Telemetri tablosu', type:'table', location:`${NS}:f.plots`,
     composition:['main.alt','main.vz','main.p','payload.alt','payload.temp'].map(id), configuration:{} };
-  folder('f.plots', 'Grafikler ve tablolar', ['lad.main','table.pkt','plot.alt','plot.vel','plot.acc','plot.p','plot.env','plot.rf']);
+  folder('f.plots', 'Grafikler ve tablolar', ['lad.main','table.pkt','plot.alt','plot.vel','plot.acc','plot.p','plot.tmp','plot.hum','plot.env','plot.rf']);
   const panel = (key, name, type) => (OBJ[key] = { identifier:id(key), name, type, location:`${NS}:f.views` });
   panel('v.phases', 'Uçuş durumu', 'akana.phases');
   panel('v.map', 'Konum takibi', 'akana.map');

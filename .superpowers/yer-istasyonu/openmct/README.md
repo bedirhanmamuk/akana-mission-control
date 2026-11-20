@@ -7,6 +7,9 @@ npm run kur      # openmct paketini indirir, dist/ klasörünü ./openmct altın
 npm run baslat   # http://localhost:8765 adresini tarayıcıda aç
 ```
 
+- `index.html` + `akana-sky.js` — sade görev ekranı (SkyView düzeni). Uçuş profili gömülü Open MCT grafiğidir;
+  "Çalışma alanı" tuşu tam Open MCT arayüzünü (ağaç, LAD/tablo, düzenler, defter) açar. Açık/koyu tema.
+- `calisma-alani.html` — yalnızca Open MCT arayüzü (önceki sürüm).
 - `akana.js` — simülasyon çekirdeği (uçuş modeli, doğrulama, olay teyidi, şartname kontrolleri) + Open MCT eklentisi
   (nesne sağlayıcı, telemetri sağlayıcı, 6 özel görünüm, esnek düzen "Operasyon ekranı", hakem ekranı).
 - `tiles.js` — Aksaray rampa çevresi çevrimdışı harita karoları (© Esri).
